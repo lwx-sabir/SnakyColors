@@ -1,0 +1,150 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\unity\\Color Run - Complete Project\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|d:\\projects\\unity\\color run - complete project\\assets\\color run\\scripts\\playersettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|solutionrelative:assets\\color run\\scripts\\playersettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|D:\\Projects\\unity\\Color Run - Complete Project\\assets\\color run\\scripts\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|solutionrelative:assets\\color run\\scripts\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|D:\\Projects\\unity\\Color Run - Complete Project\\assets\\color run\\scripts\\playercollision.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|solutionrelative:assets\\color run\\scripts\\playercollision.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|D:\\Projects\\unity\\Color Run - Complete Project\\assets\\color run\\scripts\\arenarandomcolorgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|solutionrelative:assets\\color run\\scripts\\arenarandomcolorgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|D:\\Projects\\unity\\Color Run - Complete Project\\assets\\color run\\scripts\\colorlib.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|solutionrelative:assets\\color run\\scripts\\colorlib.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|D:\\Projects\\unity\\Color Run - Complete Project\\assets\\color run\\scripts\\menus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|solutionrelative:assets\\color run\\scripts\\menus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|D:\\Projects\\unity\\Color Run - Complete Project\\assets\\color run\\scripts\\playercolor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|solutionrelative:assets\\color run\\scripts\\playercolor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|D:\\Projects\\unity\\Color Run - Complete Project\\assets\\color run\\scripts\\playersprite.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B10ED57E-BCB6-5C1B-5720-2D6B78E0F0D4}|Assembly-CSharp.csproj|solutionrelative:assets\\color run\\scripts\\playersprite.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "PlayerSettings.cs",
+              "DocumentMoniker": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerSettings.cs",
+              "RelativeDocumentMoniker": "Assets\\Color Run\\Scripts\\PlayerSettings.cs",
+              "ToolTip": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerSettings.cs",
+              "RelativeToolTip": "Assets\\Color Run\\Scripts\\PlayerSettings.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABwAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-21T22:16:26Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ColorLib.cs",
+              "DocumentMoniker": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\ColorLib.cs",
+              "RelativeDocumentMoniker": "Assets\\Color Run\\Scripts\\ColorLib.cs",
+              "ToolTip": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\ColorLib.cs",
+              "RelativeToolTip": "Assets\\Color Run\\Scripts\\ColorLib.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAQwCQAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-20T21:11:25.006Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ArenaRandomColorGenerator.cs",
+              "DocumentMoniker": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\ArenaRandomColorGenerator.cs",
+              "RelativeDocumentMoniker": "Assets\\Color Run\\Scripts\\ArenaRandomColorGenerator.cs",
+              "ToolTip": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\ArenaRandomColorGenerator.cs",
+              "RelativeToolTip": "Assets\\Color Run\\Scripts\\ArenaRandomColorGenerator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAABTAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-20T19:00:39.078Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PlayerCollision.cs",
+              "DocumentMoniker": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerCollision.cs",
+              "RelativeDocumentMoniker": "Assets\\Color Run\\Scripts\\PlayerCollision.cs",
+              "ToolTip": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerCollision.cs",
+              "RelativeToolTip": "Assets\\Color Run\\Scripts\\PlayerCollision.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAACIAAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-20T18:52:53.05Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PlayerMovement.cs",
+              "DocumentMoniker": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerMovement.cs",
+              "RelativeDocumentMoniker": "Assets\\Color Run\\Scripts\\PlayerMovement.cs",
+              "ToolTip": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerMovement.cs",
+              "RelativeToolTip": "Assets\\Color Run\\Scripts\\PlayerMovement.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAQwC8AAABaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-20T18:52:00.371Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "PlayerColor.cs",
+              "DocumentMoniker": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerColor.cs",
+              "RelativeDocumentMoniker": "Assets\\Color Run\\Scripts\\PlayerColor.cs",
+              "ToolTip": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerColor.cs",
+              "RelativeToolTip": "Assets\\Color Run\\Scripts\\PlayerColor.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAAowEsAAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-20T18:53:14.024Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "PlayerSprite.cs",
+              "DocumentMoniker": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerSprite.cs",
+              "RelativeDocumentMoniker": "Assets\\Color Run\\Scripts\\PlayerSprite.cs",
+              "ToolTip": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\PlayerSprite.cs",
+              "RelativeToolTip": "Assets\\Color Run\\Scripts\\PlayerSprite.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAYwDEAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-20T19:18:46.073Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Menus.cs",
+              "DocumentMoniker": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\Menus.cs",
+              "RelativeDocumentMoniker": "Assets\\Color Run\\Scripts\\Menus.cs",
+              "ToolTip": "D:\\Projects\\unity\\Color Run - Complete Project\\Assets\\Color Run\\Scripts\\Menus.cs",
+              "RelativeToolTip": "Assets\\Color Run\\Scripts\\Menus.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAawBcAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-20T18:17:20.036Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

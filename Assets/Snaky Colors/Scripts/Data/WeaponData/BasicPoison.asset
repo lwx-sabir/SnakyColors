@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24b218ce42cf8944c812feeb3665738d, type: 3}
+  m_Name: BasicPoison
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.WeaponData
+  weaponName: Basic Poison
+  weaponPrefab: {fileID: 0}
+  projectilePrefab: {fileID: 4916228840508241268, guid: 34f7cb80465af79429db9e371a9b2174, type: 3}
+  icon: {fileID: 0}
+  fireRate: 0.2
+  projectileSpeed: 7
+  damage: 10
+  lifetime: 2
+  autoFire: 1
+  muzzleEffect: {fileID: 0}
+  impactEffect: {fileID: 6839142321967070960, guid: 28aba9c82ebd31642ad0bef5b377e98d, type: 3}
+  fireSound: {fileID: 8300000, guid: 8631c921314326e478e7503cf29886c6, type: 3}

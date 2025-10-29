@@ -1,0 +1,1 @@
+D:\Projects\Snaky Colors\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\build\intermediates\cxx\RelWithDebInfo\37ay6z2y\obj\arm64-v8a

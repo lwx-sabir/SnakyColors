@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 4540da863d9f44c4fa1474add1bec532
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 234556
+  packageName: Color Run - Complete Project
+  packageVersion: 1.0
+  assetPath: Assets/Color Run/Scripts/ArenaRandomColorGenerator.cs
+  uploadId: 530957

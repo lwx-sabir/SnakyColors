@@ -1,0 +1,23 @@
+# ninja log v5
+13	1848	7828856387274623	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	a46745a267aabb38
+54	362	7828856372422463	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	a74600abd6546e64
+45	1727	7828856386069158	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	fa19fd049da0ef59
+0	1513	7828856383882787	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	760d75e30b8600f6
+364	545	7828856374037211	D:/Projects/Snaky Colors/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/37ay6z2y/obj/arm64-v8a/libswappywrapper.so	f34f6c86eb7a69c8
+25	1486	7828856383641143	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	2caeeca7169c42a
+19	1505	7828856383812125	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	d6028ce051a9c6b3
+7	1589	7828856384688542	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	e543981dfac47619
+37	1531	7828856384093920	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	4283ae96d7492421
+31	1748	7828856386292549	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	94d9023a88f22819
+1849	1927	7828856388088229	D:/Projects/Snaky Colors/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/37ay6z2y/obj/arm64-v8a/libgame.so	c4104f411b50393d
+98	496	7829866852125858	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	a74600abd6546e64
+496	1131	7829866858423097	D:/Projects/Snaky Colors/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/37ay6z2y/obj/arm64-v8a/libswappywrapper.so	f34f6c86eb7a69c8
+52	2055	7829866867793632	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	d6028ce051a9c6b3
+90	2077	7829866868010848	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	2caeeca7169c42a
+35	2099	7829866868242258	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	760d75e30b8600f6
+66	2123	7829866868477339	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	4283ae96d7492421
+43	2173	7829866868997598	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	e543981dfac47619
+83	2342	7829866870695620	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	94d9023a88f22819
+13	2428	7829866871543046	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	a46745a267aabb38
+59	2491	7829866872179093	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	fa19fd049da0ef59
+2491	2732	7829866874602561	D:/Projects/Snaky Colors/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/37ay6z2y/obj/arm64-v8a/libgame.so	c4104f411b50393d

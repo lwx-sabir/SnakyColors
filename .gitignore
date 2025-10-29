@@ -1,0 +1,37 @@
+# Unity auto-generated files that don't need to be in Git
+
+# OS meta files
+.DS_Store
+Thumbs.db
+
+# User-specific files
+*.swp
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.ide
+*.sln.cache
+
+# Build folders (optional to ignore)
+[Bb]uild/
+[Bb]uilds/
+Temp/
+Obj/
+Library/
+
+# Logs
+*.log
+
+# Cache / Unity generated
+MemoryCaptures/
+sysinfo.txt
+
+# Crash reports
+*.stacktrace
+
+# JetBrains Rider
+.idea/
+*.sln.iml

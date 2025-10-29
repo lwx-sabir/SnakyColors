@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &589074279215490605
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8372447889331422287}
+  - component: {fileID: 7362366235206854643}
+  m_Layer: 0
+  m_Name: DynamicItemSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8372447889331422287
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 589074279215490605}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -104.37294, y: -16.67702, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7362366235206854643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 589074279215490605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78c2fc884e101cd49b4f15315f05833b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.DynamicItemSpawner
+  itemPoolerPrefab: {fileID: 7005301109950426920, guid: 6e0aae1ee21fdbb459af1715d140408e, type: 3}
+  allAvailableItems:
+  - {fileID: 11400000, guid: 9285286e099c7c740a90e83197b23780, type: 2}
+  - {fileID: 11400000, guid: a9bed627920be5a4b83e2f3a144dc8be, type: 2}
+  - {fileID: 11400000, guid: e59be2cc3bb2d5647841925baf8cf871, type: 2}
+  - {fileID: 11400000, guid: ea864f72c30317c4cb4206d5e66497d3, type: 2}
+  - {fileID: 11400000, guid: c35ce9f25bf1c2c42aba95226e50af90, type: 2}
+  player: {fileID: 0}
+  trackWidth: 5
+  spawnDistance: 10
+  spawnInterval: 0.5
+  clipBuffer: 0.1
+  noOverlap: 1
+  minOverlapDistance: 0.8
+  maxActiveItems: 25
+  limitSpawnWhenFull: 1

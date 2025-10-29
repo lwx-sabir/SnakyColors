@@ -1,0 +1,183 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\Snaky Colors\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|d:\\projects\\snaky colors\\assets\\snaky colors\\scripts\\items\\itemdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\itemdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\gameplay\\enemies\\enemy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\enemies\\enemy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\gameplay\\players\\playershooting\\playershooting.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\players\\playershooting\\playershooting.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\items\\generateditem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\generateditem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\gameplay\\players\\playershooting\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\players\\playershooting\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\gameplay\\enemies\\basicshootable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\enemies\\basicshootable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\ui\\foodhuntergameplayui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\ui\\foodhuntergameplayui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\gamemangers\\powerupmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gamemangers\\powerupmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\gamemangers\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gamemangers\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|D:\\Projects\\Snaky Colors\\assets\\snaky colors\\scripts\\gameplay\\players\\playerstats.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3FF1DFA8-9E4A-D6BB-0FDC-7513C6CE1CDE}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\players\\playerstats.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "GameManager.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
+              "ViewState": "AgIAACQAAAAAAAAAAAAkwGEAAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-22T23:17:21.622Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "FoodHunterGameplayUI.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\UI\\FoodHunterGameplayUI.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\UI\\FoodHunterGameplayUI.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\UI\\FoodHunterGameplayUI.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\UI\\FoodHunterGameplayUI.cs",
+              "ViewState": "AgIAAMkAAAAAAAAAAAAuwPMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-28T20:24:14.811Z",
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ItemData.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\Items\\ItemData.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\ItemData.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\Items\\ItemData.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\ItemData.cs",
+              "ViewState": "AgIAADUAAAAAAAAAAAAQwEcAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-29T02:21:10.008Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "BasicShootable.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\BasicShootable.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\BasicShootable.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\BasicShootable.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\BasicShootable.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-28T23:14:07.718Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Enemy.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\Enemy.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\Enemy.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\Enemy.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\Enemy.cs",
+              "ViewState": "AgIAAHsAAAAAAAAAAAAkwKcAAABcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-28T23:05:52.42Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "PowerupManager.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\PowerupManager.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GameMangers\\PowerupManager.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\PowerupManager.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GameMangers\\PowerupManager.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAowCkAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-28T20:30:29.455Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "GeneratedItem.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
+              "ViewState": "AgIAAJUAAAAAAAAAAAAvwLMAAABTAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-28T16:21:23.585Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "PlayerStats.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerStats.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerStats.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerStats.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerStats.cs",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAEwFgAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-28T15:34:40.593Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PlayerShooting.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerShooting\\PlayerShooting.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerShooting\\PlayerShooting.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerShooting\\PlayerShooting.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerShooting\\PlayerShooting.cs",
+              "ViewState": "AgIAAH4AAAAAAAAAAAAewJIAAABLAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-27T16:40:55.839Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Projectile.cs",
+              "DocumentMoniker": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerShooting\\Projectile.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerShooting\\Projectile.cs",
+              "ToolTip": "D:\\Projects\\Snaky Colors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerShooting\\Projectile.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerShooting\\Projectile.cs",
+              "ViewState": "AgIAABIAAAAAAAAAAAAowDsAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-27T16:40:30.711Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

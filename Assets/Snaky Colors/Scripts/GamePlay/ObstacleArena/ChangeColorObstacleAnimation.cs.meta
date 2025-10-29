@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: d519676d01b0d8148b3a8dd87ab2a587
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 234556
+  packageName: Color Run - Complete Project
+  packageVersion: 1.0
+  assetPath: Assets/Color Run/Scripts/ChangeColorObstacleAnimation.cs
+  uploadId: 530957

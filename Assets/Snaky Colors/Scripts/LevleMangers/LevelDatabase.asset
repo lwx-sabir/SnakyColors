@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79b3e87e58eeddb4eb0a22727aa269ec, type: 3}
+  m_Name: LevelDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.LevelDatabase
+  levels:
+  - missionNumber: 1
+    missionName: Blast 20 Matched Colors
+    missionDescription: Blast 20 Matched Colors
+    basePlayerSpeed: 2
+    steeringSpeed: 10
+    rotationSpeed: 15
+    speedMultiplier: 1
+    arenas: []
+    loopArenaCount: 2
+    objectiveType: 1
+    objectiveValue: 20
+    colorPalette: 0
+    colorDifficulty: 0.028
+    starReward: 10
+    unlockableItemID: DefaultSkin_01
+    timeLimit: 0
+    backgroundColor: {r: 0, g: 0, b: 0, a: 1}
+    levelMusic: {fileID: 0}
+    aiIntensity: 1
+    specialRule: 
