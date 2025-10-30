@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9276b6eae820cc74c825b6d2a1e86689, type: 3}
+  m_Name: Skull_Enemy
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemData
+  itemName: Bomb
+  prefab: {fileID: 20062339078289316, guid: d32dfef8c80d2c64e93339fb7211d5d6, type: 3}
+  category: 3
+  powerupEffect: 0
+  value: -10
+  scoreText: 1
+  secondaryValue: 0
+  duration: 5
+  icon: {fileID: 0}
+  collectSound: {fileID: 0}
+  itemColor: {r: 1, g: 1, b: 1, a: 1}
+  spawnProbability: 0.3
+  isUniquePerScreen: 0
+  poolSize: 10
+  sameItemCannotOverlap: 1
+  sameItemMinRadius: 1
+  autoDespawnAfterDuration: 0
+  isAttractable: 0
+  comboEligible: 1
+  magnetPullSpeed: 15
+  magnetRange: 5
+  magnetBaseWidth: 6

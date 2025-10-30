@@ -14,7 +14,7 @@ namespace SnakyColors
         [Header("Player & Camera")]
         public GameObject playerPrefab;
         public CameraFollow mainCamera;
-        private GameObject playerInstance;
+        public GameObject playerInstance;
 
         [Header("Spawner")]
         [SerializeField] private DynamicItemSpawner spawnerPrefab;

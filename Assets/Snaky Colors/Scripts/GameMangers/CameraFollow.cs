@@ -8,7 +8,8 @@ namespace SnakyColors
         public GameObject player;
 
         [Header("Vertical Offset Settings")]
-        public float verticalOffset = 2.5f; // base offset above player
+        public float verticalOffset = 3.2f; // base offset above player
+        public float verticalOffsetOverride = 3.5f; // base offset above player
         public float maxTrailOffset = 2f;   // max additional offset for trail
 
         [Header("Follow Settings")]
@@ -36,11 +37,21 @@ namespace SnakyColors
 
         private void AdjustCameraSize()
         {
-            float screenAspectRatio = (float)Screen.width / Screen.height;
-            float orthographicSize = 6f - (screenAspectRatio - 0.485f) * 11f;
-            if (orthographicSize < 4f) orthographicSize = 4f;
-            Camera.main.orthographicSize = orthographicSize;
+            Camera cam = Camera.main;
+            if (cam == null) return;
+
+            float aspect = (float)Screen.width / Screen.height;
+
+            float baseAspect = 1080f / 1920f; // your design aspect (width/height)
+            float baseSize = 6.7f;              // vertical size for base aspect 
+
+            float newSize = baseSize * (baseAspect / aspect); // scale proportionally
+            newSize = Mathf.Clamp(newSize, 4.7f, 8f);          // min/max clamp
+
+            cam.orthographicSize = newSize;
         }
+
+
 
         public void InitializePosition()
         {
@@ -55,32 +66,33 @@ namespace SnakyColors
         {
             if (player == null) return;
 
+            // Calculate dynamic vertical offset (sprite + trail)
             float dynamicOffset = CalculateDynamicOffset();
-            float targetPlayerY = player.transform.position.y + dynamicOffset;
 
-            float finalFollowSpeed = followSpeed;
+            // Base target Y with vertical offset
+            float targetPlayerY = player.transform.position.y + dynamicOffset;
 
             if (isDashing)
             {
-                // Dash anticipation logic (unchanged)
-                targetPlayerY += dashLookAhead;
-                targetY = Mathf.Lerp(targetY, targetPlayerY, Time.deltaTime * dashLagSpeed);
+                // Dash anticipation: add extra offset
+                float dashTargetY = targetPlayerY + dashLookAhead;
+
+                // Smoothly follow with dash lag speed
+                targetY = Mathf.Lerp(targetY, dashTargetY, Time.deltaTime * dashLagSpeed);
             }
             else
             {
-                // Use the adjustable factor here
-                finalFollowSpeed = followSpeed * currentFollowFactor;
-
-                // Smooth follow
-                targetY = Mathf.Lerp(targetY, targetPlayerY, Time.deltaTime * finalFollowSpeed);
+                // Normal smooth follow with adjustable factor
+                targetY = Mathf.Lerp(targetY, targetPlayerY, Time.deltaTime * followSpeed * currentFollowFactor);
             }
 
-            // Clamp to allowed Y range
+            // Clamp camera within min/max Y
             targetY = Mathf.Clamp(targetY, minY, maxY);
 
-            // Apply position
+            // Apply camera position
             transform.position = new Vector3(transform.position.x, targetY, -10f);
-        } 
+        }
+
 
         public void ResetCamera()
         {
@@ -91,8 +103,8 @@ namespace SnakyColors
          
         public void EndDashTransition()
         { 
-            // gradually closing the large gap to the player's new position.
             targetY = transform.position.y;
+            this.verticalOffset = this.verticalOffsetOverride;
         }
 
         private float CalculateDynamicOffset()

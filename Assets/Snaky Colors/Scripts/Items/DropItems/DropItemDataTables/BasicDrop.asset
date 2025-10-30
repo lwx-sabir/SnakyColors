@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ee38f0915fd5af44944184d36e4bbd9, type: 3}
+  m_Name: BasicDrop
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.EnemyDropTable
+  overallDropChance: 0.707
+  potentialDrops:
+  - item: {fileID: 11400000, guid: c35ce9f25bf1c2c42aba95226e50af90, type: 2}
+    dropWeight: 0.2
+    minDropCount: 1
+    maxDropCount: 1
+    limitInSecond: 30
+  - item: {fileID: 11400000, guid: a9bed627920be5a4b83e2f3a144dc8be, type: 2}
+    dropWeight: 0.5
+    minDropCount: 1
+    maxDropCount: 3
+    limitInSecond: 0
+  - item: {fileID: 11400000, guid: 9285286e099c7c740a90e83197b23780, type: 2}
+    dropWeight: 0.6
+    minDropCount: 1
+    maxDropCount: 4
+    limitInSecond: 0

@@ -47,6 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FoodHunterGameMood
   playerPrefab: {fileID: 2238576391783091341, guid: 48a2d0c9678127b46970f6be7bcb8314, type: 3}
   mainCamera: {fileID: 0}
+  playerInstance: {fileID: 0}
   spawnerPrefab: {fileID: 7362366235206854643, guid: 33e4337276c6e7f408ea20fde97c3609, type: 3}
 --- !u!114 &-6488373212555778986
 MonoBehaviour:
@@ -60,5 +61,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11f431ece856ca743939cef3c30bdf25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ScrollingBackground
-  tilePrefab: {fileID: 9220091732358131049, guid: ce13f14aa9b6c9e43b2936fc2c956fd0, type: 3}
+  tilePrefab: {fileID: 7282462016348747658, guid: d060cb48ce19da849b3591f52f3f0193, type: 3}
   initialTileCount: 3

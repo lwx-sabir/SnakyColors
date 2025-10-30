@@ -18,6 +18,9 @@ namespace SnakyColors
         public float headScaleFactor = 0.4f;
         public float trailerWidthFactorToLose = 0.85f;
 
+        [Header("Audio Setup")]
+        [SerializeField] public AudioClip basicHitClip;
+
         [Header("Color Change")]
         public float colorChangeInterval = 30f;
         // Assuming ColorLib exists and is accessible

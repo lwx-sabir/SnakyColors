@@ -196,22 +196,28 @@ namespace SnakyColors
             }
         }
 
-        public void PlayClip(AudioClip clip, float volumeScale = 1f)
+        public void PlayClip(AudioClip clip, float volumeScale = 1f, float minPitch = 0.95f, float maxPitch = 1.05f)
         {
             if (sfxSource == null)
             {
                 Debug.LogError("SFX AudioSource is not assigned in AudioManager!");
                 return;
             }
+
             if (clip == null)
             {
                 Debug.LogWarning("Attempted to play a null AudioClip via PlayClip method.");
                 return;
             }
-             
+
+            // Randomize pitch for natural variation
+            sfxSource.pitch = Random.Range(minPitch, maxPitch);
+
+            // Play the clip with volume scaling
             sfxSource.PlayOneShot(clip, masterVolume * sfxVolume * volumeScale);
         }
-         
+
+
         public void StopBGM()
         {
             if (bgmSource.isPlaying)

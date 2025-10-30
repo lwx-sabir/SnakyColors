@@ -191,7 +191,7 @@ namespace SnakyColors
                 {
                     itemComponent.spawner = this;
                     itemComponent.SetData(selectedItem, player);
-                    Debug.Log(itemComponent.name + " Generated.");
+                    //Debug.Log(itemComponent.name + " Generated.");
                 }
                 else
                 {

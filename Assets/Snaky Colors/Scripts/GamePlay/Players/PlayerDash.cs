@@ -118,24 +118,26 @@ namespace SnakyColors
             isDashing = false;
         }
 
+        // Inside PlayerDash.cs
         private IEnumerator SmoothFollowResetRoutine(float duration)
         {
-            if (cameraFollow == null) yield break;
-
-            cameraFollow.currentFollowFactor = 0.5f;
+            // --- MODIFIED LOGIC ---
+            // 1. Start with a HIGH follow factor to catch up quickly
+            float startFactor = 3.0f; // Start 3x faster (tweak this value)
+            float endFactor = 1f;     // Settle back to normal speed
             float elapsed = 0f;
-            float startFactor = cameraFollow.currentFollowFactor;
-            float endFactor = 1f;
+            // ----------------------
 
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / duration;
+                // Lerp from the high speed *down* to the normal speed
                 cameraFollow.currentFollowFactor = Mathf.Lerp(startFactor, endFactor, t);
                 yield return null;
             }
 
-            cameraFollow.currentFollowFactor = 1f;
+            cameraFollow.currentFollowFactor = 1f; // Ensure it ends exactly at 1 
             followResetCoroutine = null;
         }
     }

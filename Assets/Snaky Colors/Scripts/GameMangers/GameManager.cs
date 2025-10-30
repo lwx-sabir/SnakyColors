@@ -20,7 +20,7 @@ namespace SnakyColors
 
         private Dictionary<string, GameObject> modePrefabDict;
         private Dictionary<string, GameMode> modeInstancePool; // Pooled instances
-        private GameMode currentMode;
+        public GameMode currentMode;
 
         private void Awake()
         {
@@ -73,6 +73,7 @@ namespace SnakyColors
 
             currentMode.StartMode();
             isGameRunning = true;
+            EnemyDropTable.ResetCooldowns();
         }
 
         public void RestartCurrentMode()

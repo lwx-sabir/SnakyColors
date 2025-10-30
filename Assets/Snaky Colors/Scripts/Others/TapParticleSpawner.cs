@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace SnakyColors
 {
@@ -17,19 +18,22 @@ namespace SnakyColors
 
         void Update()
         {
-            // Allow multi-touch or mouse click
-            if (Input.touchCount > 0)
+            Pointer pointer = Pointer.current;
+
+            if (pointer == null)
+                return;
+
+            Vector2 pos = pointer.position.ReadValue();
+
+            // Check if pressed this frame
+            bool pressedThisFrame = pointer.press.wasPressedThisFrame;
+
+            // Check if pointer is over UI
+            bool overUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+
+            if (pressedThisFrame && !overUI)
             {
-                foreach (Touch touch in Input.touches)
-                {
-                    if (touch.phase == TouchPhase.Began)
-                        SpawnTapParticle(touch.position);
-                }
-            }
-            else if (Input.GetMouseButtonDown(0))
-            {
-                if (!EventSystem.current.IsPointerOverGameObject())
-                    SpawnTapParticle(Input.mousePosition);
+                SpawnTapParticle(pos);
             }
         }
 

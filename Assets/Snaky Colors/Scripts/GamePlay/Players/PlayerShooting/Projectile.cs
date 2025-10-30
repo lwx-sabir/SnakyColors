@@ -47,13 +47,13 @@ namespace SnakyColors
                 return; // Stop further processing for this collision
             } 
              
-            else if (other.CompareTag("Bounds")) // Example tag for boundaries
-            {
-                Debug.Log($"Projectile hit Bounds: {other.name}", gameObject);
-                hasHit = true;
-                ProjectilePooler.Instance.ReturnToPool(gameObject);
-                return;
-            }
+            //else if (other.CompareTag("Bounds")) // Example tag for boundaries
+            //{
+            //    Debug.Log($"Projectile hit Bounds: {other.name}", gameObject);
+            //    hasHit = true;
+            //    ProjectilePooler.Instance.ReturnToPool(gameObject);
+            //    return;
+            //}
         }
 
         private void OnBecameInvisible()
