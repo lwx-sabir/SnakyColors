@@ -111,8 +111,7 @@ namespace SnakyColors
                 
                 switch (data.category)
                 {
-                    case ItemCategory.Collectible:
-                    case ItemCategory.Ammo:
+                    case ItemCategory.Collectible: 
                         Debug.Log($"Entering Collectible/Ammo case...", gameObject);
                         HandleCollection();
                         StartCollectSequence();
@@ -147,12 +146,15 @@ namespace SnakyColors
             {
                 if (data.category == ItemCategory.Collectible)
                 {
-                    PlayerStats.Instance.AddToMeter(data.value);
-                }
-                else if (data.category == ItemCategory.Ammo)
-                {
-                    PlayerStats.Instance.AddAmmo((int)data.value);
-                }
+                    if(data.collectibleType == CollectibleType.Basic)
+                    {
+                        PlayerStats.Instance.AddToMeter(data.value);
+                    }
+                    else if(data.collectibleType == CollectibleType.DashCharge)
+                    {
+                        PlayerStats.Instance.AddDashCharge(data.value);
+                    } 
+                } 
 
                 if (int.TryParse(data.scoreText, out int scoreValue) && scoreValue != 0)
                 {
@@ -194,9 +196,15 @@ namespace SnakyColors
         private IEnumerator CollectAndReturnToPool()
         {
             if (collectEffect != null)
-            {
-                collectEffect.PlayCollectAnimation(data.scoreText, data.itemColor);
-                yield return new WaitForSeconds(collectEffect.pullDuration);
+            { 
+                float animationDuration = collectEffect.PlayCollectAnimation(
+                    data.scoreText,
+                    data.itemColor,
+                    data.collectibleType,
+                    data.icon
+                );
+                 
+                yield return new WaitForSeconds(animationDuration);
             }
             ReturnToPool();
         } 

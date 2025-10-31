@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: BasicDrop
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.EnemyDropTable
   overallDropChance: 0.707
+  singletonDropProbability: 0.4
   potentialDrops:
   - item: {fileID: 11400000, guid: c35ce9f25bf1c2c42aba95226e50af90, type: 2}
     dropWeight: 0.2
@@ -29,3 +30,8 @@ MonoBehaviour:
     minDropCount: 1
     maxDropCount: 4
     limitInSecond: 0
+  - item: {fileID: 11400000, guid: 3018c92941d76354fae32c79186d21f2, type: 2}
+    dropWeight: 0.2
+    minDropCount: 1
+    maxDropCount: 1
+    limitInSecond: 20

@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9276b6eae820cc74c825b6d2a1e86689, type: 3}
+  m_Name: DashChargeRefill
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemData
+  itemName: DashChargeRefiller
+  prefab: {fileID: 8372736932161314260, guid: ab8afec1f82839941bbaf6dae80353f0, type: 3}
+  category: 0
+  collectibleType: 3
+  powerupEffect: 0
+  value: 30
+  scoreText: 30
+  secondaryValue: 0
+  duration: 5
+  icon: {fileID: -3017979480325208809, guid: 4373b5a1916f3a8468bc2b0fdefa655e, type: 3}
+  collectSound: {fileID: 8300000, guid: b6e4eb170123046628a050530ee96980, type: 3}
+  itemColor: {r: 0.039215688, g: 0.47450984, b: 0.8117648, a: 1}
+  spawnProbability: 0.001
+  isUniquePerScreen: 1
+  poolSize: 10
+  sameItemCannotOverlap: 0
+  sameItemMinRadius: 10
+  autoDespawnAfterDuration: 0
+  isAttractable: 1
+  comboEligible: 1
+  magnetPullSpeed: 15
+  magnetRange: 5
+  magnetBaseWidth: 6

@@ -139,8 +139,7 @@ namespace SnakyColors
         }
 
         private void HandleInputUp(Vector2 screenPos)
-        {
-            // --- Check if dash is already active ---
+        { 
             if (playerDash.IsDashing()) return;
 
             float touchDuration = Time.time - touchStartTime;
@@ -148,8 +147,7 @@ namespace SnakyColors
 
             if (touchDuration <= MaxTapDuration &&
                 touchMovementDistance <= MaxTapMovement)
-            {
-                // --- Tell the dash script to try starting ---
+            { 
                 playerDash.TryStartDash();
             }
         }

@@ -12,25 +12,31 @@ namespace SnakyColors
         [SerializeField] private int currentScore = 0;
         [SerializeField] private float currentFruitMeter = 0f;
         [SerializeField] private int currentAmmo = 0;
+        [SerializeField] private float currentHealth = 0f;
+        [SerializeField] private float currentDashCharge = 0f;
 
-        // --- Configuration (Optional) ---
+        // --- Configuration ---
         [Header("Configuration")]
         [SerializeField] private int startingAmmo = 10;
-        [SerializeField] private float maxFruitMeter = 100f; // Example max value
+        [SerializeField] private float maxFruitMeter = 1000f;
+        [SerializeField] private float startingHealth = 100f; // Use this as Max Health
+        [SerializeField] private float startingDashCharge = 100f; // Use this as Max Dash
+        [SerializeField] private int maxAmmo = 50; // Added Max Ammo for UI
 
-        // --- Events (Optional but Recommended) ---
-        // Other scripts can listen to these to update UI, etc.
+        // --- Events ---
         public event System.Action<int> OnScoreChanged;
-        public event System.Action<float> OnMeterChanged; // Sends current meter value
+        public event System.Action<float> OnMeterChanged;
         public event System.Action<int> OnAmmoChanged;
+        public event System.Action<float> OnHealthChanged;
+        public event System.Action<float> OnDashChargeChanged;
 
         private void Awake()
         {
-            // Setup Singleton
             if (Instance == null)
             {
                 Instance = this;
-                // DontDestroyOnLoad(gameObject); // Optional: if player stats need to persist across scenes
+                DontDestroyOnLoad(gameObject);
+                ResetStats();
             }
             else
             {
@@ -40,63 +46,47 @@ namespace SnakyColors
 
         private void Start()
         {
-            // Initialize stats at the start of the game/level
-            ResetStats();
         }
 
-        /// <summary>
-        /// Resets all player stats to their initial values.
-        /// Called at the start of a new game or level.
-        /// </summary>
         public void ResetStats()
         {
             currentScore = 0;
             currentFruitMeter = 0f;
             currentAmmo = startingAmmo;
+            currentHealth = startingHealth;
+            currentDashCharge = startingDashCharge;
 
-            // Notify listeners about the reset
             OnScoreChanged?.Invoke(currentScore);
             OnMeterChanged?.Invoke(currentFruitMeter);
             OnAmmoChanged?.Invoke(currentAmmo);
+            OnHealthChanged?.Invoke(currentHealth);
+            OnDashChargeChanged?.Invoke(currentDashCharge);
 
             Debug.Log("PlayerStats Reset");
+            Debug.Log($"ResetStats: startingDashCharge={startingDashCharge}, currentDashCharge={currentDashCharge}");
+
         }
 
-        /// <summary>
-        /// Adds the specified amount to the player's score.
-        /// </summary>
-        /// <param name="amount">Score to add (can be negative).</param>
+        // --- Score Methods ---
         public void AddScore(int amount)
         {
+            if (amount == 0) return;
             currentScore += amount;
-            // Ensure score doesn't go below zero (optional)
-            // currentScore = Mathf.Max(0, currentScore);
-
             OnScoreChanged?.Invoke(currentScore);
             Debug.Log($"Score updated: {currentScore}");
         }
-
-        /// <summary>
-        /// Adds the specified amount to the fruit meter, clamping it to the max value.
-        /// </summary>
-        /// <param name="amount">Amount to add (can be negative).</param>
+         
         public void AddToMeter(float amount)
         {
-            currentFruitMeter += amount;
-            // Clamp the meter value between 0 and max
-            currentFruitMeter = Mathf.Clamp(currentFruitMeter, 0f, maxFruitMeter);
-
+            if (amount == 0f) return;
+            currentFruitMeter = Mathf.Clamp(currentFruitMeter + amount, 0f, maxFruitMeter);
             OnMeterChanged?.Invoke(currentFruitMeter);
             Debug.Log($"Meter updated: {currentFruitMeter}");
         }
-
-        /// <summary>
-        /// Attempts to consume the specified amount of ammo.
-        /// </summary>
-        /// <param name="amount">Amount of ammo to consume.</param>
-        /// <returns>True if ammo was successfully consumed, false otherwise.</returns>
+         
         public bool TryConsumeAmmo(int amount)
         {
+            if (amount <= 0) return false; // Can't consume 0 or less
             if (currentAmmo >= amount)
             {
                 currentAmmo -= amount;
@@ -107,30 +97,80 @@ namespace SnakyColors
             else
             {
                 Debug.Log($"Not enough ammo. Required: {amount}, Have: {currentAmmo}");
-                return false; // Not enough ammo
+                return false;
             }
         }
 
-        /// <summary>
-        /// Adds the specified amount of ammo.
-        /// </summary>
-        /// <param name="amount">Amount to add.</param>
         public void AddAmmo(int amount)
         {
-            if (amount <= 0) return; // Ignore non-positive amounts
-            currentAmmo += amount;
+            if (amount <= 0) return;
+            currentAmmo = Mathf.Min(currentAmmo + amount, maxAmmo); // Clamp to max ammo
             OnAmmoChanged?.Invoke(currentAmmo);
             Debug.Log($"Ammo added. Current: {currentAmmo}");
         }
+         
+        public void TakeDamage(float amount)
+        {
+            if (amount <= 0) return;
+            currentHealth = Mathf.Max(0f, currentHealth - amount); 
+            OnHealthChanged?.Invoke(currentHealth);
+            Debug.Log($"Took {amount} damage. Health: {currentHealth}");
 
+            if (currentHealth <= 0)
+            {
+                HandleDeath(); 
+            }
+        }
 
-        // --- Getters (Optional) ---
-        // Provide read-only access to stats if needed by other scripts
+        public void Heal(float amount)
+        {
+            if (amount <= 0) return;
+            currentHealth = Mathf.Min(currentHealth + amount, startingHealth); // Clamp to max health
+            OnHealthChanged?.Invoke(currentHealth);
+            Debug.Log($"Healed {amount}. Health: {currentHealth}");
+        }
 
+        private void HandleDeath()
+        {
+            Debug.Log("Player has died. Triggering Game Over.");
+            // Example: Tell the GameManager to handle the game over sequence
+            // GameManager.Instance?.GameOver();
+        } 
+         
+        public bool TryConsumeDashCharge(int amount)
+        {
+            if (amount <= 0) return false;
+            if (currentDashCharge >= amount)
+            {
+                currentDashCharge -= amount;
+                OnDashChargeChanged?.Invoke(currentDashCharge);
+                Debug.Log($"Dash charge consumed. Remaining: {currentDashCharge}");
+                return true;
+            }
+            else
+            {
+                Debug.Log($"Not enough dash charge. Required: {amount}, Have: {currentDashCharge}");
+                return false;
+            }
+        }
+
+        public void AddDashCharge(float amount)
+        {
+            if (amount <= 0) return;
+            currentDashCharge = Mathf.Min(currentDashCharge + amount, startingDashCharge);
+            OnDashChargeChanged?.Invoke(currentDashCharge);
+            Debug.Log($"Dash charge added. Current: {currentDashCharge}");
+        }
+
+        // --- Getters ---
         public int GetCurrentScore() => currentScore;
         public float GetCurrentMeter() => currentFruitMeter;
         public float GetMaxMeter() => maxFruitMeter;
         public int GetCurrentAmmo() => currentAmmo;
-
+        public int GetMaxAmmo() => maxAmmo; 
+        public float GetCurrentHealth() => currentHealth;
+        public float GetMaxHealth() => startingHealth; 
+        public float GetCurrentDashCharge() => currentDashCharge;
+        public float GetMaxDashCharge() => startingDashCharge;
     }
 }

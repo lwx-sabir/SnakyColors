@@ -71,6 +71,10 @@ namespace SnakyColors
             if (!currentMode.IsInitialized)
                 currentMode.Initialize();  
 
+            if(PlayerStats.Instance != null)
+            {
+                PlayerStats.Instance.ResetStats();
+            }
             currentMode.StartMode();
             isGameRunning = true;
             EnemyDropTable.ResetCooldowns();

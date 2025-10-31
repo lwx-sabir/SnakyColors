@@ -61,5 +61,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11f431ece856ca743939cef3c30bdf25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ScrollingBackground
-  tilePrefab: {fileID: 7282462016348747658, guid: d060cb48ce19da849b3591f52f3f0193, type: 3}
+  tilePrefab: {fileID: 6123206795725310063, guid: 90b6263029ff6534f9f3c8cba9e4a786, type: 3}
   initialTileCount: 3

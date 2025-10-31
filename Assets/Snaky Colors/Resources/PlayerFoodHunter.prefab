@@ -226,6 +226,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.PlayerDash
   dashTargetDistance: 9
   dashSpeedMultiplier: 9
+  dashCost: 15
 --- !u!114 &4215957963174999107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -259,7 +260,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.PlayerCollisionManager
   playerAnimator: {fileID: 0}
   playerSpriteRenderer: {fileID: 2238576391783091337}
-  invincibilityDuration: 1
+  invincibilityDuration: 0.5
   flashInterval: 0.1
 --- !u!1 &2238576392122157592
 GameObject:

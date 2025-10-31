@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemData
   itemName: Bomb
   prefab: {fileID: 20062339078289316, guid: d32dfef8c80d2c64e93339fb7211d5d6, type: 3}
-  category: 3
+  category: 2
+  collectibleType: 0
   powerupEffect: 0
-  value: -10
-  scoreText: 1
+  value: 5
+  scoreText: 5
   secondaryValue: 0
-  duration: 5
+  duration: 0
   icon: {fileID: 0}
   collectSound: {fileID: 0}
   itemColor: {r: 1, g: 1, b: 1, a: 1}

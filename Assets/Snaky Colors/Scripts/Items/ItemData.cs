@@ -13,7 +13,10 @@ namespace SnakyColors
         public GameObject prefab;
 
         [Tooltip("Primary category of this item for basic logic handling (collision, scoring).")]
-        public ItemCategory category;
+        public ItemCategory category; 
+
+        [Tooltip("Type of collectibles, default basic means foods")]
+        public CollectibleType collectibleType = CollectibleType.Basic;
 
         [Tooltip("The specific powerup effect this item grants, if it's a PowerUp type.")]
         public PowerupType powerupEffect = PowerupType.None;
@@ -82,10 +85,8 @@ namespace SnakyColors
     public enum ItemCategory
     {
         Collectible,   // Adds score/meter (e.g., Fruit)
-        Ammo,          // Adds ammo (e.g., Poison vial)
         PowerUp,       // Grants a temporary effect (Magnet, Rush, Shield, Weapon Change)
         Hazard,        // Deals damage or negative effect on collision (e.g., Obstacle, Bomb)
-        Health,     // Could be a Collectible with specific logic or its own category
     }
 
     // Specific Powerup Effects
@@ -96,5 +97,13 @@ namespace SnakyColors
         Rush,          // Temporary speed boost
         Shield,        // Temporary invulnerability
         WeaponUpgrade  // Temporarily equips a different WeaponData (handled slightly differently) 
+    }
+
+    public enum CollectibleType
+    {
+        Basic,
+        Ammo,
+        Health,
+        DashCharge
     }
 }

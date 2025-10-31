@@ -81,7 +81,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 1535325516486818496, guid: bd6ebf661ce04ab4599d54cda1928984, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -123,6 +123,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.FruitCollectEffect
   pullDuration: 0.15
   popScale: 1.2
+  specialPopScale: 1.6
+  specialPullDuration: 0.9
+  useFruitColor: 1
   ease:
     serializedVersion: 2
     m_Curve:
@@ -147,8 +150,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  useFruitColor: 1
   textMesh: {fileID: 0}
+  iconRenderer: {fileID: 0}
   playerHead: {fileID: 0}
 --- !u!60 &5289800147462217945
 PolygonCollider2D:

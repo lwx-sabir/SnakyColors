@@ -43,23 +43,16 @@ namespace SnakyColors
                 // Handle based on the item's category
                 switch (item.data.category)
                 {
-                    case ItemCategory.Hazard:
-                        // Player hit a hazard item
+                    case ItemCategory.Hazard: 
                         HandleHazardCollision(item);
                         break;
 
-                    case ItemCategory.Collectible:
-                    case ItemCategory.Ammo:
-                        // Player hit a collectible or ammo
-                        // The item itself handles applying stats/sounds via its HandleCollection
-                        HandleCollectibleCollision(item); // Player-specific reaction (optional)
+                    case ItemCategory.Collectible:  
+                        HandleCollectibleCollision(item);
                         break;
 
                     case ItemCategory.PowerUp:
-                        // Player hit a powerup
-                        // The item itself handles activation via its HandlePowerupActivation
-                        // and stats via HandleCollection
-                        HandlePowerupCollision(item); // Player-specific reaction (optional)
+                        HandlePowerupCollision(item);
                         break;
 
                     default:
@@ -86,28 +79,32 @@ namespace SnakyColors
         /// </summary>
         /// <param name="damageAmount">Amount of damage/meter loss to apply.</param>
         public void TakeDamage(float damageAmount)
-        {
-            // Ignore damage if invincible
+        { 
             if (isInvincible) return;
 
             Debug.Log($"Player taking {damageAmount} damage/meter loss.");
 
-            // 1. Apply Damage/Meter Loss via PlayerStats
             if (PlayerStats.Instance != null)
             {
-                PlayerStats.Instance.AddToMeter(-Mathf.Abs(damageAmount)); // Ensure it subtracts
+                PlayerStats.Instance.TakeDamage(Mathf.Abs(damageAmount)); 
             }
             else
             {
                 Debug.LogError("TakeDamage failed: PlayerStats.Instance is NULL!");
             }
 
-            // 2. Play Player Hit Animation (if Animator reference exists)
-            playerAnimator?.SetTrigger("Hit"); // Use null-conditional operator
+            if(playerAnimator != null)
+            {
+                playerAnimator.SetTrigger("Hit");
+            } 
 
-            // 3. Play Player Hit Sound (if AudioManager exists)
-            // TODO: Define and assign a specific player hit sound
-            // AudioManager.Instance?.Play(/* PlayerHitSound */);
+            if (basicHitClip != null)
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayClip(basicHitClip, Random.Range(0.88f, 1f));
+                }
+            }
 
             // 4. Start Invincibility
             StartInvincibility();
@@ -117,14 +114,7 @@ namespace SnakyColors
         /// Called specifically when the player collides with a Hazard-category GeneratedItem.
         /// </summary>
         private void HandleHazardCollision(GeneratedItem hazardItem)
-        {
-            if (basicHitClip != null)
-            {
-                if (AudioManager.Instance != null)
-                {
-                    AudioManager.Instance.PlayClip(basicHitClip, Random.Range(0.88f, 1f));
-                }
-            }
+        { 
             TakeDamage(hazardItem.data.value); 
         }
 

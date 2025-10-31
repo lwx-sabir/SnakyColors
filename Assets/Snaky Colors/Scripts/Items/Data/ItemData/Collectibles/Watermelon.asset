@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Watermelon
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemData
   itemName: Watermelon
-  prefab: {fileID: 4448198519121518975, guid: b49f4c700212f0e40baa8cfa34fc4fcf, type: 3}
+  prefab: {fileID: 624525595450913930, guid: 759a1cf8fa48cfd4da799339b18331e0, type: 3}
   category: 0
+  collectibleType: 0
   powerupEffect: 0
   value: 15
   scoreText: 15

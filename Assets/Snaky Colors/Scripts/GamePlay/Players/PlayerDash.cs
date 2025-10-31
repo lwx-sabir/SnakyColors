@@ -8,6 +8,11 @@ namespace SnakyColors
         [Header("Dash Settings")]
         public float dashTargetDistance = 10f;
         public float dashSpeedMultiplier = 10f;
+         
+        [Header("Dash Cost")]
+        [Tooltip("Amount of charge consumed per dash.")]
+        [SerializeField] private int dashCost = 15; // Example cost
+        // --------------------
 
         // Events
         public event System.Action OnDashStart;
@@ -22,18 +27,12 @@ namespace SnakyColors
         private PlayerMovement playerMovement;
         private CameraFollow cameraFollow;
 
-        /// <summary>
-        /// Called by PlayerMovement to give this script the references it needs.
-        /// </summary>
         public void Setup(PlayerMovement movement, CameraFollow camFollow)
         {
             this.playerMovement = movement;
             this.cameraFollow = camFollow;
         }
 
-        /// <summary>
-        /// Public accessor for other scripts to check the dash state.
-        /// </summary>
         public bool IsDashing()
         {
             return isDashing;
@@ -43,51 +42,50 @@ namespace SnakyColors
         /// Called by PlayerMovement when a "tap" is detected.
         /// </summary>
         public void TryStartDash()
-        {
+        { 
             if (isDashing || dashCoroutine != null || playerMovement == null) return;
+             
+            if (PlayerStats.Instance != null && PlayerStats.Instance.TryConsumeDashCharge(dashCost))
+            { 
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.Play(SoundType.Whoosh1);
+                }
 
-            // Use the AudioManager Singleton
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.Play(SoundType.Whoosh1);
+                playerMovement.ApplyDashWiggle(true);
+                isDashing = true;
+                if (cameraFollow != null) cameraFollow.isDashing = true;
+
+                OnDashStart?.Invoke();
+                dashCoroutine = StartCoroutine(DashRoutine()); 
             }
-
-            // Command PlayerMovement to change its wiggle state
-            playerMovement.ApplyDashWiggle(true);
-
-            isDashing = true;
-            if (cameraFollow != null) cameraFollow.isDashing = true;
-
-            OnDashStart?.Invoke();
-            dashCoroutine = StartCoroutine(DashRoutine());
-        }
+            else
+            { 
+                Debug.Log("Dash failed: Not enough charge."); 
+            }
+        } 
 
         private IEnumerator DashRoutine()
         {
-            // Get data from PlayerMovement
             float originalVelocity = playerMovement.GetVelocity();
             float dashSpeed = originalVelocity * dashSpeedMultiplier;
             float calculatedDuration = dashTargetDistance / dashSpeed;
 
             if (dashSpeed <= 0)
             {
-                Debug.LogWarning("Cannot dash with zero speed multiplier!");
                 StopDash();
                 yield break;
             }
 
             float elapsed = 0f;
-            float startY = playerMovement.GetCurrentY(); // Read Y from PlayerMovement
+            float startY = playerMovement.GetCurrentY();
             float endY = startY + dashTargetDistance;
 
             while (elapsed < calculatedDuration)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / calculatedDuration;
-
-                // Write the new Y value back to PlayerMovement
                 playerMovement.SetCurrentY(Mathf.Lerp(startY, endY, t));
-
                 yield return null;
             }
 
@@ -97,7 +95,6 @@ namespace SnakyColors
 
         private void StopDash()
         {
-            // Command PlayerMovement to restore its wiggle state
             playerMovement.ApplyDashWiggle(false);
 
             if (dashCoroutine != null)
@@ -117,27 +114,24 @@ namespace SnakyColors
 
             isDashing = false;
         }
-
-        // Inside PlayerDash.cs
+         
         private IEnumerator SmoothFollowResetRoutine(float duration)
         {
-            // --- MODIFIED LOGIC ---
-            // 1. Start with a HIGH follow factor to catch up quickly
-            float startFactor = 3.0f; // Start 3x faster (tweak this value)
-            float endFactor = 1f;     // Settle back to normal speed
+            if (cameraFollow == null) yield break;
+
+            float startFactor = 3.0f;
+            float endFactor = 1f;
             float elapsed = 0f;
-            // ----------------------
 
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
                 float t = elapsed / duration;
-                // Lerp from the high speed *down* to the normal speed
                 cameraFollow.currentFollowFactor = Mathf.Lerp(startFactor, endFactor, t);
                 yield return null;
             }
 
-            cameraFollow.currentFollowFactor = 1f; // Ensure it ends exactly at 1 
+            cameraFollow.currentFollowFactor = 1f;
             followResetCoroutine = null;
         }
     }

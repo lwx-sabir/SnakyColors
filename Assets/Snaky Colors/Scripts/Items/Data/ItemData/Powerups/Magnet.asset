@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemData
   itemName: Red Box
   prefab: {fileID: 6131728531684457337, guid: 8854751faf40642408c9315f70285b30, type: 3}
-  category: 2
+  category: 1
+  collectibleType: 0
   powerupEffect: 1
   value: 10
   scoreText: 1

@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemData
   itemName: Danger Bomb
   prefab: {fileID: 8724135902674902302, guid: 3e5c3e8775597c54fac55ab398a66667, type: 3}
-  category: 3
+  category: 2
+  collectibleType: 0
   powerupEffect: 0
   value: 10
   scoreText: 10
   secondaryValue: 0
-  duration: 5
+  duration: 0
   icon: {fileID: 0}
   collectSound: {fileID: 8300000, guid: 1fbe003a87f88924fa2e1028a2fa0d53, type: 3}
   itemColor: {r: 1, g: 1, b: 1, a: 1}
