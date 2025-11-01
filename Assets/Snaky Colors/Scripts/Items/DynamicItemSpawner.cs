@@ -1,254 +1,235 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace SnakyColors
 {
-    public class DynamicItemSpawner : MonoBehaviour
+    [System.Serializable]
+    public class AvailableItemEntry
+    {
+        public ItemData itemData;
+
+        [Range(0f, 10f)]
+        [Tooltip("Relative spawn chance for this item within this spawner.")]
+        public float spawnProbability = 1f;
+
+        [Tooltip("If checked, only one instance of this item type can be active on-screen at once.")]
+        public bool isUniquePerScreen = false;
+    }
+
+    public class DynamicItemSpawner : MonoBehaviour, IItemSpawner
     {
         [Header("Setup")]
         public ItemPooler itemPoolerPrefab;
         [Tooltip("List of ALL items this spawner can generate.")]
-        public List<ItemData> allAvailableItems;
+        public List<AvailableItemEntry> allAvailableItems;
 
-        [HideInInspector]
-        public Transform player;
+        [HideInInspector] public Transform player;
 
         [Header("Generation Settings")]
-        [Tooltip("Total track width for random X placement.")]
         public float trackWidth = 5f;
-        [Tooltip("Minimum distance ahead of the player to start spawning.")]
         public float spawnDistance = 10f;
-        [Tooltip("How often, vertically, to attempt a spawn (e.g., 0.5f means one check every 0.5 units).")]
         public float spawnInterval = 0.5f;
-        [Tooltip("A small margin to keep items off the edges.")]
         public float clipBuffer = 0.2f;
 
         [Header("Overlap Prevention")]
-        [Tooltip("If checked, a new random item won't be spawned if it overlaps an existing active item.")]
         public bool noOverlap = false;
-        [Tooltip("The minimum required distance (radius) between item centers to avoid overlap.")]
         public float minOverlapDistance = 0.8f;
 
-        // --- NEW: Spatial Partitioning ---
         [Header("Performance Optimization")]
-        [Tooltip("Cell size for the spatial hash grid. Should be >= largest 'minOverlapDistance'.")]
-        public float gridCellSize = 2f; // Tune this based on your minOverlapDistance
-
-        // This dictionary *is* the spatial hash grid.
-        private Dictionary<Vector2Int, List<GameObject>> spatialGrid = new Dictionary<Vector2Int, List<GameObject>>();
-        // ---------------------------------
+        public float gridCellSize = 2f;
 
         [Header("Dynamic Spawn Limit")]
-        [Tooltip("Maximum number of active items allowed at once.")]
-        public int maxActiveItems = 25; // Note: This is now less critical for performance due to O(1) grid.
-        [Tooltip("When true, spawner slows or stops if max items are active.")]
+        public int maxActiveItems = 25;
         public bool limitSpawnWhenFull = true;
 
-        // This list is still useful for tracking total count and for the reset loop.
         private List<GameObject> activeSpawnedItems = new List<GameObject>();
         private ItemPooler pooler;
         private float nextSpawnY = 0f;
         private float totalSpawnWeight;
         private HashSet<ItemData> uniqueItemsOnScreen = new HashSet<ItemData>();
+        private Dictionary<Vector2Int, List<GameObject>> spatialGrid = new Dictionary<Vector2Int, List<GameObject>>();
+
+        public event System.Action<GameObject, ItemData> OnItemSpawned;
+
+        private Coroutine spawnLoopRoutine;
 
         private void Awake()
         {
-            // Instantiate the Pooler
-            pooler = Instantiate(itemPoolerPrefab, this.transform);
+            pooler = Instantiate(itemPoolerPrefab, transform);
             pooler.gameObject.name = "DYNAMIC_ITEM_POOLER";
-            pooler.SetupPools(allAvailableItems);
+            pooler.SetInstance(pooler);
 
-            // Calculate total weight only once
+            // Setup pools using only the ItemData references
+            pooler.SetupPools(allAvailableItems.ConvertAll(entry => entry.itemData));
+
             CalculateTotalWeight();
+        }
+
+        private void OnEnable()
+        {
+            if (spawnLoopRoutine == null)
+                spawnLoopRoutine = StartCoroutine(SpawnLoop());
+        }
+
+        private void OnDisable()
+        {
+            if (spawnLoopRoutine != null)
+            {
+                StopCoroutine(spawnLoopRoutine);
+                spawnLoopRoutine = null;
+            }
         }
 
         private void CalculateTotalWeight()
         {
             totalSpawnWeight = 0f;
-            foreach (var item in allAvailableItems)
-            {
-                totalSpawnWeight += item.spawnProbability;
-            }
-        }
-
-        void Update()
-        {
-            if (!player) return;
-
-            while (player.position.y + spawnDistance > nextSpawnY)
-            { 
-                if (limitSpawnWhenFull && activeSpawnedItems.Count >= maxActiveItems)
-                {
-                    // If we are over limit, just advance the spawner Y position
-                    // This prevents an infinite loop if the player stops moving
-                    // but the spawner is "stuck" trying to spawn.
-                    nextSpawnY += spawnInterval;
-                    continue;
-                }
-                // --------------------------------------------------
-
-                AttemptSpawn(nextSpawnY);
-                nextSpawnY += spawnInterval;
-            }
+            foreach (var entry in allAvailableItems)
+                totalSpawnWeight += entry.spawnProbability;
         }
 
         public void SetPlayer(Transform playerTransform)
         {
             player = playerTransform;
-            if (player != null)
+            nextSpawnY = player ? player.position.y + spawnDistance : 0f;
+        }
+
+        private IEnumerator SpawnLoop()
+        {
+            WaitForSeconds wait = new WaitForSeconds(spawnInterval);
+
+            while (true)
             {
-                nextSpawnY = player ? player.position.y + spawnDistance : 0f;
-                Debug.Log("[DynamicSpawner] Initial spawn Y position set based on player.");
+                yield return wait;
+                if (player == null) continue;
+
+                while (player.position.y + spawnDistance > nextSpawnY)
+                {
+                    if (limitSpawnWhenFull && activeSpawnedItems.Count >= maxActiveItems)
+                    {
+                        nextSpawnY += spawnInterval;
+                        continue;
+                    }
+
+                    AttemptSpawn(nextSpawnY);
+                    nextSpawnY += spawnInterval;
+                }
             }
         }
 
-        void AttemptSpawn(float spawnY)
+        private void AttemptSpawn(float spawnY)
         {
-            if (!GameManager.Instance.isGameRunning)
-                return;
-            if (Random.value < 0.2f) return; // 20% chance to spawn nothing (tune this)
+            if (!GameManager.Instance.isGameRunning) return;
+            if (Random.value < 0.2f) return;
 
-            ItemData selectedItem = GetWeightedRandomItem();
-            if (selectedItem == null) return;
+            AvailableItemEntry selectedEntry = GetWeightedRandomEntry();
+            if (selectedEntry == null || selectedEntry.itemData == null) return;
 
-            if (selectedItem.isUniquePerScreen && uniqueItemsOnScreen.Contains(selectedItem))
-            {
-                return;
-            }
+            ItemData selectedItem = selectedEntry.itemData;
+
+            if (selectedEntry.isUniquePerScreen && uniqueItemsOnScreen.Contains(selectedItem)) return;
 
             float minX = -trackWidth / 2f + clipBuffer;
             float maxX = trackWidth / 2f - clipBuffer;
 
             Vector2 spawnPos = Vector2.zero;
-            float xPos = 0f;
             bool positionFound = false;
             const int maxAttempts = 5;
-
             bool doingOverlapCheck = noOverlap || selectedItem.sameItemCannotOverlap;
 
-            if (doingOverlapCheck)
+            for (int i = 0; i < (doingOverlapCheck ? maxAttempts : 1); i++)
             {
-                for (int i = 0; i < maxAttempts; i++)
+                float xPos = Random.Range(minX, maxX);
+                spawnPos = new Vector2(xPos, spawnY);
+
+                bool generalOverlap = noOverlap && IsOverlapping(spawnPos, minOverlapDistance);
+                bool sameItemOverlap = selectedItem.sameItemCannotOverlap && IsOverlappingSameItem(spawnPos, selectedItem, selectedItem.sameItemMinRadius);
+
+                if (!generalOverlap && !sameItemOverlap)
                 {
-                    xPos = Random.Range(minX, maxX);
-                    spawnPos = new Vector2(xPos, spawnY);
-
-                    bool generalOverlap = false;
-                    bool sameItemOverlap = false;
-
-                    if (noOverlap)
-                    {
-                        // --- UPDATED: Use fast grid check ---
-                        generalOverlap = IsOverlapping(spawnPos, minOverlapDistance);
-                    }
-
-                    if (selectedItem.sameItemCannotOverlap)
-                    {
-                        // --- UPDATED: Use fast grid check ---
-                        sameItemOverlap = IsOverlappingSameItem(spawnPos, selectedItem, selectedItem.sameItemMinRadius);
-                    }
-
-                    if (!generalOverlap && !sameItemOverlap)
-                    {
-                        positionFound = true;
-                        break;
-                    }
+                    positionFound = true;
+                    break;
                 }
+            }
+
+            if (!positionFound && doingOverlapCheck) return;
+
+            GameObject obj = pooler.GetPooledObject(selectedItem);
+            if (obj == null) return;
+
+            obj.transform.position = spawnPos;
+
+            if (selectedItem.category == ItemCategory.Collectible)
+            {
+                Quaternion baseRot = obj.transform.rotation;
+                float zRotation = Random.value < 0.7f
+                    ? Random.Range(-90f, 90f)
+                    : Random.Range(0f, 360f);
+                obj.transform.rotation = baseRot * Quaternion.Euler(0f, 0f, zRotation);
+            }
+
+            obj.SetActive(true);
+            activeSpawnedItems.Add(obj);
+            AddToGrid(obj);
+
+            if (selectedEntry.isUniquePerScreen)
+                uniqueItemsOnScreen.Add(selectedItem);
+
+            if (obj.TryGetComponent<GeneratedItem>(out var itemComponent))
+            {
+                itemComponent.spawner = this;
+                itemComponent.SetData(selectedItem, player);
             }
             else
             {
-                xPos = Random.Range(minX, maxX);
-                spawnPos = new Vector2(xPos, spawnY);
-                positionFound = true;
+                Debug.LogError($"[DYNAMIC SPAWNER] Item prefab {selectedItem.itemName} missing GeneratedItem component!");
             }
 
-            if (!positionFound && doingOverlapCheck)
-            {
-                //Debug.LogWarning($"[DYNAMIC SPAWNER] Failed to find a non-overlapping spot for {selectedItem.name} at Y={spawnY}. Skipping.");
-                return;
-            }
-
-            GameObject obj = pooler.GetPooledObject(selectedItem);
-
-            if (obj != null)
-            {
-                obj.transform.position = spawnPos;
-                obj.transform.rotation = Quaternion.identity;
-                obj.SetActive(true);
-
-                // --- NEW: Add to lists *and* grid ---
-                activeSpawnedItems.Add(obj);
-                AddToGrid(obj);
-                // ------------------------------------
-
-                if (selectedItem.isUniquePerScreen)
-                {
-                    uniqueItemsOnScreen.Add(selectedItem);
-                }
-
-                var itemComponent = obj.GetComponent<GeneratedItem>();
-                if (itemComponent != null)
-                {
-                    itemComponent.spawner = this;
-                    itemComponent.SetData(selectedItem, player);
-                    //Debug.Log(itemComponent.name + " Generated.");
-                }
-                else
-                {
-                    Debug.LogError($"[DYNAMIC SPAWNER] Item prefab {selectedItem.itemName} is missing the GeneratedItem component!");
-                }
-            }
+            OnItemSpawned?.Invoke(obj, selectedItem);
         }
 
-        private ItemData GetWeightedRandomItem()
+        private AvailableItemEntry GetWeightedRandomEntry()
         {
-            if (allAvailableItems.Count == 0 || totalSpawnWeight == 0) return null;
+            if (allAvailableItems.Count == 0 || totalSpawnWeight <= 0f) return null;
 
             float roll = Random.value * totalSpawnWeight;
-            foreach (var item in allAvailableItems)
+            foreach (var entry in allAvailableItems)
             {
-                roll -= item.spawnProbability;
+                roll -= entry.spawnProbability;
                 if (roll <= 0f)
-                    return item;
+                    return entry;
             }
 
             return allAvailableItems[0];
         }
 
         public void OnItemDespawned(GameObject obj, ItemData item)
-        { 
+        {
             if (activeSpawnedItems.Remove(obj))
-            {
-                RemoveFromGrid(obj);
-            }
+                RemoveFromGrid(obj); 
 
-            if (item.isUniquePerScreen)
-                uniqueItemsOnScreen.Remove(item);
+            foreach (var entry in allAvailableItems)
+            {
+                if (entry.itemData == item && entry.isUniquePerScreen)
+                {
+                    uniqueItemsOnScreen.Remove(item);
+                    break;
+                }
+            }
         }
 
         public void ResetSpawner()
         {
             var snapshot = new List<GameObject>(activeSpawnedItems);
-
             foreach (var obj in snapshot)
-            {
                 if (obj != null && obj.activeSelf)
-                {
                     pooler.ReturnToPool(obj);
-                }
-            }
 
-            // --- NEW: Clear grid ---
             activeSpawnedItems.Clear();
             spatialGrid.Clear();
-            // -----------------------
-
             uniqueItemsOnScreen.Clear();
             nextSpawnY = player ? player.position.y + spawnDistance : 0f;
-            Debug.Log("[DynamicSpawner] Reset complete. All items returned to pool.");
         }
-
-        // --- NEW: Spatial Grid Helper Methods ---
 
         private Vector2Int GetGridCoords(Vector2 position)
         {
@@ -262,9 +243,7 @@ namespace SnakyColors
         {
             Vector2Int gridPos = GetGridCoords(obj.transform.position);
             if (!spatialGrid.ContainsKey(gridPos))
-            {
                 spatialGrid[gridPos] = new List<GameObject>();
-            }
             spatialGrid[gridPos].Add(obj);
         }
 
@@ -272,40 +251,30 @@ namespace SnakyColors
         {
             Vector2Int gridPos = GetGridCoords(obj.transform.position);
             if (spatialGrid.ContainsKey(gridPos))
-            {
                 spatialGrid[gridPos].Remove(obj);
-            }
         }
 
-        // ---  Overlap Checks --- 
         private bool IsOverlapping(Vector2 checkPos, float minDistance)
         {
             float sqrMinDistance = minDistance * minDistance;
             Vector2Int centerGridPos = GetGridCoords(checkPos);
 
-            // Check center cell + 8 neighboring cells
             for (int x = -1; x <= 1; x++)
             {
                 for (int y = -1; y <= 1; y++)
                 {
                     Vector2Int gridPos = centerGridPos + new Vector2Int(x, y);
+                    if (!spatialGrid.TryGetValue(gridPos, out var cell)) continue;
 
-                    if (spatialGrid.TryGetValue(gridPos, out List<GameObject> cell))
+                    foreach (var activeObj in cell)
                     {
-                        foreach (var activeObj in cell)
-                        {
-                            if (!activeObj.activeSelf) continue; // Skip inactive objects
-
-                            float sqrDistance = (activeObj.transform.position - (Vector3)checkPos).sqrMagnitude;
-                            if (sqrDistance < sqrMinDistance)
-                            {
-                                return true; // Overlap detected
-                            }
-                        }
+                        if (!activeObj.activeSelf) continue;
+                        float sqrDistance = (activeObj.transform.position - (Vector3)checkPos).sqrMagnitude;
+                        if (sqrDistance < sqrMinDistance) return true;
                     }
                 }
             }
-            return false; // No overlap
+            return false;
         }
 
         private bool IsOverlappingSameItem(Vector2 checkPos, ItemData newItemData, float minDistance)
@@ -318,29 +287,67 @@ namespace SnakyColors
                 for (int y = -1; y <= 1; y++)
                 {
                     Vector2Int gridPos = centerGridPos + new Vector2Int(x, y);
+                    if (!spatialGrid.TryGetValue(gridPos, out var cell)) continue;
 
-                    if (spatialGrid.TryGetValue(gridPos, out List<GameObject> cell))
+                    foreach (var activeObj in cell)
                     {
-                        foreach (var activeObj in cell)
-                        {
-                            if (!activeObj.activeSelf) continue;
+                        if (!activeObj.activeSelf) continue;
 
-                            var itemComponent = activeObj.GetComponent<GeneratedItem>();
-                            if (itemComponent == null || itemComponent.data != newItemData)
-                            {
-                                continue; // Not the same item type
-                            }
+                        var itemComponent = activeObj.GetComponent<GeneratedItem>();
+                        if (itemComponent == null || itemComponent.data != newItemData) continue;
 
-                            float sqrDistance = (activeObj.transform.position - (Vector3)checkPos).sqrMagnitude;
-                            if (sqrDistance < sqrMinDistance)
-                            {
-                                return true; // Overlap with same item type detected
-                            }
-                        }
+                        float sqrDistance = (activeObj.transform.position - (Vector3)checkPos).sqrMagnitude;
+                        if (sqrDistance < sqrMinDistance) return true;
                     }
                 }
             }
             return false;
         }
+
+        // ... (inside DynamicItemSpawner.cs) ...
+
+        public void ApplyConfig(DynamicSpawnerConfig config)
+        {
+            // 1. Apply all settings from the config
+            this.trackWidth = config.trackWidth;
+            this.spawnDistance = config.spawnDistance;
+            this.spawnInterval = config.spawnInterval;
+            this.clipBuffer = config.clipBuffer;
+            this.noOverlap = config.noOverlap;
+            this.minOverlapDistance = config.minOverlapDistance;
+            this.gridCellSize = config.gridCellSize;
+            this.maxActiveItems = config.maxActiveItems;
+            this.limitSpawnWhenFull = config.limitSpawnWhenFull;
+            this.allAvailableItems = config.allAvailableItems; // Re-link the list
+
+            // 2. Re-initialize the pool and weights
+            // (Assuming pooler exists from Awake)
+            if (pooler != null)
+            {
+                // Clear old pools if necessary (depends on pooler setup)
+                // pooler.ClearPools(); 
+                pooler.SetupPools(allAvailableItems.ConvertAll(entry => entry.itemData));
+            }
+            CalculateTotalWeight();
+
+            // 3. Reset spawner's state
+            ResetSpawner(); // This will clear active items and reset nextSpawnY
+
+            Debug.Log($"DynamicItemSpawner configured for level: {config.name}");
+        }
+
+#if UNITY_EDITOR
+        private void OnDrawGizmosSelected()
+        {
+            if (player == null) return;
+            Gizmos.color = Color.cyan;
+            Vector3 left = transform.position + Vector3.left * (trackWidth / 2f - clipBuffer);
+            Vector3 right = transform.position + Vector3.right * (trackWidth / 2f - clipBuffer);
+            Gizmos.DrawLine(left + Vector3.up * nextSpawnY, right + Vector3.up * nextSpawnY);
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(new Vector3(-trackWidth / 2f, nextSpawnY, 0), new Vector3(trackWidth / 2f, nextSpawnY, 0));
+        }
+#endif
     }
 }

@@ -59,8 +59,7 @@ namespace SnakyColors
                 }
 
                 GameObject modeGO = Instantiate(prefab, transform);
-                mode = modeGO.GetComponent<GameMode>();
-                // Initially instantiate as inactive, will be activated below
+                mode = modeGO.GetComponent<GameMode>(); 
                 modeGO.SetActive(false);
                 modeInstancePool.Add(modeName, mode);
             }

@@ -1,102 +1,96 @@
 using UnityEngine;
-using System.Linq; // Needed for OrderBy (optional, but useful)
-
+using System.Collections.Generic;
 
 namespace SnakyColors
 {
-    using UnityEngine;
-    using System.Linq; // Needed for OrderBy (optional)
+    [System.Serializable]
+    public class ParallaxLayer
+    {
+        public GameObject tilePrefab; 
+        [Range(0f, 1f)] public float parallaxFactorX = 0f;
+        [Range(0f, 1f)] public float parallaxFactorY = 1f;
+        [Range(0f, 1f)] public float smoothing = 0.1f;
+
+        [HideInInspector] public List<GameObject> tiles = new List<GameObject>();
+        [HideInInspector] public float tileWidth;
+        [HideInInspector] public float tileHeight;
+    }
 
     public class ScrollingBackground : MonoBehaviour
     {
-        // === CONFIGURATION ===
-        public GameObject tilePrefab;
-        // We need 3 tiles minimum: one below the screen, one on the screen, and one above the screen.
-        public int initialTileCount = 3;
-
-        // === PRIVATE STATE ===
-        private GameObject[] tiles;
-        private float tileHeight;
-        private Transform mainCameraTransform;
+        public ParallaxLayer[] layers;
+        public Transform playerTransform;
+        private Vector3 lastPlayerPos;
 
         void Start()
         {
-            mainCameraTransform = Camera.main.transform;
-
-            if (tilePrefab == null)
+            if (playerTransform == null)
             {
-                Debug.LogError("Tile Prefab is not assigned.");
-                return;
+                var player = FindObjectOfType<PlayerMovement>();
+                if (player != null) playerTransform = player.transform;
             }
 
-            // Calculate tile height from the SpriteRenderer's bounds
-            SpriteRenderer sr = tilePrefab.GetComponent<SpriteRenderer>();
-            if (sr == null)
+            if (playerTransform != null)
+                lastPlayerPos = playerTransform.position;
+
+            foreach (var layer in layers)
             {
-                Debug.LogError("Tile Prefab must have a SpriteRenderer component.");
-                return;
-            }
-            tileHeight = sr.bounds.size.y;
+                if (layer.tilePrefab == null) continue;
 
-            InitializeTiles();
-        }
+                var sr = layer.tilePrefab.GetComponent<SpriteRenderer>();
+                if (sr == null)
+                {
+                    Debug.LogError("Tile prefab must have SpriteRenderer!");
+                    continue;
+                }
 
-        private void InitializeTiles()
-        {
-            tiles = new GameObject[initialTileCount];
+                layer.tileWidth = sr.bounds.size.x;
+                layer.tileHeight = sr.bounds.size.y;
 
-            // --- CORRECTED INITIALIZATION LOGIC ---
-            // Start tiling from the camera's current Y position and stack them down.
-            // We ensure the first tile is centered below the camera.
-            float startY = mainCameraTransform.position.y - (tileHeight * 0.5f);
-
-            for (int i = 0; i < initialTileCount; i++)
-            {
-                // Position: 
-                // 0: below camera
-                // 1: centered on camera
-                // 2: above camera
-                Vector3 pos = new Vector3(0, startY + (i - 1) * tileHeight, 0);
-                tiles[i] = Instantiate(tilePrefab, pos, Quaternion.identity, transform);
+                // Spawn 3 tiles vertically
+                for (int i = -1; i <= 1; i++)
+                {
+                    Vector3 pos = new Vector3(0, i * layer.tileHeight, 0);
+                    var tile = Instantiate(layer.tilePrefab, pos, Quaternion.identity, transform);
+                    layer.tiles.Add(tile);
+                }
             }
         }
 
         void LateUpdate()
         {
-            if (tiles == null || tiles.Length == 0) return;
+            if (playerTransform == null) return;
 
-            // --- EFFICIENT MANUAL LOOP TO FIND LOWEST AND HIGHEST TILES ---
-            GameObject lowestTile = tiles[0];
-            GameObject highestTile = tiles[0];
-            float minPosY = tiles[0].transform.position.y;
-            float maxPosY = tiles[0].transform.position.y;
+            Vector3 delta = playerTransform.position - lastPlayerPos;
+            lastPlayerPos = playerTransform.position;
 
-            // Loop through all tiles to find the actual min/max Y positions
-            for (int i = 1; i < tiles.Length; i++)
+            foreach (var layer in layers)
             {
-                float currentY = tiles[i].transform.position.y;
-
-                if (currentY < minPosY)
+                Vector3 move = new Vector3(delta.x * layer.parallaxFactorX, delta.y * layer.parallaxFactorY, 0);
+                for (int i = 0; i < layer.tiles.Count; i++)
                 {
-                    minPosY = currentY;
-                    lowestTile = tiles[i];
-                }
-                else if (currentY > maxPosY)
-                {
-                    maxPosY = currentY;
-                    highestTile = tiles[i];
-                }
-            }
+                    GameObject tile = layer.tiles[i];
+                    tile.transform.position = Vector3.Lerp(tile.transform.position, tile.transform.position + move, layer.smoothing);
 
-            // --- REPOSITION LOGIC ---
-            float cameraBottomEdge = mainCameraTransform.position.y - Camera.main.orthographicSize;
 
-            // If the lowest tile has scrolled entirely past the bottom edge of the camera view...
-            if (lowestTile.transform.position.y + tileHeight < cameraBottomEdge)
-            {
-                // Reposition the lowest tile to immediately above the highest tile.
-                lowestTile.transform.position = highestTile.transform.position + Vector3.up * tileHeight;
+                    // Recycle tile if it goes below camera
+                    if (tile.transform.position.y + layer.tileHeight < Camera.main.transform.position.y - Camera.main.orthographicSize)
+                    {
+                        GameObject highest = layer.tiles[0];
+                        float maxY = highest.transform.position.y;
+                        for (int j = 1; j < layer.tiles.Count; j++)
+                        {
+                            if (layer.tiles[j].transform.position.y > maxY)
+                            {
+                                highest = layer.tiles[j];
+                                maxY = highest.transform.position.y;
+                            }
+                        }
+
+                        tile.transform.position = highest.transform.position + new Vector3(0, layer.tileHeight, 0);
+                    }
+                }
             }
         }
     }
-}
+} 

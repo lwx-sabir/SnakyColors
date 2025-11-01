@@ -3,60 +3,44 @@
   "WorkspaceRootPath": "D:\\Projects\\SnakyColors\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\dynamicitemspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\dynamicitemspawner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\itempooler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\itempooler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gamemangers\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gamemangers\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\generateditem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\generateditem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|d:\\projects\\snakycolors\\assets\\snaky colors\\scripts\\items\\fruitcollecteffect.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\fruitcollecteffect.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\ui\\foodhuntergameplayui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\ui\\foodhuntergameplayui.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\players\\playerstats.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\players\\playerstats.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\dropitems\\enemydroptable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\dropitems\\enemydroptable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\dropitems\\dropitemdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\dropitems\\dropitemdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\players\\playercollisionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\players\\playercollisionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\players\\playerdash.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\players\\playerdash.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gamemangers\\soundmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gamemangers\\soundmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\enemies\\enemy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\enemies\\enemy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|d:\\projects\\snakycolors\\assets\\snaky colors\\scripts\\gameplay\\players\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\players\\playermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|d:\\projects\\snakycolors\\assets\\snaky colors\\scripts\\gameplay\\levlemangers\\leveleditorbtn.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\levlemangers\\leveleditorbtn.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\itemdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\itemdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\generateditem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\generateditem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\dropitems\\enemydroptable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\dropitems\\enemydroptable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\enemies\\basicshootable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\enemies\\basicshootable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\foodhunter\\foodhuntergamemode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\foodhunter\\foodhuntergamemode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\players\\inputmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\players\\inputmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -66,17 +50,17 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "GameManager.cs",
               "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
               "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
               "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAowEsAAAAyAAAAAAAAAA==",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAhwFYAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-29T16:41:23.313Z",
               "IsPinned": true,
@@ -84,162 +68,117 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 7,
               "Title": "GeneratedItem.cs",
               "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
               "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
               "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
-              "ViewState": "AgIAABQBAAAAAAAAAAAAwDABAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-29T20:05:56.343Z",
-              "IsPinned": true,
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "PlayerMovement.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerMovement.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerMovement.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerMovement.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerMovement.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAQwD0AAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-01T21:44:31.009Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "FruitCollectEffect.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\FruitCollectEffect.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\FruitCollectEffect.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\FruitCollectEffect.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\FruitCollectEffect.cs",
-              "ViewState": "AgIAAGgAAAAAAAAAAAAwwA8AAAAhAAAAAAAAAA==",
+              "DocumentIndex": 5,
+              "Title": "LevelEditorBtn.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\LevleMangers\\LevelEditorBtn.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\LevleMangers\\LevelEditorBtn.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\LevleMangers\\LevelEditorBtn.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\LevleMangers\\LevelEditorBtn.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-30T21:59:57.408Z",
+              "WhenOpened": "2025-11-01T21:39:44.882Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ItemPooler.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\ItemPooler.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\ItemPooler.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\ItemPooler.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\ItemPooler.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBYAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-01T20:00:21.556Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ItemData.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\ItemData.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\ItemData.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\ItemData.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\ItemData.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAAQwCwAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-01T19:57:19.005Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DynamicItemSpawner.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\DynamicItemSpawner.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\DynamicItemSpawner.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\DynamicItemSpawner.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\DynamicItemSpawner.cs",
+              "ViewState": "AgIAAIUAAAAAAAAAAAAvwJwAAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-01T19:54:20.515Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "FoodHunterGameplayUI.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\UI\\FoodHunterGameplayUI.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\UI\\FoodHunterGameplayUI.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\UI\\FoodHunterGameplayUI.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\UI\\FoodHunterGameplayUI.cs",
-              "ViewState": "AgIAAOUAAAAAAAAAAAAewPgAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-30T17:04:29.498Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "PlayerStats.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerStats.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerStats.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerStats.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerStats.cs",
-              "ViewState": "AgIAAI4AAAAAAAAAAAAnwKMAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-30T16:46:31.017Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "PlayerCollisionManager.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerCollisionManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerCollisionManager.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerCollisionManager.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerCollisionManager.cs",
-              "ViewState": "AgIAABwAAAAAAAAAAAAvwDkAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-30T01:58:11.094Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
               "Title": "Enemy.cs",
               "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\Enemy.cs",
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\Enemy.cs",
               "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\Enemy.cs",
               "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\Enemy.cs",
-              "ViewState": "AgIAAKwAAAAAAAAAAAAswMYAAAAuAAAAAAAAAA==",
+              "ViewState": "AgIAAJoAAAAAAAAAAAAnwKMAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-30T01:05:00.214Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "DropItemData.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\DropItemData.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\DropItemData.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\DropItemData.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\DropItemData.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBcAAAAPAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-29T20:39:05.751Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "EnemyDropTable.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\EnemyDropTable.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\EnemyDropTable.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\EnemyDropTable.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\EnemyDropTable.cs",
-              "ViewState": "AgIAAD4AAAAAAAAAAAAvwGoAAAAVAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-29T19:20:59.914Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "PlayerDash.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerDash.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerDash.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerDash.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\PlayerDash.cs",
-              "ViewState": "AgIAAGkAAAAAAAAAAAAkwC8AAABZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-30T18:23:27.947Z"
+              "WhenOpened": "2025-11-01T18:31:52.414Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 9,
-              "Title": "SoundManager.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\SoundManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GameMangers\\SoundManager.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\SoundManager.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GameMangers\\SoundManager.cs",
-              "ViewState": "AgIAAKMAAAAAAAAAAAAvwJwAAAA6AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-30T02:19:25.884Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "FoodHunterGameMode.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\FoodHunter\\FoodHunterGameMode.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\FoodHunter\\FoodHunterGameMode.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\FoodHunter\\FoodHunterGameMode.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\FoodHunter\\FoodHunterGameMode.cs",
-              "ViewState": "AgIAADYAAAAAAAAAAAAEwC4AAAA5AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-29T19:46:51.514Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
               "Title": "BasicShootable.cs",
               "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\BasicShootable.cs",
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\BasicShootable.cs",
               "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\BasicShootable.cs",
               "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Enemies\\BasicShootable.cs",
-              "ViewState": "AgIAAMgAAAAAAAAAAAAkwNcAAABTAAAAAAAAAA==",
+              "ViewState": "AgIAAKQAAAAAAAAAAAAMwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-29T18:48:45.533Z"
+              "WhenOpened": "2025-11-01T18:31:43.207Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "InputManager.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\InputManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\InputManager.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\InputManager.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Players\\InputManager.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAcAAAAiAAAAAAAAAA==",
+              "DocumentIndex": 8,
+              "Title": "EnemyDropTable.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\EnemyDropTable.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\EnemyDropTable.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\EnemyDropTable.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\DropItems\\EnemyDropTable.cs",
+              "ViewState": "AgIAADQAAAAAAAAAAAAgwE0AAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-29T17:16:40.432Z"
+              "WhenOpened": "2025-11-01T18:29:38.739Z"
             }
           ]
         }

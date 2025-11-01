@@ -30,7 +30,17 @@ MonoBehaviour:
     minDropCount: 1
     maxDropCount: 4
     limitInSecond: 0
+  - item: {fileID: 11400000, guid: 79aeb3b40e70e6c439b144e6371f4d02, type: 2}
+    dropWeight: 0.2
+    minDropCount: 1
+    maxDropCount: 1
+    limitInSecond: 15
   - item: {fileID: 11400000, guid: 3018c92941d76354fae32c79186d21f2, type: 2}
+    dropWeight: 0.2
+    minDropCount: 1
+    maxDropCount: 1
+    limitInSecond: 20
+  - item: {fileID: 11400000, guid: 51787d851a4a8344ea9721c2ff352a85, type: 2}
     dropWeight: 0.2
     minDropCount: 1
     maxDropCount: 1

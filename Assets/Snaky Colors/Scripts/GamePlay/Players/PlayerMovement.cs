@@ -13,12 +13,12 @@ namespace SnakyColors
         private Vector2 startPoint;
 
         [Header("Movement Settings")]
-        public float baseSpeed = 0.5f;
+        public float baseSpeed = 2f;
         public bool autoIncreaseAcceleration = false;
         public float autoAccelerationRate = 0.02f;
-        public float steeringSpeed = 10f;
+        public float steeringSpeed = 15f;
         public float rotationSpeed = 10f;
-        public float horizontalBounds = 2.8f;
+        public float horizontalBounds = 3.4f;
 
         [Header("Idle Wiggle")]
         public float wiggleAmplitude = 0.3f;
@@ -28,7 +28,7 @@ namespace SnakyColors
         private float wiggleStartOffset = 0f;
         private bool isWiggling = false;
         private float lastWiggleFrequency; // Kept for dash
-        private float lastwiggleAmplitude; // Kept for dash
+        private float lastWiggleAmplitude; // Kept for dash
 
         private float currentFrameSpeedMagnitude = 0f;
         private float lastSteerX = 0f;
@@ -37,8 +37,7 @@ namespace SnakyColors
         const float MIN_STEERING_SPEED = 5f;
         private bool gameStarted = false;
         private float currentY;
-
-        // --- All Dash Fields Removed ---
+         
 
         // --- Input fields are now private for tap detection ---
         private float touchStartTime;
@@ -48,12 +47,21 @@ namespace SnakyColors
         private const float MaxTapMovement = 0.1f;
 
         private CameraFollow cameraFollow;
-        private PlayerDash playerDash; // --- Reference to new dash script ---
-
-        // --- All Dash Events Removed ---
-
+        private PlayerDash playerDash; 
+          
         void Start()
         {
+            if (PlayerStats.Instance != null && PlayerStats.Instance.GetActiveConfig() != null)
+            {
+                var config = PlayerStats.Instance.GetActiveConfig();
+                this.baseSpeed = config.baseSpeed;
+                this.autoIncreaseAcceleration = config.autoIncreaseAcceleration;
+                this.autoAccelerationRate = config.autoAccelerationRate;
+                this.steeringSpeed = config.steeringSpeed;
+                this.rotationSpeed = config.rotationSpeed;
+                this.horizontalBounds = config.horizontalBounds;
+            }
+
             rb = GetComponent<Rigidbody2D>();
             cam = Camera.main;
             currentY = transform.position.y;
@@ -197,8 +205,7 @@ namespace SnakyColors
 
             rb.MovePosition(new Vector2(newX, currentY));
         }
-
-        // --- ALL DASH METHODS REMOVED ---
+         
 
         // --- Helper Methods for PlayerDash ---
 
@@ -210,14 +217,14 @@ namespace SnakyColors
             if (isStartingDash)
             {
                 lastWiggleFrequency = wiggleFrequency;
-                lastwiggleAmplitude = wiggleAmplitude;
+                lastWiggleAmplitude = wiggleAmplitude;
                 wiggleFrequency *= wiggleFrequencyDashMultiplier;
                 wiggleAmplitude *= wiggleAmplitudeDashMultiplier;
             }
             else
             {
                 wiggleFrequency = lastWiggleFrequency;
-                wiggleAmplitude = lastwiggleAmplitude;
+                wiggleAmplitude = lastWiggleAmplitude;
             }
         }
 
@@ -229,6 +236,11 @@ namespace SnakyColors
         public void SetCurrentY(float newY)
         {
             currentY = newY;
+        }
+
+        public float GetCurrentX()
+        {
+            return rb.position.x;
         }
 
         // --- Original Public Methods ---

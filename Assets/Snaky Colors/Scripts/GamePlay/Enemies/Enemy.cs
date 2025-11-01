@@ -187,6 +187,8 @@ namespace SnakyColors
                 // --- Set Data on GeneratedItem ---
                 if (obj.TryGetComponent<GeneratedItem>(out var genItem))
                 {
+                    // --- Activate Object ---
+                    obj.SetActive(true);
                     // Get Player Reference (prioritize GameManager, fallback to Tag)
                     Transform playerRef = null;
                     if (GameManager.Instance != null && GameManager.Instance.currentMode is FoodHunterGameMood hunterMode && hunterMode.playerInstance != null)
@@ -199,12 +201,13 @@ namespace SnakyColors
                         if (playerObj != null) playerRef = playerObj.transform;
                     }
 
-                    if (playerRef != null) genItem.SetData(itemToDrop, playerRef);
+                    if (playerRef != null)
+                    {  
+                        genItem.isDropped = true;
+                        genItem.SetData(itemToDrop, playerRef);
+                    }
                     else Debug.LogError($"Could not find Player Transform! Cannot SetData on dropped {itemToDrop.itemName}", this);
-                }
-
-                // --- Activate Object ---
-                obj.SetActive(true);
+                } 
 
                 // --- Ensure Collider is Enabled ---
                 if (obj.TryGetComponent<Collider2D>(out var col) && !col.enabled)

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8788707662289394949}
   - component: {fileID: 8331179012848661570}
-  - component: {fileID: -6488373212555778986}
+  - component: {fileID: 224121279706255391}
   m_Layer: 0
   m_Name: FoodHunterGameMode
   m_TagString: Untagged
@@ -49,7 +49,7 @@ MonoBehaviour:
   mainCamera: {fileID: 0}
   playerInstance: {fileID: 0}
   spawnerPrefab: {fileID: 7362366235206854643, guid: 33e4337276c6e7f408ea20fde97c3609, type: 3}
---- !u!114 &-6488373212555778986
+--- !u!114 &224121279706255391
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -58,8 +58,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 3010649340971264363}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 11f431ece856ca743939cef3c30bdf25, type: 3}
+  m_Script: {fileID: 11500000, guid: c9fa54dc018fdc74ab8e2a1b79832c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ScrollingBackground
-  tilePrefab: {fileID: 6123206795725310063, guid: 90b6263029ff6534f9f3c8cba9e4a786, type: 3}
-  initialTileCount: 3
+  layers:
+  - tilePrefab: {fileID: 4983886566064825685, guid: bc366d27ee1f2ce43a1115931a91e421, type: 3}
+    parallaxFactorX: 0
+    parallaxFactorY: 0
+    smoothing: 0
+    tiles: []
+    tileWidth: 0
+    tileHeight: 0
+  playerTransform: {fileID: 0}

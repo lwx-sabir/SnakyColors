@@ -9,27 +9,23 @@ namespace SnakyColors
         [Header("Configuration")]
         public Transform firePoint;
         public WeaponData basicWeapon;
-
-        // --- MODIFIED: Renamed Auto-Aim to Target Detection ---
+         
         [Header("Target Detection")]
         [Tooltip("Maximum vertical distance to check for targets.")]
         public float detectionRange = 10f; // Height of the yellow box
         [Tooltip("Horizontal width of the detection area in front of the player.")]
         public float detectionWidth = 3f; // Width of the yellow box
         [Tooltip("Set this to your 'Obstacle' or 'Enemy' layer.")]
-        public LayerMask targetMask;
-        // --- REMOVED autoAimRange ---
+        public LayerMask targetMask; 
 
         private WeaponData currentWeapon;
         private float lastFireTime;
         private Transform currentTarget;
         private bool isManualFire = false;
         private Coroutine weaponRevertCoroutine;
-
-        // --- NEW: For drawing Gizmo ---
+         
         private Vector2 boxCenter;
-        private Vector2 boxSize;
-        // -----------------------------
+        private Vector2 boxSize; 
 
         void Awake()
         {
@@ -38,16 +34,13 @@ namespace SnakyColors
 
         void Update()
         {
-            // Reset target each frame before checking again
             currentTarget = null;
 
-            // 1. Find a target if auto-firing is enabled for the weapon
             if (currentWeapon.autoFire)
             {
-                FindTargetInBox(); // Changed method name
+                FindTargetInBox();
             }
 
-            // 2. Check if we should fire
             if (CanShoot() && ShouldFire())
             {
                 Fire();
@@ -62,7 +55,6 @@ namespace SnakyColors
         bool ShouldFire()
         {
             if (isManualFire) return true;
-            // Fire if auto-fire weapon and a target *was found* in the box
             return currentWeapon.autoFire && currentTarget != null;
         }
 
@@ -73,7 +65,6 @@ namespace SnakyColors
         {
             // Calculate the box parameters relative to the firePoint
             boxSize = new Vector2(detectionWidth, detectionRange);
-            // Center the box slightly ahead of the fire point along its forward direction (up)
             boxCenter = (Vector2)firePoint.position + (Vector2.up * (detectionRange / 2.0f));
 
             // Use OverlapBoxAll to find all colliders within the defined box area
@@ -111,6 +102,11 @@ namespace SnakyColors
 
         void Fire()
         {
+            if (!PlayerStats.Instance.TryConsumeAmmo(1))
+            {
+                return;
+            }
+
             lastFireTime = Time.time;
 
             GameObject bullet = ProjectilePooler.Instance.Get(
@@ -147,8 +143,7 @@ namespace SnakyColors
                 AudioManager.Instance.PlayClip(currentWeapon.fireSound, 0.8f);
             }
         }
-
-        // --- Draw the detection box in the editor ---
+         
         void OnDrawGizmosSelected()
         {
             if (firePoint == null) return;

@@ -42,15 +42,7 @@ namespace SnakyColors
 
         [Tooltip("Item color tint (used for glow, highlights, or color mode).")]
         public Color itemColor = Color.white;
-
-        [Header("Spawn & Pool Settings")]
-        [Range(0f, 1f)]
-        [Tooltip("Spawn likelihood relative to other items.")]
-        public float spawnProbability = 1f;
-
-        [Tooltip("If checked, only one instance of this item type can be active on-screen at once.")]
-        public bool isUniquePerScreen = false;
-
+         
         [Tooltip("Initial number of objects to create in the object pool.")]
         [Min(1)] public int poolSize = 10;
 

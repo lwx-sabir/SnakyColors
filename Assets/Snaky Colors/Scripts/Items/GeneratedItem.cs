@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-using UnityEditor;
+// using UnityEditor; // This should not be in a runtime script.
 
 namespace SnakyColors
 {
@@ -10,20 +10,23 @@ namespace SnakyColors
 
         [Header("References")]
         public SpriteRenderer graphicsRenderer;
+        [SerializeField] private SpriteRenderer shadowRenderer; // Added shadow reference
         [Header("Particles")]
         [SerializeField] private ParticleSystem collectParticle;
 
-        public DynamicItemSpawner spawner { get; set; }
+        // References set at runtime
+        public IItemSpawner spawner { get; set; }
         private FruitCollectEffect collectEffect;
-        private Vector3 originalScale;
-        private Transform playerHead; // For collect effect target
+        private Transform playerHead;
         private Collider2D col;
+        private Transform playerTransform;
 
         [Header("Settings")]
-        public float despawnOffset = 10f; 
+        public float despawnOffset = 10f;
 
-        private bool isBeingPulled = false; // State flag
-        private Transform playerTransform; // Cache the main player transform for area check
+        private Vector3 originalScale;
+        private bool isBeingPulled = false;
+        [HideInInspector] public bool isDropped = false;
 
         private void Awake()
         {
@@ -41,12 +44,21 @@ namespace SnakyColors
                 graphicsRenderer.enabled = true;
                 graphicsRenderer.color = Color.white;
             }
+            if (shadowRenderer != null) // Reset shadow
+            {
+                shadowRenderer.enabled = true;
+            }
             if (col != null) col.enabled = true;
             if (collectEffect != null) collectEffect.enabled = true;
             isBeingPulled = false;
+             
+            playerHead = null;
+            playerTransform = null;
+            spawner = null;
+            data = null;
 
             if (collectParticle != null)
-            { 
+            {
                 collectParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                 collectParticle.gameObject.SetActive(false);
             }
@@ -55,88 +67,82 @@ namespace SnakyColors
         public void SetData(ItemData newItemData, Transform player)
         {
             data = newItemData;
-            playerHead = player; 
+            playerHead = player;
             playerTransform = player;
-        }
+        } 
 
         void Update()
-        {
+        {  
+            if (playerTransform == null)
+            {
+                GameObject playerObj = GameObject.FindWithTag("Player");
+                if (playerObj != null)
+                {
+                    playerTransform = playerObj.transform;
+                    playerHead = playerObj.transform; // Assume head is main transform
+                }
+                else
+                {
+                    return; // No player found, can't update
+                }
+            }
             if (playerTransform == null || data == null) return;
-
-            if (isBeingPulled)
+             
+            if (isBeingPulled) // 1. If locked on, just move
             {
                 Vector3 direction = (playerHead.position - transform.position).normalized;
                 transform.position += direction * data.magnetPullSpeed * Time.deltaTime;
-                // Optional: Add a check to auto-collect if very close to prevent orbiting?
-                // if ((playerHead.position - transform.position).sqrMagnitude < 0.1f * 0.1f) {
-                //     if (col != null && col.enabled) { // Check if not already collected
-                //         HandleCollection(); // Apply stats
-                //         StartCollectSequence(); // Start visual effect and return
-                //         return; // Exit Update early after auto-collect
-                //     }
-                // }
             }
-
-            else
+            else // 2. If not locked on, check if magnet is active and in range
             {
                 bool magnetIsActive = PowerupManager.Instance != null && PowerupManager.Instance.IsMagnetActive;
-
                 if (data.isAttractable && magnetIsActive && IsInMagnetArea(transform.position, playerTransform))
-                { 
-                    isBeingPulled = true;  
+                {
+                    isBeingPulled = true; // Lock on 
                     Vector3 direction = (playerHead.position - transform.position).normalized;
                     transform.position += direction * data.magnetPullSpeed * Time.deltaTime;
-                } 
+                }
             } 
-            if (!isBeingPulled && spawner != null && spawner.player != null)
+
+            if (playerTransform != null)
             {
-                if (transform.position.y < spawner.player.position.y - despawnOffset)
-                {
+                if (transform.position.y < playerTransform.position.y - despawnOffset)
+                {  
                     ReturnToPool();
                 }
             }
         }
 
         void OnTriggerEnter2D(Collider2D other)
-        { 
-            if (col == null || !col.enabled)
-            { 
-                return;
-            }
+        {
+            if (col == null || !col.enabled) return; // Already collected
 
             if (other.CompareTag("Player") || other.GetComponent<PlayerMovement>() != null)
-            { 
-                if (GameManager.Instance == null) {return; } 
-                if (data == null) { return; }
-                
+            {
+                if (GameManager.Instance == null || data == null) return;
+
                 switch (data.category)
                 {
-                    case ItemCategory.Collectible: 
-                        Debug.Log($"Entering Collectible/Ammo case...", gameObject);
+                    case ItemCategory.Collectible:
                         HandleCollection();
-                        StartCollectSequence();
-                        break; 
+                        StartCollectSequence(); // Plays effect + returns via coroutine
+                        break;
 
                     case ItemCategory.PowerUp:
-                        Debug.Log($"Entering PowerUp case...", gameObject); 
                         HandlePowerupActivation(other);
-                        HandleCollection(); 
-                        StartCollectSequence();
+                        HandleCollection(); // Apply potential score
+                        StartCollectSequence(); // Plays effect + returns via coroutine
                         break;
 
                     case ItemCategory.Hazard:
-                        Debug.Log($"Entering Hazard case...", gameObject);
-                        HandleHazardCollision();  
-                        break; 
+                        HandleHazardCollision();
+                        // Return is handled by HazardReturnRoutine
+                        break;
 
                     default:
-                        Debug.LogWarning($"Unhandled ItemCategory: {data.category}", gameObject); 
+                        Debug.LogWarning($"Unhandled ItemCategory: {data.category}", gameObject);
                         break;
                 }
-            }
-            else
-            {
-                Debug.Log($"Collision ignored: Collided with non-player object '{other.name}'.", gameObject);
             }
         }
 
@@ -146,15 +152,23 @@ namespace SnakyColors
             {
                 if (data.category == ItemCategory.Collectible)
                 {
-                    if(data.collectibleType == CollectibleType.Basic)
+                    if (data.collectibleType == CollectibleType.Basic)
                     {
                         PlayerStats.Instance.AddToMeter(data.value);
                     }
-                    else if(data.collectibleType == CollectibleType.DashCharge)
+                    else if (data.collectibleType == CollectibleType.DashCharge)
                     {
                         PlayerStats.Instance.AddDashCharge(data.value);
-                    } 
-                } 
+                    }
+                    else if (data.collectibleType == CollectibleType.Health)
+                    {
+                        PlayerStats.Instance.Heal(data.value);
+                    }
+                    else if (data.collectibleType == CollectibleType.Ammo) // This logic might be better under ItemCategory.Ammo
+                    {
+                        PlayerStats.Instance.AddAmmo((int)data.value);
+                    }
+                }
 
                 if (int.TryParse(data.scoreText, out int scoreValue) && scoreValue != 0)
                 {
@@ -163,20 +177,64 @@ namespace SnakyColors
             }
             else Debug.LogError("HandleCollection failed: PlayerStats.Instance is NULL!", gameObject);
 
-
             if (data.collectSound != null && AudioManager.Instance != null)
-            { 
+            {
                 AudioManager.Instance.PlayClip(data.collectSound, Random.Range(0.92f, 1.0f));
             }
-            else if (AudioManager.Instance == null) Debug.LogWarning("AudioManager.Instance is NULL, cannot play sound.", gameObject);
 
+            // Play particle only for non-hazard collection
+            if (data.category != ItemCategory.Hazard && collectParticle != null)
+            {
+                PlayCollectParticle(); // Use your robust particle play method
+            }
+        }
 
+        private void HandlePowerupActivation(Collider2D playerCollider)
+        {
+            if (PowerupManager.Instance != null && data.powerupEffect != PowerupType.None)
+            {
+                if (data.powerupEffect == PowerupType.WeaponUpgrade)
+                {
+                    Debug.LogWarning("WeaponUpgrade powerup collected but 'weaponToEquip' needs setup in ItemData!", data); 
+                }
+                else
+                {
+                    PowerupManager.Instance.ActivatePowerup(data.powerupEffect, data.duration);
+                }
+            }
+            else if (PowerupManager.Instance == null) Debug.LogError("HandlePowerupActivation failed: PowerupManager.Instance is NULL!", gameObject);
+        }
+
+        private void HandleHazardCollision()
+        {
+            Debug.Log("Hazard Hit!");
+
+            // Hide graphics immediately
+            if (graphicsRenderer != null) graphicsRenderer.enabled = false;
+            if (shadowRenderer != null) shadowRenderer.enabled = false;
+            if (col != null) col.enabled = false;
+             
+            if (PlayerStats.Instance != null && data.value != 0)
+            {
+                PlayerStats.Instance.AddToMeter(data.value); 
+            }
+
+            // Play hazard-specific sound
+            if (data.collectSound != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayClip(data.collectSound, Random.Range(0.88f, 1f));
+            }
+
+            PlayCollectParticle();
+
+            float particleDuration = 1f; // Default
             if (collectParticle != null)
             {
-                PlayCollectParticle();
+                particleDuration = collectParticle.main.duration + collectParticle.main.startLifetime.constantMax;
             }
-            else Debug.LogWarning("Collect Particle reference is missing.", gameObject); 
+            StartCoroutine(ReturnToPoolAfterDelay(particleDuration * 1.1f)); // Wait 10% longer
         }
+
 
         private void StartCollectSequence()
         {
@@ -189,59 +247,30 @@ namespace SnakyColors
             }
             else
             {
-                ReturnToPool();
+                ReturnToPool(); // Return immediately if no effect
             }
         }
 
         private IEnumerator CollectAndReturnToPool()
         {
             if (collectEffect != null)
-            { 
+            {
                 float animationDuration = collectEffect.PlayCollectAnimation(
                     data.scoreText,
                     data.itemColor,
                     data.collectibleType,
                     data.icon
                 );
-                 
+
                 yield return new WaitForSeconds(animationDuration);
             }
             ReturnToPool();
-        } 
-
-        private void HandlePowerupActivation(Collider2D playerCollider)
-        { 
-            if (PowerupManager.Instance != null && data.powerupEffect != PowerupType.None)
-            { 
-                if (data.powerupEffect == PowerupType.WeaponUpgrade)
-                {
-                    Debug.LogWarning("WeaponUpgrade powerup collected but 'weaponToEquip' needs setup in ItemData!", data);
-                }
-                else
-                {
-                    PowerupManager.Instance.ActivatePowerup(data.powerupEffect, data.duration);
-                }
-            }
-            else if (PowerupManager.Instance == null) Debug.LogError("HandlePowerupActivation failed: PowerupManager.Instance is NULL!", gameObject);
-            else if (data.powerupEffect == PowerupType.None) Debug.Log("Powerup effect is 'None', skipping activation.", gameObject);
-
         }
 
-        private void HandleHazardCollision()
+        private IEnumerator ReturnToPoolAfterDelay(float delay)
         {
-            Debug.Log("Hazard Hit!");
-
-            if (graphicsRenderer != null) graphicsRenderer.enabled = false;
-            if (col != null) col.enabled = false;
-
-            PlayCollectParticle();
-             
-            StartCoroutine(ReturnToPoolAfterDelay(collectParticle.main.duration));
-
-            if (data.collectSound != null && AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlayClip(data.collectSound, Random.Range(0.88f, 1f));
-            }
+            yield return new WaitForSeconds(delay);
+            ReturnToPool();
         }
 
         private void PlayCollectParticle()
@@ -251,61 +280,73 @@ namespace SnakyColors
             collectParticle.gameObject.SetActive(true);
 
             var main = collectParticle.main;
-            main.stopAction = ParticleSystemStopAction.Callback;
+            // main.stopAction = ParticleSystemStopAction.Callback; // Callback is complex, disable/delay is safer
 
             collectParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             collectParticle.Clear(true);
-            collectParticle.Simulate(0f, true, true); 
+            collectParticle.Simulate(0f, true, true);
             collectParticle.Play(true);
-        } 
+        }
 
         public void ReturnToPool()
         {
-            if (!gameObject.activeSelf) return; 
-             
+            if (!gameObject.activeSelf) return; // Prevent double calls
+
             if (spawner != null && data != null)
             {
                 spawner.OnItemDespawned(this.gameObject, data);
             }
+            else if (isDropped)
+            { 
+                ResetItemState();
+            }
+            else
+            { 
+                Debug.LogWarning($"{gameObject.name} returned to pool but has no spawner or drop flag.");
+                ResetItemState();
+            }
+
+            gameObject.SetActive(false);
+        }
+
+        private void ResetItemState()
+        {
             transform.localScale = originalScale;
-            if (col != null) col.enabled = false;
             if (graphicsRenderer != null) graphicsRenderer.enabled = true;
+            if (shadowRenderer != null) shadowRenderer.enabled = true;
+            if (col != null) col.enabled = true;
             if (collectParticle != null)
             {
                 collectParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                 collectParticle.gameObject.SetActive(false);
             }
+
+            // Reset other flags
             isBeingPulled = false;
-            gameObject.SetActive(false); 
+            isDropped = false;
+            data = null;
+            spawner = null;
         }
-         
+
+
         bool IsInMagnetArea(Vector3 itemPos, Transform player)
         {
+            if (player == null || data == null) return false;
+
             Vector3 toItem = itemPos - player.position;
 
-            // Project the item position onto the player's local axes
-            float forwardDist = Vector3.Dot(toItem, player.up);      // along the player's "forward" (up in 2D)
-            float sidewaysDist = Vector3.Dot(toItem, player.right);  // perpendicular
+            float forwardDist = Vector3.Dot(toItem, player.up);
+            if (forwardDist < 0) return false; // Behind
+            if (forwardDist > data.magnetRange) return false; // Too far
 
-            // In front of player only
-            if (forwardDist < 0) return false;
-            if (forwardDist > data.magnetRange) return false;
-
-            // Triangle width scales with distance
+            float sidewaysDist = Vector3.Dot(toItem, player.right);
             float halfWidthAtY = (forwardDist / data.magnetRange) * (data.magnetBaseWidth / 2f);
-            if (Mathf.Abs(sidewaysDist) > halfWidthAtY) return false;
+
+            if (Mathf.Abs(sidewaysDist) > halfWidthAtY) return false; // Outside triangle
 
             return true;
         }
 
-        private IEnumerator ReturnToPoolAfterDelay(float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            ReturnToPool();
-        }
-
-
-        // Replace your OnDrawGizmosSelected function with this one
         void OnDrawGizmosSelected()
         {
             if (playerTransform == null) return;
@@ -313,11 +354,11 @@ namespace SnakyColors
             Gizmos.color = Color.cyan;
 
             Vector3 tip = playerTransform.position;
-            Vector3 forward = playerTransform.up;   // Player’s facing direction
-            Vector3 right = playerTransform.right;  // Perpendicular
+            Vector3 forward = playerTransform.up;   // Player’s facing direction
+            Vector3 right = playerTransform.right;  // Perpendicular
 
-            int steps = 10; // number of segments to draw triangle edges
-            for (int i = 1; i <= steps; i++)
+            int steps = 10; // number of segments to draw triangle edges
+            for (int i = 1; i <= steps; i++)
             {
                 float dist = (i / (float)steps) * data.magnetRange;
                 float halfWidth = (dist / data.magnetRange) * (data.magnetBaseWidth / 2f);
@@ -326,11 +367,12 @@ namespace SnakyColors
                 Vector3 left = baseCenter - right * halfWidth;
                 Vector3 rightPt = baseCenter + right * halfWidth;
 
-                // Draw edges
-                Gizmos.DrawLine(left, rightPt);
+                // Draw edges
+                Gizmos.DrawLine(left, rightPt);
                 Gizmos.DrawLine(tip, left);
                 Gizmos.DrawLine(tip, rightPt);
             }
-        }  
+        }
+
     }
 }

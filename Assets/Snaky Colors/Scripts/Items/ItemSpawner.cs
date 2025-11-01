@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace SnakyColors
 {
-    public class ItemSpawner : MonoBehaviour
+    public class ItemSpawner : MonoBehaviour, IItemSpawner
     {
         [Header("Setup")]
         public ItemPooler itemPoolerPrefab;
@@ -62,19 +62,15 @@ namespace SnakyColors
         void SpawnPattern(float startY)
         {
             SpawnPatternData selectedPattern = GetWeightedRandomPattern();
-            if (selectedPattern == null) return;
-
-         //   Debug.Log($"[SPAWNER] Selected Pattern: {selectedPattern.name}. Spawning at Y={startY}");
+            if (selectedPattern == null) return; 
 
             int currentActiveLanes = selectedPattern.activeLanes;
-
-            // --- CALCULATE LANE SPACING ---
+             
             if (currentActiveLanes <= 1)
             {
                 currentActiveLanes = 1;
             }
-
-            // Calculate lane spacing based on the dynamic lane count
+             
             float laneSpacing = trackWidth / (currentActiveLanes > 1 ? currentActiveLanes - 1 : 1f);
             float minX = -trackWidth / 2f; // Absolute left edge of the track
             float maxX = trackWidth / 2f;  // Absolute right edge of the track
@@ -86,11 +82,9 @@ namespace SnakyColors
             {
                 if (entry.laneIndex >= currentActiveLanes)
                 {
-             //       Debug.LogWarning($"Pattern {selectedPattern.name} has an item entry with Lane Index {entry.laneIndex} but only defines {currentActiveLanes} active lanes. Skipping entry.");
                     continue;
                 }
-
-                // --- 1. CALCULATE BASE X POSITION & JITTER ---
+                 
                 float xPos = 0f;
                 if (currentActiveLanes > 1)
                 {
@@ -108,16 +102,11 @@ namespace SnakyColors
                     xPos += itemJitterX;
                 }
 
-                // --- OFF-SCREEN CLIPPING CHECK ---
-                // If the final jittered X position is outside the track bounds (with buffer), skip spawning.
                 if (xPos < minX + clipBuffer || xPos > maxX - clipBuffer)
                 {
-                //    Debug.Log($"[SPAWNER CLIP] Skipping item {entry.item.itemName}. X position ({xPos:F2}) is outside track bounds.");
                     continue;
                 }
-                // ---------------------------------
 
-                // --- 2. CALCULATE Y POSITION & JITTER ---
                 float yPos = startY + entry.yOffset; // Base Y position from pattern design
 
                 if (selectedPattern.enableDynamicYOffset)
@@ -130,10 +119,8 @@ namespace SnakyColors
                     yPos += itemJitterY;
                 }
 
-                // --- 3. COMBINE X AND Y TO GET FINAL SPAWN POSITION ---
                 Vector2 spawnPos = new Vector2(xPos, yPos);
 
-                // --- 4. GET OBJECT AND ASSIGN POSITION ---
                 GameObject obj = pooler.GetPooledObject(entry.item);
 
                 if (obj != null)
@@ -143,23 +130,19 @@ namespace SnakyColors
                     obj.SetActive(true);
                     activeSpawnedItems.Add(obj);
 
-              //      Debug.Log($"[SPAWNER] Successfully spawned {entry.item.itemName} at ({spawnPos.x:F2}, {spawnPos.y:F2})");
-
                     var itemComponent = obj.GetComponent<GeneratedItem>();
                     if (itemComponent != null)
                     {
-                      //  itemComponent.spawner = this;
+                        itemComponent.spawner = this;
                         itemComponent.SetData(entry.item, player);
                     } 
                 }
                 else
                 {
-               //     Debug.LogError($"[SPAWNER] FAILED to retrieve object for: {entry.item.itemName}. Check allAvailableItems.");
                 }
             }
 
             nextSpawnY += selectedPattern.verticalHeight;
-           // Debug.Log($"[SPAWNER] Next Spawn Y is now: {nextSpawnY}");
         }
 
         private SpawnPatternData GetWeightedRandomPattern()
@@ -192,6 +175,45 @@ namespace SnakyColors
 
             nextSpawnY = 0f;
             // Note: StopAllCoroutines is no longer necessary as we use Update() loop
+        }
+
+        public void OnItemDespawned(GameObject obj, ItemData item)
+        {
+            activeSpawnedItems.Remove(obj);
+        }
+
+        // ... (inside ItemSpawner.cs) ...
+
+        public void ApplyConfig(PatternSpawnerConfig config)
+        {
+            // 1. Apply settings
+            this.spawnDistance = config.spawnDistance;
+            this.trackWidth = config.trackWidth;
+            this.spawnPatterns = config.spawnPatterns; // Re-link the list
+
+            // 2. Re-initialize pool (if pooler exists)
+            if (pooler != null)
+            {
+                // We need to get *all* items from *all* patterns to pool them
+                List<ItemData> itemsToPool = new List<ItemData>();
+                foreach (var pattern in config.spawnPatterns)
+                {
+                    foreach (var entry in pattern.entries)
+                    {
+                        if (entry.item != null && !itemsToPool.Contains(entry.item))
+                        {
+                            itemsToPool.Add(entry.item);
+                        }
+                    }
+                }
+                // pooler.ClearPools();
+                pooler.SetupPools(itemsToPool);
+            }
+
+            // 3. Reset spawner's state
+            ResetSpawner();
+
+            Debug.Log($"ItemSpawner configured for level: {config.name}");
         }
     }
 }

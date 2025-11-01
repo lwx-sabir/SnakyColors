@@ -19,6 +19,11 @@ namespace SnakyColors
             }
         }
 
+        public void SetInstance(ItemPooler pooler)
+        { 
+            Instance = pooler;
+        }
+
         // Called once by the Spawner at the start of the game
         public void SetupPools(List<ItemData> allItems)
         {

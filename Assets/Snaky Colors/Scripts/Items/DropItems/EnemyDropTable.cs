@@ -75,7 +75,7 @@ namespace SnakyColors
                 {
                     cumulative += drop.dropWeight;
                     if (roll <= cumulative)
-                    {
+                    { 
                         drops.Add(drop.item);
                         if (drop.limitInSecond > 0)
                             cooldownTracker[drop.item] = currentTime + drop.limitInSecond;
