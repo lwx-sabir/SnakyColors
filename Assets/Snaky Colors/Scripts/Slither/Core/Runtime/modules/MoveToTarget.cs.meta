@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 0067ab0747ab9964089e8d8267e3eca0
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 316048
+  packageName: 2D Procedural Creature | Worms Creator | Flowy Rig Animator
+  packageVersion: 1.0.0
+  assetPath: Assets/Procedural Creatures/Core/Runtime/modules/MoveToTarget.cs
+  uploadId: 747896

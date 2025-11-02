@@ -18,13 +18,13 @@ MonoBehaviour:
         serializedData:
         - key: 0
           value:
-            rid: 626041070583546122
+            rid: 626041076752057093
         - key: 1
           value:
-            rid: 626041070583546123
+            rid: 626041076752057094
         - key: 2
           value:
-            rid: 626041070583546124
+            rid: 626041076752057095
       lastMaterialMappings:
         serializedData:
         - key: Shader Graphs/New Shader Graph
@@ -35,15 +35,15 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 626041070583546122
+    - rid: 626041076752057093
       type: {class: ModelSelection, ns: Unity.AI.Material.Services.Stores.States, asm: Unity.AI.Material}
       data:
         modelID: 575ecf67-4425-4939-97b9-5e138b8ee234
-    - rid: 626041070583546123
+    - rid: 626041076752057094
       type: {class: ModelSelection, ns: Unity.AI.Material.Services.Stores.States, asm: Unity.AI.Material}
       data:
         modelID: 
-    - rid: 626041070583546124
+    - rid: 626041076752057095
       type: {class: ModelSelection, ns: Unity.AI.Material.Services.Stores.States, asm: Unity.AI.Material}
       data:
         modelID: 

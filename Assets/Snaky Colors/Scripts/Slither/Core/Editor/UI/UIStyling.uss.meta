@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 90b1c8cca276bc841aad4c04f2cbe848
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 12385, guid: 0000000000000000e000000000000000, type: 0}
+  disableValidation: 0
+AssetOrigin:
+  serializedVersion: 1
+  productId: 316048
+  packageName: 2D Procedural Creature | Worms Creator | Flowy Rig Animator
+  packageVersion: 1.0.0
+  assetPath: Assets/Procedural Creatures/Core/Editor/UI/UIStyling.uss
+  uploadId: 747896

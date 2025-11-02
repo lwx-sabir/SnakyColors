@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement name="prefabListEntry" style="flex-grow: 0; flex-direction: row; display: flex; flex-shrink: 0;">
+        <uie:ObjectField label="Prefab: 1" type="UnityEngine.Transform, UnityEngine.CoreModule" name="prefabObjField" style="flex-grow: 1; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+    </ui:VisualElement>
+</ui:UXML>

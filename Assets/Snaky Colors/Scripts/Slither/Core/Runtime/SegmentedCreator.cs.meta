@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 7ca8b84424e876545a3ac6a269d41236
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 316048
+  packageName: 2D Procedural Creature | Worms Creator | Flowy Rig Animator
+  packageVersion: 1.0.0
+  assetPath: Assets/Procedural Creatures/Core/Runtime/SegmentedCreator.cs
+  uploadId: 747896

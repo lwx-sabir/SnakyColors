@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4ff0697e89f7da44a9d2dd8707c9d66, type: 3}
+  m_Name: cobra skin
+  m_EditorClassIdentifier: 
+  stripesCount: 15
+  stripesSpacingBeforeStripe: 0
+  stripesSpacingAfterStripe: 5
+  HeadSprite: {fileID: 21300000, guid: 773d261997576b049a36892cef02631a, type: 3}
+  BodySprite: {fileID: 21300000, guid: 3181606c5d0d21049be8adc5e7a4001f, type: 3}
+  useTail: 1
+  TailSprite: {fileID: 21300000, guid: 2cc0e3e8a35691143b0f3d2ff7544ede, type: 3}
+  mat: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  EachSpriteRotAngle: 87
+  FlipConsecutive: 0
+  currentStripeType: 1
+  repeatedStripe:
+    sprite: {fileID: 21300000, guid: 092bb78771ec7de458f3a6c5ba84a379, type: 3}
+    stripeLength: 2
+  customStripe:
+    sprites: []

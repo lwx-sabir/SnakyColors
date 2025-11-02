@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:Template name="MovementPage" src="project://database/Assets/Procedural%20Creatures/Core/Editor/UI/MovementPage.uxml?fileID=9197481963319205126&amp;guid=7be0eb4515c915248a2c76a4efad455a&amp;type=3#MovementPage" />
+    <Style src="project://database/Assets/Procedural%20Creatures/Core/Editor/UI/UIStyling.uss?fileID=7433441132597879392&amp;guid=90b1c8cca276bc841aad4c04f2cbe848&amp;type=3#UIStyling" />
+    <ui:VisualElement name="mainContainer" style="flex-grow: 1;">
+        <ui:VisualElement name="setup" style="flex-grow: 0; margin-bottom: 8px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(83, 83, 83); border-right-color: rgb(83, 83, 83); border-top-color: rgb(83, 83, 83); border-bottom-color: rgb(83, 83, 83);">
+            <uie:ToolbarToggle label="Setup" name="setupPageToggle" value="true" style="-unity-text-align: upper-center; -unity-font-style: bold; border-top-width: 0; border-right-width: 1px; border-bottom-width: 0; border-left-width: 1px; align-self: auto; align-items: center; justify-content: center; width: auto; height: 18px; flex-grow: 0; flex-shrink: 0; flex-direction: column; border-left-color: rgb(83, 83, 83); border-right-color: rgb(83, 83, 83); border-top-color: rgb(83, 83, 83); border-bottom-color: rgb(83, 83, 83);" />
+            <ui:VisualElement name="setupItems" style="flex-grow: 1; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(72, 72, 72); border-right-color: rgb(72, 72, 72); border-top-color: rgb(72, 72, 72); border-bottom-color: rgb(72, 72, 72);">
+                <uie:ObjectField label="Start Bone" type="UnityEngine.Transform, UnityEngine.CoreModule" binding-path="startBone" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+                <uie:ObjectField label="End Bone" type="UnityEngine.Transform, UnityEngine.CoreModule" binding-path="endBone" />
+                <uie:PropertyField name="transformsBoneList" binding-path="Transforms" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Instance template="MovementPage" name="MovementPage" />
+    </ui:VisualElement>
+</ui:UXML>

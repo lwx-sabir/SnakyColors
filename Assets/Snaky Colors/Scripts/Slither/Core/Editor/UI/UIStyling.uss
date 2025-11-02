@@ -1,0 +1,34 @@
+.ItemsWithBorder {
+    border-width: 1px;
+    border-color: rgb(72, 72, 72);
+}
+
+.ItemsWithBrighterBorder {
+    border-width: 1px;
+    border-color: rgb(83, 83, 83);
+}
+
+ToolbarToggle {
+    background-color: rgb(87, 87, 87);
+}
+
+ToolbarToggle:hover {
+    background-color: rgb(100, 100, 100);
+}
+
+ToolbarToggle:checked {
+    background-color: rgb(56, 86, 116);
+}
+
+
+ToolbarButton {
+    background-color: rgb(87, 87, 87);
+}
+
+ToolbarButton:hover {
+    background-color: rgb(100, 100, 100);
+}
+
+ToolbarButton:active {
+    background-color: rgb(56, 86, 116);
+}

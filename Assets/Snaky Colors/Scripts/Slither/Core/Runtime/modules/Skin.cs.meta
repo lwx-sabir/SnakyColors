@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: d4ff0697e89f7da44a9d2dd8707c9d66
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 316048
+  packageName: 2D Procedural Creature | Worms Creator | Flowy Rig Animator
+  packageVersion: 1.0.0
+  assetPath: Assets/Procedural Creatures/Core/Runtime/modules/Skin.cs
+  uploadId: 747896

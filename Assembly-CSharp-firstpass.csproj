@@ -1437,6 +1437,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Procedural-Creatures.csproj">
+      <Project>{0A696E17-7E8C-F08F-ADF3-41EABABF4A0B}</Project>
+      <Name>Procedural-Creatures</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

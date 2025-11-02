@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement name="CustomPrefabProp" class="ItemsWithBorder" style="flex-grow: 0; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(72, 72, 72); border-right-color: rgb(72, 72, 72); border-top-color: rgb(72, 72, 72); border-bottom-color: rgb(72, 72, 72);">
+        <ui:Label tabindex="-1" text="prop" parse-escape-sequences="true" display-tooltip-when-elided="true" name="propertyLabel" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; -unity-font-style: bold;" />
+        <ui:SliderInt label="Position" high-value="10" show-input-field="true" name="posSlider" low-value="1" style="margin-bottom: 5px;" />
+        <ui:VisualElement name="layerOrderContainer" style="flex-grow: 1;" />
+    </ui:VisualElement>
+</ui:UXML>

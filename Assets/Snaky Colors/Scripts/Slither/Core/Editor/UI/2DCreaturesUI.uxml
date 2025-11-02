@@ -1,0 +1,111 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:Template name="movementPage" src="project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/MovementPage.uxml?fileID=9197481963319205126&amp;guid=7be0eb4515c915248a2c76a4efad455a&amp;type=3#MovementPage" />
+    <Style src="project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/UIStyling.uss?fileID=7433441132597879392&amp;guid=90b1c8cca276bc841aad4c04f2cbe848&amp;type=3#UIStyling" />
+    <ui:VisualElement name="mainContainer" style="flex-grow: 0;">
+        <ui:VisualElement name="header" class="ItemsWithBorder ItemsWithBrighterBorder" style="flex-grow: 1; flex-direction: column; justify-content: center; height: auto; margin-top: 0; margin-right: 0; margin-bottom: 3px; margin-left: 0; flex-shrink: 1;">
+            <ui:VisualElement name="mainNavDep" style="flex-grow: 1; flex-direction: row; justify-content: center; height: 23px; margin-top: 5px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                <uie:ToolbarToggle style="border-top-width: 0; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0; -unity-text-align: upper-center; align-items: center; margin-right: 5px; width: 23%; align-self: auto; justify-content: center; margin-left: 0; border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px;">
+                    <ui:VisualElement style="flex-grow: 0; flex-direction: row; width: auto; justify-content: center; align-self: center; align-items: stretch; margin-left: 0; margin-right: 19%; top: auto;">
+                        <ui:VisualElement style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/Icons/setup%20icon.png?fileID=2800000&amp;guid=af1dc896feaf66c47a4c8dd7ec03a5f9&amp;type=3#setup icon&quot;); -unity-background-scale-mode: scale-and-crop; height: 100%; width: 20px; margin-right: 3px; margin-bottom: 0; top: -1px;" />
+                        <ui:Label tabindex="-1" text="Setup" parse-escape-sequences="true" display-tooltip-when-elided="true" name="setupLabel" style="height: 100%; display: flex; visibility: visible; -unity-font-style: bold;" />
+                    </ui:VisualElement>
+                </uie:ToolbarToggle>
+                <uie:ToolbarToggle style="border-top-width: 0; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0; -unity-text-align: upper-center; align-items: center; margin-right: 5px; width: 23%; align-self: auto; justify-content: center; margin-left: 0; border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px;">
+                    <ui:VisualElement style="flex-grow: 0; flex-direction: row; width: auto; justify-content: center; align-self: center; align-items: stretch; margin-left: 0; margin-right: 13%;">
+                        <ui:VisualElement style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/Icons/prefs.png?fileID=2800000&amp;guid=0b5dbb49ec0efe44384c52fa37866b2a&amp;type=3#prefs&quot;); -unity-background-scale-mode: scale-and-crop; height: auto; width: 20px; margin-right: 3px; margin-bottom: 0; top: -0.5px;" />
+                        <ui:Label tabindex="-1" text="Pattern" parse-escape-sequences="true" display-tooltip-when-elided="true" name="PatternLabel" style="-unity-font-style: bold;" />
+                    </ui:VisualElement>
+                </uie:ToolbarToggle>
+                <uie:ToolbarToggle style="border-top-width: 0; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0; -unity-text-align: upper-center; align-items: center; margin-right: 5px; width: 23%; align-self: auto; justify-content: center; margin-left: 0; border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px;">
+                    <ui:VisualElement style="flex-grow: 0; flex-direction: row; width: auto; justify-content: center; align-self: center; align-items: stretch; margin-left: 0; margin-right: 12%;">
+                        <ui:VisualElement style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/Icons/custom%20setup.png?fileID=2800000&amp;guid=e410d001204a47c42bad97b6b8f367c4&amp;type=3#custom setup&quot;); -unity-background-scale-mode: scale-and-crop; height: auto; width: 20px; margin-right: 3px; margin-bottom: 0; top: -0.5px;" />
+                        <ui:Label tabindex="-1" text="Custom" parse-escape-sequences="true" display-tooltip-when-elided="true" name="customLabel" style="-unity-font-style: bold;" />
+                    </ui:VisualElement>
+                </uie:ToolbarToggle>
+                <uie:ToolbarToggle style="border-top-width: 0; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0; -unity-text-align: upper-center; align-items: center; margin-right: 0; width: 23%; align-self: auto; justify-content: center; margin-top: 0; margin-bottom: 0; margin-left: 0; border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px;">
+                    <ui:VisualElement style="flex-grow: 0; flex-direction: row; width: auto; justify-content: center; align-self: center; align-items: stretch; margin-left: 0; margin-right: 3%;">
+                        <ui:VisualElement style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/Icons/move%20icon.png?fileID=2800000&amp;guid=f5d8c39054f103e4e93220049dab3dd4&amp;type=3#move icon&quot;); -unity-background-scale-mode: scale-and-crop; height: auto; width: 20px; margin-right: 3px; margin-bottom: 0; top: -0.5px;" />
+                        <ui:Label tabindex="-1" text="Movement" parse-escape-sequences="true" display-tooltip-when-elided="true" name="movementLabel" style="-unity-font-style: bold;" />
+                    </ui:VisualElement>
+                </uie:ToolbarToggle>
+            </ui:VisualElement>
+            <ui:VisualElement name="visiblity" style="flex-grow: 1; align-self: stretch; flex-direction: row; margin-top: 3px; margin-right: 3px; margin-bottom: 0; margin-left: 3px; height: auto; justify-content: space-between;">
+                <ui:EnumField type="SVassets.ProceduralCreatures.SegmentedCreatures.PathType, Procedural-Creatures" binding-path="basePathAlgorithm" tooltip="Path algorithm to create base path." data-source-type="SnakyColors.SlitherPathType, Procedural-Creatures" style="width: 28%;" />
+                <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: flex-end; height: 19px;">
+                    <uie:ToolbarButton parse-escape-sequences="true" display-tooltip-when-elided="true" name="refreshButton" tooltip="Refresh Creature" style="-unity-text-align: upper-center; border-top-width: 0; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0; margin-right: 15px; background-image: url(&quot;project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/Icons/refresh%20Icon.png?fileID=2800000&amp;guid=402422785a022694bad22ab65f87efe5&amp;type=3#refresh Icon&quot;); -unity-background-scale-mode: scale-to-fit; width: 20%; border-top-left-radius: 1px; border-top-right-radius: 1px; border-bottom-right-radius: 1px; border-bottom-left-radius: 1px;" />
+                    <uie:ToolbarToggle name="ToolbarToggle" binding-path="preview" tooltip="enable Preview" class="subHeader" style="justify-content: center; align-items: center; align-self: auto; -unity-text-align: upper-center; height: 100%; width: 15%; border-top-width: 0; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0; margin-right: 5px; border-top-left-radius: 1px; border-top-right-radius: 1px; border-bottom-right-radius: 1px; border-bottom-left-radius: 1px; flex-grow: 0; flex-shrink: 0; background-image: url(&quot;project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/Icons/show_new.png?fileID=2800000&amp;guid=0e238874243f73140b48603d8940d8d0&amp;type=3#show_new&quot;); -unity-background-scale-mode: scale-to-fit; margin-left: 0;" />
+                    <uie:ToolbarToggle binding-path="UIPath" tooltip="Show UI Path" class="subHeader" style="justify-content: center; align-items: center; align-self: auto; -unity-text-align: upper-center; height: 100%; width: 15%; border-top-width: 0; border-right-width: 0; border-bottom-width: 1px; border-left-width: 0; margin-right: 3px; border-top-left-radius: 1px; border-top-right-radius: 1px; border-bottom-right-radius: 1px; border-bottom-left-radius: 1px; flex-grow: 0; flex-shrink: 0; background-image: url(&quot;project://database/Assets/Snaky%20Colors/Scripts/Slither/Core/Editor/UI/Icons/prev%20path.png?fileID=2800000&amp;guid=512593702b0daba4a9f30d8c14ccb06d&amp;type=3#prev path&quot;); -unity-background-scale-mode: scale-to-fit; margin-top: 0; margin-bottom: 0; margin-left: 0;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="subHeader" class="ItemsWithBorder ItemsWithBrighterBorder" style="flex-grow: 1;">
+            <uie:ToolbarToggle label="Controls" name="setupControlsToggle" value="true" style="-unity-text-align: upper-center; -unity-font-style: bold; border-top-width: 0; border-right-width: 1px; border-bottom-width: 0; border-left-width: 1px; align-self: auto; align-items: center; justify-content: center; width: auto; height: 18px; margin-top: 0; margin-right: 0; margin-bottom: 3px; margin-left: 0; flex-grow: 0; flex-shrink: 0; flex-direction: column; border-left-color: rgb(83, 83, 83); border-right-color: rgb(83, 83, 83); border-top-color: rgb(83, 83, 83); border-bottom-color: rgb(83, 83, 83); display: flex; left: auto;" />
+            <ui:VisualElement name="basePathProp" class="ItemsWithBorder" style="flex-grow: 0; margin-top: 0; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                <ui:SliderInt label="Ribs Count" high-value="1000" show-input-field="true" name="RibCountSlider" inverted="false" binding-path="ribCount" style="margin-bottom: 3px;" />
+                <ui:Slider label="Rib Spacing" high-value="1" show-input-field="true" binding-path="perSegmentDist" name="ribSpacingSlider" style="margin-bottom: 3px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="content" style="flex-grow: 1; margin-top: 8px; margin-right: 0; margin-bottom: 8px; margin-left: 0; display: flex;">
+            <ui:VisualElement name="skinProp" class="ItemsWithBrighterBorder" style="flex-grow: 1; display: flex;">
+                <ui:VisualElement name="skinSO" style="flex-grow: 1; flex-direction: row; align-self: stretch; align-items: stretch; justify-content: space-between; flex-shrink: 1; margin-top: 3px; margin-right: 3px; margin-bottom: 0; margin-left: 3px;">
+                    <uie:ObjectField label="Skin" type="UnityEngine.ScriptableObject, UnityEngine.CoreModule" binding-path="skin" name="soObjectField" style="align-self: auto; align-items: stretch; -unity-font-style: normal; flex-grow: 1; flex-shrink: 1;" />
+                    <ui:Button text="Add" parse-escape-sequences="true" display-tooltip-when-elided="true" name="addSOButton" style="align-self: auto; align-items: stretch; width: 12%; -unity-font-style: bold;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="SpriteContent" class="ItemsWithBorder ItemsWithBrighterBorder" style="flex-grow: 0; flex-shrink: 0; display: flex; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                    <uie:ToolbarToggle label="Sprites" name="spriteToggle" value="true" style="-unity-text-align: upper-center; -unity-font-style: bold; border-top-width: 0; border-right-width: 1px; border-bottom-width: 0; border-left-width: 1px; align-self: auto; align-items: center; justify-content: center; width: auto; height: 18px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; flex-grow: 0; flex-shrink: 0; flex-direction: column; border-left-color: rgb(83, 83, 83); border-right-color: rgb(83, 83, 83); border-top-color: rgb(83, 83, 83); border-bottom-color: rgb(83, 83, 83); display: flex; left: auto;" />
+                    <ui:VisualElement name="SpriteSetupItems" style="flex-grow: 1; display: flex;">
+                        <ui:VisualElement name="SpriteFields" class="ItemsWithBorder" style="flex-grow: 0; margin-bottom: 5px; margin-top: 3px; margin-right: 3px; margin-left: 3px; display: flex;">
+                            <ui:Label tabindex="-1" text="Sprites" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: bold; margin-bottom: 3px; margin-top: 3px; margin-right: 3px; margin-left: 3px;" />
+                            <uie:ObjectField label="Head Sprite" type="UnityEngine.Sprite, UnityEngine.CoreModule" name="headField" style="margin-bottom: 3px;" />
+                            <uie:ObjectField label="Body Sprite" type="UnityEngine.Sprite, UnityEngine.CoreModule" name="bodyField" style="margin-bottom: 3px;" />
+                            <ui:VisualElement style="flex-grow: 0; flex-direction: row; width: 100%; margin-bottom: 5px; justify-content: space-between;">
+                                <ui:Toggle name="useTailToggle" tooltip="enable it to use Tail, otherwise body sprite will be used there." />
+                                <ui:Label tabindex="-1" text="Tail Sprite" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; justify-content: center; align-items: center; align-self: center; margin-left: 5px; margin-right: 40px;" />
+                                <uie:ObjectField type="UnityEngine.Sprite, UnityEngine.CoreModule" name="tailField" style="margin-bottom: 3px; flex-grow: 0; width: 82%; flex-shrink: 1;" />
+                            </ui:VisualElement>
+                            <uie:ObjectField label="Material" type="UnityEngine.Material, UnityEngine.CoreModule" name="skinMatField" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="SpriteProp" class="ItemsWithBorder" style="margin-top: 0; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; display: flex;">
+                            <ui:Label tabindex="-1" text="Sprites Properties" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: bold; margin-bottom: 3px; margin-top: 3px; margin-right: 3px; margin-left: 3px;" />
+                            <ui:Toggle name="spriteSortInverToggle" label="Invert Sprite Sorting" binding-path="spritesOrderinverted" style="margin-bottom: 3px;" />
+                            <ui:SliderInt label="Render Sorting" high-value="50" show-input-field="true" tooltip="Don&apos;t use it like Sorting order in sprites, use it to set sorting relative to other creatures" low-value="-50" name="sortingOrder" binding-path="orderInLayer" style="margin-right: 5px; margin-bottom: 3px;" />
+                            <ui:Slider label="Rotation Override" high-value="359" show-input-field="true" name="rotOverride" style="margin-right: 5px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="patternPage" class="ItemsWithBorder" style="flex-grow: 1; display: none; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;">
+                    <uie:ToolbarToggle label="Pattern" name="PatternToggle" value="true" style="-unity-text-align: upper-center; -unity-font-style: bold; border-top-width: 0; border-right-width: 1px; border-bottom-width: 0; border-left-width: 1px; align-self: auto; align-items: center; justify-content: center; width: auto; height: 18px; margin-top: 0; margin-right: 0; margin-bottom: 3px; margin-left: 0; flex-grow: 0; flex-shrink: 0; flex-direction: column; border-left-color: rgb(83, 83, 83); border-right-color: rgb(83, 83, 83); border-top-color: rgb(83, 83, 83); border-bottom-color: rgb(83, 83, 83); display: flex; left: auto;" />
+                    <ui:VisualElement name="patternPageItems" style="flex-grow: 1;">
+                        <ui:Label tabindex="-1" text="Pattern Properties" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: bold; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+                        <ui:EnumField label="Stripe Type" type="SVassets.ProceduralCreatures.SegmentedCreatures.StripeType, Procedural-Creatures" name="skinStripeType" />
+                        <ui:VisualElement name="patternControls" style="flex-grow: 1; margin-bottom: 2px;">
+                            <ui:SliderInt label="Stripe Count" high-value="15" show-input-field="true" name="stripeCount" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+                            <ui:SliderInt label="Before Spacing" high-value="10" show-input-field="true" name="beforeStripeSpacing" style="margin-bottom: 3px; margin-right: 3px;" />
+                            <ui:SliderInt label="After Spacing" high-value="10" show-input-field="true" name="AfterStripeSpacing" style="margin-bottom: 1px; margin-right: 3px;" />
+                            <ui:Toggle name="flipConseToggle" label="Flip Consecutive" style="margin-right: 6px;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="noneStripe" style="flex-grow: 1; display: none;" />
+                        <ui:VisualElement name="repeatStripe" class="ItemsWithBorder" style="flex-grow: 1; display: flex;">
+                            <ui:Label tabindex="-1" text="Repeated" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: bold; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+                            <uie:ObjectField label="Sprite" type="UnityEngine.Sprite, UnityEngine.CoreModule" name="repeatedStripeSpriteField" style="margin-bottom: 3px;" />
+                            <ui:SliderInt label="Stripe Length" high-value="10" show-input-field="true" name="repeatedStripeLength" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="CustomStripe" class="ItemsWithBorder" style="flex-grow: 1;">
+                            <ui:Label tabindex="-1" text="Custom Pattern" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: bold; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+                            <uie:PropertyField name="CustomStripeSprite" style="margin-top: 1px; margin-right: 3px; margin-bottom: 1px; margin-left: 3px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="CustomPrefab" class="ItemsWithBorder" style="flex-grow: 1; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; display: none;">
+                    <uie:ToolbarToggle label="Custom Prefab" name="CustomPrefabToggle" value="true" style="-unity-text-align: upper-center; -unity-font-style: bold; border-top-width: 0; border-right-width: 1px; border-bottom-width: 0; border-left-width: 1px; align-self: auto; align-items: center; justify-content: center; width: auto; height: 18px; margin-top: 0; margin-right: 0; margin-bottom: 3px; margin-left: 0; flex-grow: 0; flex-shrink: 0; flex-direction: column; border-left-color: rgb(83, 83, 83); border-right-color: rgb(83, 83, 83); border-top-color: rgb(83, 83, 83); border-bottom-color: rgb(83, 83, 83); display: flex; left: auto;" />
+                    <ui:VisualElement name="CustomPrefabPageItems" style="flex-grow: 1;">
+                        <ui:Label tabindex="-1" text="Replace any of the segment  with a custom Prefab for Any Custom Feature for that body Segment. It will be Replace Corresponding Sprite. Use it for fixed Rib count, Otherwise change position dynamically." parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: normal; visibility: visible; overflow: visible; text-overflow: clip; white-space: normal; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+                        <ui:ListView reorderable="false" show-bound-collection-size="true" show-add-remove-footer="true" show-foldout-header="true" header-title="Prefabs To Replace" show-alternating-row-backgrounds="None" horizontal-scrolling="false" show-border="true" name="customPrefabsList" style="margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(72, 72, 72); border-right-color: rgb(72, 72, 72); border-top-color: rgb(72, 72, 72); border-bottom-color: rgb(72, 72, 72);" />
+                        <ui:VisualElement name="PrefabProperty" style="flex-grow: 1;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Instance template="movementPage" name="MovementPage" style="display: none;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

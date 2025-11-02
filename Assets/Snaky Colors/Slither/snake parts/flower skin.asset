@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4ff0697e89f7da44a9d2dd8707c9d66, type: 3}
+  m_Name: flower skin
+  m_EditorClassIdentifier: 
+  stripesCount: 15
+  stripesSpacingBeforeStripe: 0
+  stripesSpacingAfterStripe: 0
+  HeadSprite: {fileID: 21300000, guid: 4b0f2b795c70f6745bb9b723590ad00c, type: 3}
+  BodySprite: {fileID: 21300000, guid: 3181606c5d0d21049be8adc5e7a4001f, type: 3}
+  useTail: 1
+  TailSprite: {fileID: 21300000, guid: 092bb78771ec7de458f3a6c5ba84a379, type: 3}
+  mat: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  EachSpriteRotAngle: 90
+  FlipConsecutive: 1
+  currentStripeType: 2
+  repeatedStripe:
+    sprite: {fileID: 21300000, guid: 092bb78771ec7de458f3a6c5ba84a379, type: 3}
+    stripeLength: 2
+  customStripe:
+    sprites:
+    - {fileID: 21300000, guid: 8dc84519d5ef0c14eae94cb63ebdbfa7, type: 3}
+    - {fileID: 21300000, guid: aacb0337b86c4ea4aad52a8eb6743ef2, type: 3}
+    - {fileID: 21300000, guid: 9b874296169f58b458db740fed38e5bc, type: 3}
+    - {fileID: 21300000, guid: 826c22627b78f4e48a91e5b348264069, type: 3}
+    - {fileID: 21300000, guid: 2cc0e3e8a35691143b0f3d2ff7544ede, type: 3}
+    - {fileID: 21300000, guid: 97d82046f2bac754ea39ae6f9fba36a8, type: 3}

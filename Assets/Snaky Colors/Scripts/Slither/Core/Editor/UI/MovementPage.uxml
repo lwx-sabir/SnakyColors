@@ -1,0 +1,27 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement name="MovementPage" style="flex-grow: 0; display: flex; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(83, 83, 83); border-right-color: rgb(83, 83, 83); border-top-color: rgb(83, 83, 83); border-bottom-color: rgb(83, 83, 83);">
+        <uie:ToolbarToggle label="Movement" name="movementPageToggle" value="true" style="-unity-text-align: upper-center; -unity-font-style: bold; border-top-width: 0; border-right-width: 1px; border-bottom-width: 0; border-left-width: 1px; align-self: auto; align-items: center; justify-content: center; width: auto; height: 18px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; flex-grow: 0; flex-shrink: 0; flex-direction: column; border-left-color: rgb(83, 83, 83); border-right-color: rgb(83, 83, 83); border-top-color: rgb(83, 83, 83); border-bottom-color: rgb(83, 83, 83); left: auto;" />
+        <ui:VisualElement name="movementItems" style="flex-grow: 1; margin-top: 3px;">
+            <ui:Toggle label="Enable" name="enableMoveToggle" binding-path="moveToTarget.enableMoving" tooltip="Works in only Play mode" style="-unity-font-style: bold; margin-top: 3px; margin-bottom: 3px; margin-left: 6px; margin-right: 3px;" />
+            <ui:VisualElement style="flex-grow: 1; margin-top: 2px; margin-right: 2px; margin-bottom: 2px; margin-left: 2px;">
+                <ui:VisualElement name="moveToTarget" class="ItemsWithBorder" style="flex-grow: 0; margin-bottom: 5px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(72, 72, 72); border-right-color: rgb(72, 72, 72); border-top-color: rgb(72, 72, 72); border-bottom-color: rgb(72, 72, 72); margin-top: 0; margin-right: 3px; margin-left: 3px; display: flex;">
+                    <ui:Label tabindex="-1" text="Move To Target" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: bold; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+                    <uie:ObjectField label="Target" type="UnityEngine.Transform, UnityEngine.CoreModule" name="targetField" binding-path="moveToTarget.Target" style="margin-bottom: 3px;" />
+                    <ui:Slider label="Moving Speed" high-value="20" show-input-field="true" name="movingSpeed" binding-path="moveToTarget.movingSpeed" style="margin-bottom: 3px;" />
+                    <ui:Slider label="Max Turning Angle" high-value="180" show-input-field="true" tooltip="disabled when oscillation is used." name="maxTurnAngle" binding-path="moveToTarget.maxTurningAngle" style="margin-bottom: 3px;" />
+                    <ui:Toggle binding-path="moveToTarget.moveThroughTarget" label="Move Through Target" name="moveThruTarget" style="margin-bottom: 5px;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="WobbleProp" class="ItemsWithBorder" style="flex-grow: 0; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(72, 72, 72); border-right-color: rgb(72, 72, 72); border-top-color: rgb(72, 72, 72); border-bottom-color: rgb(72, 72, 72); margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px; display: flex;">
+                    <ui:Toggle label="Oscillating motion" name="enableWobble" binding-path="moveToTarget.enableWobble" style="-unity-font-style: bold; margin-top: 3px;" />
+                    <ui:Slider label="Amplitude" high-value="3" show-input-field="true" name="WobbleAmplitude" binding-path="moveToTarget.wobbleAmplitude" style="margin-bottom: 3px;" />
+                    <ui:Slider label="Frequency" high-value="5" show-input-field="true" name="wobbleFreq" binding-path="moveToTarget.wobbleFreq" />
+                </ui:VisualElement>
+                <ui:VisualElement name="moveToMousePage" style="flex-grow: 1; border-top-width: 1px; border-top-color: rgb(72, 72, 72); margin-top: 2px; margin-right: 2px; margin-bottom: 2px; margin-left: 2px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(72, 72, 72); border-right-color: rgb(72, 72, 72); border-bottom-color: rgb(72, 72, 72);">
+                    <ui:Label tabindex="-1" text="Move To Mouse" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: bold; margin-top: 3px; margin-right: 3px; margin-bottom: 3px; margin-left: 3px;" />
+                    <ui:Toggle name="moveToMouseEnable" binding-path="moveToTarget.moveTowardMouse" label="Enable" style="border-top-width: 0; border-top-color: rgb(72, 72, 72); border-right-width: 0; border-bottom-width: 0; border-left-width: 0; margin-top: 2px;" />
+                    <ui:Slider label="Arrow DIstance" high-value="5" binding-path="moveToTarget.arrowDist" show-input-field="true" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
