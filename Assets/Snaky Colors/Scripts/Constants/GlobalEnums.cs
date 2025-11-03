@@ -1,3 +1,5 @@
+using System;
+
 namespace SnakyColors
 {
     public enum SoundType
@@ -22,6 +24,16 @@ namespace SnakyColors
         GemBurst,
         StarPickup,
         DashTrail
+    }
+
+    [Serializable]
+    public struct Vec2Dto
+    {
+        public float X { get; set; }
+        public float Y { get; set; }
+
+        // Optional helper to convert to UnityEngine.Vector2
+        public UnityEngine.Vector2 ToUnityVector2() => new UnityEngine.Vector2(X, Y);
     }
 }
 

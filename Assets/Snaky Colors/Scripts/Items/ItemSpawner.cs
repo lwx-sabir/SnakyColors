@@ -7,8 +7,7 @@ namespace SnakyColors
 {
     public class ItemSpawner : MonoBehaviour, IItemSpawner
     {
-        [Header("Setup")]
-        public ItemPooler itemPoolerPrefab;
+        [Header("Setup")] 
         public List<ItemData> allAvailableItems;           // All individual items to pool
         public List<SpawnPatternData> spawnPatterns;       // The patterns to choose from
         public Transform player;
@@ -16,8 +15,7 @@ namespace SnakyColors
         [Header("Level Settings")]
         public float spawnDistance = 20f;         
         public float trackWidth = 5f;
-
-        private ItemPooler pooler;
+         
         private float nextSpawnY = 0f;
         private List<GameObject> activeSpawnedItems = new List<GameObject>(); // For quick cleanup
 
@@ -29,12 +27,7 @@ namespace SnakyColors
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
-
-                // Instantiate the Pooler and set it up
-                pooler = Instantiate(itemPoolerPrefab, this.transform);
-                pooler.gameObject.name = "ITEM_POOLER_MANAGER";
-                pooler.SetupPools(allAvailableItems);
+                DontDestroyOnLoad(gameObject); 
             }
             else
             {
@@ -121,7 +114,7 @@ namespace SnakyColors
 
                 Vector2 spawnPos = new Vector2(xPos, yPos);
 
-                GameObject obj = pooler.GetPooledObject(entry.item);
+                GameObject obj = ItemPooler.Instance.GetPooledObject(entry.item);
 
                 if (obj != null)
                 {
@@ -189,26 +182,7 @@ namespace SnakyColors
             // 1. Apply settings
             this.spawnDistance = config.spawnDistance;
             this.trackWidth = config.trackWidth;
-            this.spawnPatterns = config.spawnPatterns; // Re-link the list
-
-            // 2. Re-initialize pool (if pooler exists)
-            if (pooler != null)
-            {
-                // We need to get *all* items from *all* patterns to pool them
-                List<ItemData> itemsToPool = new List<ItemData>();
-                foreach (var pattern in config.spawnPatterns)
-                {
-                    foreach (var entry in pattern.entries)
-                    {
-                        if (entry.item != null && !itemsToPool.Contains(entry.item))
-                        {
-                            itemsToPool.Add(entry.item);
-                        }
-                    }
-                }
-                // pooler.ClearPools();
-                pooler.SetupPools(itemsToPool);
-            }
+            this.spawnPatterns = config.spawnPatterns; // Re-link the list 
 
             // 3. Reset spawner's state
             ResetSpawner();

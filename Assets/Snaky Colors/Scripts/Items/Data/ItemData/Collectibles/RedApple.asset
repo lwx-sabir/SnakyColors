@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9276b6eae820cc74c825b6d2a1e86689, type: 3}
   m_Name: RedApple
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemData
-  itemName: Red Apple
+  itemName: RedApple
   prefab: {fileID: 8372736932161314260, guid: 4602c7a09b1ef6c40aeab63ed3b701ae, type: 3}
   category: 0
+  collectibleType: 0
   powerupEffect: 0
   value: 10
   scoreText: 10
@@ -23,8 +24,6 @@ MonoBehaviour:
   icon: {fileID: 0}
   collectSound: {fileID: 8300000, guid: 15567e7ddaef04bb9a6366ad84515027, type: 3}
   itemColor: {r: 0.82745105, g: 0.18823531, b: 0.14117648, a: 1}
-  spawnProbability: 0.754
-  isUniquePerScreen: 0
   poolSize: 10
   sameItemCannotOverlap: 0
   sameItemMinRadius: 0.5

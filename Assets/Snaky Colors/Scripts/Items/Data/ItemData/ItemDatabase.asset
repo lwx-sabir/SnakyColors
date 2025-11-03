@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d098c77205de2c54eac25632bea5e661, type: 3}
+  m_Name: ItemDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemDatabase
+  allItems:
+  - {fileID: 11400000, guid: 51787d851a4a8344ea9721c2ff352a85, type: 2}
+  - {fileID: 11400000, guid: 3018c92941d76354fae32c79186d21f2, type: 2}
+  - {fileID: 11400000, guid: 79aeb3b40e70e6c439b144e6371f4d02, type: 2}
+  - {fileID: 11400000, guid: 9285286e099c7c740a90e83197b23780, type: 2}
+  - {fileID: 11400000, guid: a9bed627920be5a4b83e2f3a144dc8be, type: 2}
+  - {fileID: 11400000, guid: e59be2cc3bb2d5647841925baf8cf871, type: 2}
+  - {fileID: 11400000, guid: ea864f72c30317c4cb4206d5e66497d3, type: 2}
+  - {fileID: 11400000, guid: c35ce9f25bf1c2c42aba95226e50af90, type: 2}

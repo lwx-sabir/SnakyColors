@@ -1,0 +1,155 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|d:\\projects\\snakycolors\\serverside\\khela.game\\khela.game\\services\\gamebroadcastservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|solutionrelative:khela.game\\services\\gamebroadcastservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|d:\\projects\\snakycolors\\serverside\\khela.game\\khela.game\\dtos\\signalrdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|solutionrelative:khela.game\\dtos\\signalrdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|d:\\projects\\snakycolors\\serverside\\khela.game\\khela.game\\slither\\gameengine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|solutionrelative:khela.game\\slither\\gameengine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|d:\\projects\\snakycolors\\serverside\\khela.game\\khela.game\\models\\slitherplayerstate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|solutionrelative:khela.game\\models\\slitherplayerstate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|d:\\projects\\snakycolors\\serverside\\khela.game\\khela.game\\slither\\items\\items.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|solutionrelative:khela.game\\slither\\items\\items.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|d:\\projects\\snakycolors\\serverside\\khela.game\\khela.game\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|solutionrelative:khela.game\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|d:\\projects\\snakycolors\\serverside\\khela.game\\khela.game\\managers\\srhubs\\snakehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|solutionrelative:khela.game\\managers\\srhubs\\snakehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|d:\\projects\\snakycolors\\serverside\\khela.game\\khela.game\\services\\redis\\redisservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16F8025E-3B64-43EB-93AC-4791FE008833}|Khela.Game\\Khela.Game.csproj|solutionrelative:khela.game\\services\\redis\\redisservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "GameEngine.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Slither\\GameEngine.cs",
+              "RelativeDocumentMoniker": "Khela.Game\\Slither\\GameEngine.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Slither\\GameEngine.cs",
+              "RelativeToolTip": "Khela.Game\\Slither\\GameEngine.cs",
+              "ViewState": "AgIAAFQAAAAAAAAAAAAvwIwAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-02T06:47:26.45Z",
+              "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "SignalRDTOs.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Dtos\\SignalRDTOs.cs",
+              "RelativeDocumentMoniker": "Khela.Game\\Dtos\\SignalRDTOs.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Dtos\\SignalRDTOs.cs",
+              "RelativeToolTip": "Khela.Game\\Dtos\\SignalRDTOs.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAgAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T01:45:33.784Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "SlitherPlayerState.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Models\\SlitherPlayerState.cs",
+              "RelativeDocumentMoniker": "Khela.Game\\Models\\SlitherPlayerState.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Models\\SlitherPlayerState.cs",
+              "RelativeToolTip": "Khela.Game\\Models\\SlitherPlayerState.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAADgvysAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T00:03:52.113Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "GameBroadcastService.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Services\\GameBroadcastService.cs",
+              "RelativeDocumentMoniker": "Khela.Game\\Services\\GameBroadcastService.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Services\\GameBroadcastService.cs",
+              "RelativeToolTip": "Khela.Game\\Services\\GameBroadcastService.cs",
+              "ViewState": "AgIAAGgAAAAAAAAAAAAIwIQAAAA+AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-02T15:28:14.702Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Program.cs",
+              "RelativeDocumentMoniker": "Khela.Game\\Program.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Program.cs",
+              "RelativeToolTip": "Khela.Game\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACgAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-02T11:01:16.742Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Items.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Slither\\Items\\Items.cs",
+              "RelativeDocumentMoniker": "Khela.Game\\Slither\\Items\\Items.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Slither\\Items\\Items.cs",
+              "RelativeToolTip": "Khela.Game\\Slither\\Items\\Items.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-02T10:13:04.266Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "RedisService.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Services\\Redis\\RedisService.cs",
+              "RelativeDocumentMoniker": "Khela.Game\\Services\\Redis\\RedisService.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Services\\Redis\\RedisService.cs",
+              "RelativeToolTip": "Khela.Game\\Services\\Redis\\RedisService.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAYwCUAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-26T21:35:56.303Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SnakeHub.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Managers\\SRHubs\\SnakeHub.cs",
+              "RelativeDocumentMoniker": "Khela.Game\\Managers\\SRHubs\\SnakeHub.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\ServerSide\\Khela.Game\\Khela.Game\\Managers\\SRHubs\\SnakeHub.cs",
+              "RelativeToolTip": "Khela.Game\\Managers\\SRHubs\\SnakeHub.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAwDAAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-02T06:46:45.598Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

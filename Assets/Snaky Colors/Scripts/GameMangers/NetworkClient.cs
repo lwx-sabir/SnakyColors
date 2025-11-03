@@ -14,9 +14,9 @@ namespace SnakyColors
         [SerializeField] private string hubUrl = "http://localhost:5000/snakehub";
 
         [Header("Asset References")]
-        [SerializeField] private GameObject snakeBasePrefab; // Prefab with SegmentedCreator
-        [SerializeField] private SkinDatabase skinDatabase;
-        [SerializeField] private ItemData foodItemData; // Used to get prefab from pooler
+        [SerializeField] private GameObject snakeBasePrefab;
+        [SerializeField] private SkinDatabase skinDatabase; 
+        [SerializeField] private ItemDatabase itemDatabase;
 
         private HubConnection hubConnection;
         private SegmentedCreator localPlayerSnake;
@@ -56,6 +56,11 @@ namespace SnakyColors
                 skinDatabase.Initialize();
             else
                 Debug.LogError("NetworkClient: SkinDatabase is not assigned!");
+
+            if (itemDatabase != null)
+                itemDatabase.Initialize();
+            else
+                Debug.LogError("NetworkClient: ItemDatabase is not assigned!");
         }
 
         async void Start()
@@ -117,10 +122,11 @@ namespace SnakyColors
         {
             if (worldState == null || hubConnection == null || hubConnection.State != HubConnectionState.Connected) return;
 
-            HashSet<string> seenSnakes = new HashSet<string>();
+             HashSet<string> seenSnakes = new HashSet<string>();
             foreach (var snakeDto in worldState.Snakes)
             {
                 if (snakeDto == null) continue;
+                seenSnakes.Add(snakeDto.Id);
                 seenSnakes.Add(snakeDto.Id);
 
                 // --- LOCAL PLAYER ---
@@ -132,6 +138,7 @@ namespace SnakyColors
                     }
                     else
                     {
+                        localPlayerSnake.ribCount = snakeDto.Length;
                         // TODO: Client-Side Prediction / Reconciliation logic goes here
                         // e.g., correct player position if it deviates too far from server
                     }
@@ -142,7 +149,7 @@ namespace SnakyColors
                     // Snake exists, update its target's position for smooth interpolation
                     if (snake.moveToTarget.Target != null)
                     {
-                        snake.moveToTarget.Target.position = new Vector3(snakeDto.HeadPosition.X, snakeDto.HeadPosition.Y, 0);
+                        snake.moveToTarget.Target.position = new Vector3(snakeDto.HeadX, snakeDto.HeadY, 0);
                     }
                     // Update snake length
                     snake.ribCount = snakeDto.Length;
@@ -164,11 +171,28 @@ namespace SnakyColors
                 // Only spawn food if we don't already know about it
                 if (!activeFood.ContainsKey(foodDto.Id))
                 {
-                    GameObject newFoodObj = ItemPooler.Instance.GetPooledObject(foodItemData);
+                    //Get the correct ItemData from the database
+                    ItemData itemToSpawn = itemDatabase.GetItemByKey(foodDto.ItemKey);
+                    if (itemToSpawn == null)
+                    {
+                        Debug.LogError($"Failed to find ItemData for key: {foodDto.ItemKey}");
+                        continue;
+                    }
+
+                    //Get that specific item from the pool
+                    GameObject newFoodObj = ItemPooler.Instance.GetPooledObject(itemToSpawn); 
+
                     if (newFoodObj != null)
                     {
-                        newFoodObj.transform.position = new Vector3(foodDto.Pos.X, foodDto.Pos.Y, 0);
+                        newFoodObj.transform.position = new Vector3(foodDto.PosX, foodDto.PosY, 0);
+                         
                         newFoodObj.SetActive(true);
+                         
+                        if (newFoodObj.TryGetComponent<GeneratedItem>(out var genItem)) 
+                        {
+                            genItem.SetData(itemToSpawn, localPlayerSnake.transform);
+                        }
+
                         activeFood.Add(foodDto.Id, newFoodObj);
                     }
                 }
@@ -195,59 +219,77 @@ namespace SnakyColors
             }
 
             // --- Despawn Food (from state mismatch) ---
-            List<int> foodToDestroy = new List<int>();
-            foreach (var foodId in activeFood.Keys)
-            {
-                if (!seenFood.Contains(foodId))
-                    foodToDestroy.Add(foodId);
-            }
-            foreach (var foodId in foodToDestroy)
-            {
-                DespawnFood(foodId); // Use helper
-            }
+            //List<int> foodToDestroy = new List<int>();
+            //foreach (var foodId in activeFood.Keys)
+            //{
+            //    if (!seenFood.Contains(foodId))
+            //        foodToDestroy.Add(foodId);
+            //}
+            //foreach (var foodId in foodToDestroy)
+            //{
+            //    DespawnFood(foodId); // Use helper
+            //}
         }
 
         /// <summary>
         /// Processes a specific "OnFoodEaten" event from the server.
-        /// </summary>
+        /// </summary> 
         private void ProcessFoodEaten(FoodEatenEvent foodEvent)
         {
             // Find the food object by its ID
-            if (activeFood.TryGetValue(foodEvent.FoodId, out GameObject foodObj))
+            if (!activeFood.TryGetValue(foodEvent.FoodId, out GameObject foodObj))
             {
-                if (foodObj.TryGetComponent<GeneratedItem>(out var genItem))
-                {
-                    Transform collectorHead = null;
-                    // Check if we ate it
-                    if (hubConnection != null && foodEvent.PlayerId == hubConnection.ConnectionId && localPlayerSnake != null)
-                    {
-                        collectorHead = localPlayerSnake.transform;
-                    }
-                    // Check if another snake ate it
-                    else if (otherSnakes.TryGetValue(foodEvent.PlayerId, out var otherSnake))
-                    {
-                        collectorHead = otherSnake.transform;
-                    }
+                // We received an "eaten" event for food we don't have.
+                // This is fine, it might be a late message.
+                return;
+            }
 
-                    // Play the "juicy" collection animation
-                    if (collectorHead != null && genItem.TryGetComponent<FruitCollectEffect>(out var effect))
-                    {
-                        effect.playerHead = collectorHead;
-                        effect.PlayCollectAnimation(
-                            "0", // Server handles score, no text
-                            Color.white, // Or get from ItemData
-                            foodItemData.collectibleType,
-                            foodItemData.icon
-                        );
-                        // The item will be returned to pool via the effect's coroutine
-                    }
-                    else
-                    {
-                        genItem.ReturnToPool(); // No effect, just return
-                    }
+            // We found the food, remove it from our tracking immediately
+            activeFood.Remove(foodEvent.FoodId);
+
+            if (foodObj == null) return;
+             
+            if (foodObj.TryGetComponent<GeneratedItem>(out var genItem) &&
+                genItem.TryGetComponent<FruitCollectEffect>(out var effect) &&
+                genItem.data != null) // Make sure the item has its data
+            {
+                Transform collectorHead = null;
+
+                // Find who ate it
+                if (hubConnection != null && foodEvent.PlayerId == hubConnection.ConnectionId && localPlayerSnake != null)
+                {
+                    collectorHead = localPlayerSnake.transform; // We ate it
+                }
+                else if (otherSnakes.TryGetValue(foodEvent.PlayerId, out var otherSnake))
+                {
+                    collectorHead = otherSnake.transform; // Another snake ate it
                 }
 
-                activeFood.Remove(foodEvent.FoodId); // Remove from tracking
+                if (collectorHead != null)
+                {
+                    effect.playerHead = collectorHead; // Set the target
+                     
+                    effect.PlayCollectAnimation(
+                        "0",  
+                        genItem.data.itemColor,
+                        genItem.data.collectibleType,
+                        genItem.data.icon
+                    ); 
+                }
+                else
+                { 
+                    genItem.ReturnToPool();
+                }
+            }
+            else if (genItem != null)
+            {
+                // Has GeneratedItem but no FruitCollectEffect, so just pool it
+                genItem.ReturnToPool();
+            }
+            else
+            {
+                // Fallback for an object without a GeneratedItem script
+                foodObj.SetActive(false);
             }
         }
 
@@ -271,6 +313,7 @@ namespace SnakyColors
         }
 
 
+        // Inside NetworkClient.cs
         private void SpawnLocalPlayer(SnakeStateDto snakeDto)
         {
             if (snakeBasePrefab == null || skinDatabase == null)
@@ -279,22 +322,36 @@ namespace SnakyColors
                 return;
             }
 
-            GameObject playerObj = Instantiate(snakeBasePrefab,
-                new Vector3(snakeDto.HeadPosition.X, snakeDto.HeadPosition.Y, 0),
-                Quaternion.identity);
+            Vector3 startPos = new Vector3(snakeDto.HeadX, snakeDto.HeadY, 0);
+            GameObject playerObj = Instantiate(snakeBasePrefab, startPos, Quaternion.identity);
 
             localPlayerSnake = playerObj.GetComponent<SegmentedCreator>();
+            if (localPlayerSnake == null)
+            {
+                Debug.LogError($"CRITICAL: 'snakeBasePrefab' is missing the 'SegmentedCreator' script!", snakeBasePrefab);
+                Destroy(playerObj);
+                return;
+            }
 
-            // Apply the skin
+            // Apply skin and length
             Skin skin = skinDatabase.GetSkinByID(snakeDto.SkinID);
             localPlayerSnake.skin = skin;
+            localPlayerSnake.ribCount = snakeDto.Length;
             localPlayerSnake.RefreshSprites();
 
-            // Set initial length
-            localPlayerSnake.ribCount = snakeDto.Length;
+            // --- THIS IS THE FIX ---
+            // 1. Setup its movement target for local client-side prediction
+            localPlayerSnake.moveToTarget.enableMoving = true;
+            localPlayerSnake.moveToTarget.moveThroughTarget = true;
+            // 2. Create the target
+            Transform target = new GameObject($"_LOCAL_PLAYER_TARGET").transform;
+            target.position = startPos;
+            // 3. Assign the target
+            localPlayerSnake.moveToTarget.Target = target;
+            // ---------------------
 
             // Add and set up the input controller
-            localInputController = playerObj.AddComponent<SlitherMovement>(); // Using your renamed script
+            localInputController = playerObj.AddComponent<SlitherMovement>();
 
             // Tell the camera to follow our new player
             SlitherCameraFollow camFollow = FindObjectOfType<SlitherCameraFollow>();
@@ -303,8 +360,8 @@ namespace SnakyColors
                 camFollow.SetPlayer(playerObj.transform);
             }
 
-            // Add components for local interactions (e.g., collecting food)
-            playerObj.AddComponent<PlayerCollisionManager>();
+            // Add components for local interactions
+            playerObj.AddComponent<SlitherCollisionManager>();
             if (playerObj.GetComponent<Collider2D>() == null)
             {
                 var col = playerObj.AddComponent<CircleCollider2D>();
@@ -318,24 +375,30 @@ namespace SnakyColors
             if (snakeBasePrefab == null || skinDatabase == null) return;
 
             GameObject newSnakeObj = Instantiate(snakeBasePrefab,
-                new Vector3(snakeDto.HeadPosition.X, snakeDto.HeadPosition.Y, 0),
+                new Vector3(snakeDto.HeadX, snakeDto.HeadY, 0),
                 Quaternion.identity);
 
             SegmentedCreator newSnake = newSnakeObj.GetComponent<SegmentedCreator>();
 
-            // Apply the skin
+            // --- ADD THIS CHECK ---
+            if (newSnake == null)
+            {
+                Debug.LogError($"CRITICAL: 'snakeBasePrefab' is missing the 'SegmentedCreator' script!", snakeBasePrefab);
+                Destroy(newSnakeObj);
+                return;
+            }
+            // ---------------------
+
             Skin skin = skinDatabase.GetSkinByID(snakeDto.SkinID);
             newSnake.skin = skin;
+            newSnake.ribCount = snakeDto.Length;
             newSnake.RefreshSprites();
 
-            // Set initial length
-            newSnake.ribCount = snakeDto.Length;
-
-            // Setup its movement target for interpolation
+            // Setup its movement target
             newSnake.moveToTarget.enableMoving = true;
             newSnake.moveToTarget.moveThroughTarget = true;
             Transform target = new GameObject($"{snakeDto.Id}_Target").transform;
-            target.position = new Vector3(snakeDto.HeadPosition.X, snakeDto.HeadPosition.Y, 0);
+            target.position = new Vector3(snakeDto.HeadX, snakeDto.HeadY, 0);
             newSnake.moveToTarget.Target = target;
 
             otherSnakes.Add(snakeDto.Id, newSnake);

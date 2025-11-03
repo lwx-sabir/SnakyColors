@@ -1,0 +1,6 @@
+@Khela.Game_HostAddress = http://localhost:5044
+
+GET {{Khela.Game_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

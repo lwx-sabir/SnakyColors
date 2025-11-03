@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 8022996550919892260}
   - component: {fileID: 4371027790166340197}
   - component: {fileID: -5111056512927573655}
-  - component: {fileID: -6121657775962893858}
+  - component: {fileID: -148072578002420997}
+  - component: {fileID: -5780958737061677748}
   m_Layer: 0
   m_Name: PlayerSlither
   m_TagString: Untagged
@@ -135,7 +136,7 @@ MonoBehaviour:
   MainPoints: []
   spriteOverrides: []
   perSegmentDist: 0.465
-  ribCount: 40
+  ribCount: 323
   moveToTarget:
     Target: {fileID: 0}
     wobbleHeadPos: {x: -4.1597805, y: -1.0756698, z: 0}
@@ -149,7 +150,7 @@ MonoBehaviour:
     wobbleAmplitude: 3
     wobbleFreq: 3
   skin: {fileID: 11400000, guid: d776ca93ba275584a9f95d6d9b151494, type: 2}
-  mainNavIndex: 3
+  mainNavIndex: 1
   spritesOrderinverted: 1
   orderInLayer: 0
   wobblingPoint: {x: -4.1597805, y: -1.0756698, z: 0}
@@ -189,7 +190,7 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
---- !u!114 &-6121657775962893858
+--- !u!114 &-148072578002420997
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -198,10 +199,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 6360206223930948518}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eaf100cdd63391c46bfdc18de5be9571, type: 3}
+  m_Script: {fileID: 11500000, guid: c78621dfa9d7d3743b233e1b2db7134e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.PlayerCollisionManager
-  playerAnimator: {fileID: 0}
-  playerSpriteRenderer: {fileID: 0}
-  invincibilityDuration: 1
-  flashInterval: 0.1
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.SlitherCollisionManager
+--- !u!114 &-5780958737061677748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6360206223930948518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2adc8186cf495d43bc276eb90b36219, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.SlitherMovement
+  steerSensitivity: 3
+  targetDistance: 5

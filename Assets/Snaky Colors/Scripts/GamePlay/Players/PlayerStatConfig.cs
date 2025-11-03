@@ -40,5 +40,6 @@ namespace SnakyColors
         public float steeringSpeed = 15f;
         public float rotationSpeed = 10f;
         public float horizontalBounds = 3.4f;
+        public float dashSpeed = 6f;
     }
 }

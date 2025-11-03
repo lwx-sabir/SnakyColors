@@ -1,110 +1,170 @@
-using SnakyColors;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace SnakyColors
 {
     public class ItemPooler : MonoBehaviour
     {
-        // Dictionary to hold the pools: Key is the ItemData prefab.
-        private Dictionary<GameObject, List<GameObject>> poolDictionary = new Dictionary<GameObject, List<GameObject>>();
-        private Dictionary<GameObject, ItemData> prefabToData = new Dictionary<GameObject, ItemData>(); 
         public static ItemPooler Instance { get; private set; }
+
+        [Header("Master Pool Configuration")]
+        [Tooltip("Assign ALL ItemData assets that can *ever* be pooled, from spawners or enemy drops.")]
+        [SerializeField] private List<ItemData> allPoolableItems;
+
+        private Dictionary<GameObject, List<GameObject>> poolDictionary;
+        private Dictionary<GameObject, ItemData> prefabToData; // Optional: for reverse lookup if needed
 
         void Awake()
         {
             if (Instance == null)
             {
                 Instance = this;
+                DontDestroyOnLoad(gameObject); // Make it persistent across scene loads
+
+                // Initialize the pools immediately
+                InitializePools();
+            }
+            else
+            {
+                Destroy(gameObject); // Destroy duplicates
             }
         }
 
-        public void SetInstance(ItemPooler pooler)
-        { 
-            Instance = pooler;
-        }
-
-        // Called once by the Spawner at the start of the game
-        public void SetupPools(List<ItemData> allItems)
+        /// <summary>
+        /// Initializes all pools based on the 'allPoolableItems' list.
+        /// </summary>
+        private void InitializePools()
         {
-            foreach (var data in allItems)
+            poolDictionary = new Dictionary<GameObject, List<GameObject>>();
+            prefabToData = new Dictionary<GameObject, ItemData>();
+
+            if (allPoolableItems == null) return;
+
+            foreach (var data in allPoolableItems)
             {
-                if (data.prefab == null) continue;
+                if (data == null || data.prefab == null)
+                {
+                    Debug.LogWarning("[ItemPooler] Null ItemData or prefab in 'allPoolableItems' list. Skipping.");
+                    continue;
+                }
+
+                // Skip if this prefab has already been added
+                if (poolDictionary.ContainsKey(data.prefab)) continue;
 
                 // Store the data reference
                 prefabToData[data.prefab] = data;
 
                 // Create the pool list
-                if (!poolDictionary.ContainsKey(data.prefab))
-                {
-                    poolDictionary[data.prefab] = new List<GameObject>();
-                }
+                List<GameObject> newPool = new List<GameObject>();
+                poolDictionary[data.prefab] = newPool;
 
                 // Pre-instantiate
                 for (int i = 0; i < data.poolSize; i++)
                 {
                     GameObject obj = Instantiate(data.prefab, this.transform);
                     obj.SetActive(false);
-                    poolDictionary[data.prefab].Add(obj);
+                    newPool.Add(obj);
                 }
             }
+            Debug.Log($"[ItemPooler] Master pool initialized with {poolDictionary.Count} item types.");
         }
-         
+
+        /// <summary>
+        /// Gets an inactive GameObject from the pool for the specified ItemData.
+        /// </summary>
         public GameObject GetPooledObject(ItemData data)
         {
-            if (data.prefab == null || !poolDictionary.ContainsKey(data.prefab))
+            if (data == null || data.prefab == null)
             {
-                Debug.LogError($"Pool for {data.itemName} not set up.");
+                Debug.LogError("[ItemPooler] Tried to get pooled object with null data or prefab!");
                 return null;
             }
 
-            List<GameObject> pool = poolDictionary[data.prefab];
-            for (int i = 0; i < pool.Count; i++)
+            // Check if a pool for this prefab exists
+            if (!poolDictionary.TryGetValue(data.prefab, out List<GameObject> pool))
             {
-                // Check if the reference itself is valid (not destroyed) ===
-                if (pool[i] == null)
-                {
-                    // If the object was destroyed externally, remove the invalid reference 
-                    // and continue the search.
-                    pool.RemoveAt(i);
-                    i--; // Decrement index since we removed an item
-                    continue;
-                }
+                // This item was not in the 'allPoolableItems' list.
+                // We must create a new pool for it on-the-fly.
+                Debug.LogWarning($"[ItemPooler] Pool for {data.itemName} not found! Creating new pool on-the-fly. Add it to 'allPoolableItems' to pre-warm.", data);
 
-                // Now it's safe to check the object's properties
-                if (!pool[i].activeInHierarchy)
+                pool = new List<GameObject>();
+                poolDictionary[data.prefab] = pool;
+
+                // Also add to reverse lookup
+                if (!prefabToData.ContainsKey(data.prefab))
                 {
-                    return pool[i];
+                    prefabToData[data.prefab] = data;
                 }
             }
 
-            // If pool is exhausted (or cleaned up during the loop), create a new object
+            // Find an inactive object in the pool
+            for (int i = 0; i < pool.Count; i++)
+            {
+                if (pool[i] == null)
+                {
+                    // Object was destroyed externally, clean up the bad reference
+                    pool.RemoveAt(i);
+                    i--;
+                    continue;
+                }
+
+                if (!pool[i].activeInHierarchy)
+                {
+                    return pool[i]; // Found one!
+                }
+            }
+
+            // Pool is exhausted, create a new object
+            Debug.LogWarning($"[ItemPooler] Pool for {data.itemName} exhausted. Creating new instance.");
             GameObject newObj = Instantiate(data.prefab, this.transform);
+            // OnEnable in GeneratedItem will handle its state reset
             newObj.SetActive(false);
             pool.Add(newObj);
             return newObj;
         }
 
-        // Used by the item itself when it goes off screen
+        /// <summary>
+        /// Deactivates a pooled object, returning it to the pool.
+        /// </summary>
         public void ReturnToPool(GameObject obj)
         {
-            obj.SetActive(false); 
+            obj.SetActive(false);
+            // OnEnable() in GeneratedItem will handle resetting its state
         }
 
+        /// <summary>
+        /// Deactivates all active objects in all pools.
+        /// Call this when restarting a level to clean up.
+        /// </summary>
+        public void ResetAllPools()
+        {
+            foreach (var pool in poolDictionary.Values)
+            {
+                foreach (var obj in pool)
+                {
+                    if (obj != null && obj.activeSelf)
+                    {
+                        obj.SetActive(false);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Destroys all pooled objects. Called when changing game modes
+        /// or shutting down.
+        /// </summary>
         public void ClearAllPools()
         {
             foreach (var pool in poolDictionary.Values)
             {
                 foreach (var obj in pool)
                 {
-                    if (obj != null)
-                        Destroy(obj);
+                    if (obj != null) Destroy(obj);
                 }
-                pool.Clear();
             }
             poolDictionary.Clear();
             prefabToData.Clear();
         }
-
     }
 }

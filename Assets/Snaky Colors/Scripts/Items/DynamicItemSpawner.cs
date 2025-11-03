@@ -19,8 +19,7 @@ namespace SnakyColors
 
     public class DynamicItemSpawner : MonoBehaviour, IItemSpawner
     {
-        [Header("Setup")]
-        public ItemPooler itemPoolerPrefab;
+        [Header("Setup")] 
         [Tooltip("List of ALL items this spawner can generate.")]
         public List<AvailableItemEntry> allAvailableItems;
 
@@ -43,8 +42,7 @@ namespace SnakyColors
         public int maxActiveItems = 25;
         public bool limitSpawnWhenFull = true;
 
-        private List<GameObject> activeSpawnedItems = new List<GameObject>();
-        private ItemPooler pooler;
+        private List<GameObject> activeSpawnedItems = new List<GameObject>(); 
         private float nextSpawnY = 0f;
         private float totalSpawnWeight;
         private HashSet<ItemData> uniqueItemsOnScreen = new HashSet<ItemData>();
@@ -55,14 +53,7 @@ namespace SnakyColors
         private Coroutine spawnLoopRoutine;
 
         private void Awake()
-        {
-            pooler = Instantiate(itemPoolerPrefab, transform);
-            pooler.gameObject.name = "DYNAMIC_ITEM_POOLER";
-            pooler.SetInstance(pooler);
-
-            // Setup pools using only the ItemData references
-            pooler.SetupPools(allAvailableItems.ConvertAll(entry => entry.itemData));
-
+        {  
             CalculateTotalWeight();
         }
 
@@ -154,7 +145,7 @@ namespace SnakyColors
 
             if (!positionFound && doingOverlapCheck) return;
 
-            GameObject obj = pooler.GetPooledObject(selectedItem);
+            GameObject obj = ItemPooler.Instance.GetPooledObject(selectedItem);
             if (obj == null) return;
 
             obj.transform.position = spawnPos;
@@ -223,7 +214,7 @@ namespace SnakyColors
             var snapshot = new List<GameObject>(activeSpawnedItems);
             foreach (var obj in snapshot)
                 if (obj != null && obj.activeSelf)
-                    pooler.ReturnToPool(obj);
+                    ItemPooler.Instance.ReturnToPool(obj);
 
             activeSpawnedItems.Clear();
             spatialGrid.Clear();
@@ -319,17 +310,8 @@ namespace SnakyColors
             this.maxActiveItems = config.maxActiveItems;
             this.limitSpawnWhenFull = config.limitSpawnWhenFull;
             this.allAvailableItems = config.allAvailableItems; // Re-link the list
-
-            // 2. Re-initialize the pool and weights
-            // (Assuming pooler exists from Awake)
-            if (pooler != null)
-            {
-                // Clear old pools if necessary (depends on pooler setup)
-                // pooler.ClearPools(); 
-                pooler.SetupPools(allAvailableItems.ConvertAll(entry => entry.itemData));
-            }
-            CalculateTotalWeight();
-
+             
+            CalculateTotalWeight(); 
             // 3. Reset spawner's state
             ResetSpawner(); // This will clear active items and reset nextSpawnY
 

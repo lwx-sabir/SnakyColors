@@ -3,8 +3,13 @@ namespace SnakyColors
     public class SnakeStateDto
     {
         public string Id { get; set; }
-        public System.Numerics.Vector2 HeadPosition { get; set; } // Server-side Vector2
+
+        public float HeadX { get; set; }
+
+        public float HeadY { get; set; }
+
         public float Score { get; set; }
+
         public string SkinID { get; set; }
 
         public int Length { get; set; }
@@ -13,8 +18,13 @@ namespace SnakyColors
     public class FoodStateDto
     {
         public int Id { get; set; }
-        public System.Numerics.Vector2 Pos { get; set; } // Server-side Vector2  
-    }
+
+        public float PosX { get; set; }
+
+        public float PosY { get; set; }
+
+        public string ItemKey { get; set; }
+    }  
 
     public class WorldUpdateDto
     {
