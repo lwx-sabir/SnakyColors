@@ -1,13 +1,13 @@
 using Khela.Game.Database;
 using Khela.Game.Database.Models;
-using Khela.Game.Dtos;
 using Khela.Game.Managers.SRHubs;
+using Khela.Game.Models.Configs;
 using Khela.Game.Services;
 using Khela.Game.Services.Redis;
-using Khela.Game.Slither;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Text;
@@ -84,11 +84,17 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IRedisService , RedisService>(); 
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 
-
-builder.Services.AddSingleton<GameEngine>(); 
-builder.Services.AddHostedService(provider => provider.GetRequiredService<GameEngine>());
+builder.Services.AddSingleton<WorldManagerService>();
+builder.Services.AddSingleton<ArenaManagerService>();
+builder.Services.AddSingleton<FoodService>();
+builder.Services.AddSingleton<GameEngine>();
 builder.Services.AddSingleton<GameBroadcastService>();
+builder.Services.AddSingleton<AIService>();
+
+builder.Services.AddHostedService(provider => provider.GetRequiredService<GameEngine>());
 builder.Services.AddHostedService(provider => provider.GetRequiredService<GameBroadcastService>());
+builder.Services.AddHostedService(provider => provider.GetRequiredService<AIService>());
+builder.Services.AddHostedService(provider => provider.GetRequiredService<ArenaManagerService>());
 
 var app = builder.Build();
 

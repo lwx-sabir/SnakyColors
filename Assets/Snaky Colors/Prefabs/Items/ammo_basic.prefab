@@ -120,7 +120,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.2241, y: 0.6145, z: 0}
-  m_LocalScale: {x: 0.30525097, y: 0.30525097, z: 0.30525097}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3576349188486897630}
@@ -199,8 +199,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.GeneratedItem
   data: {fileID: 11400000, guid: 9285286e099c7c740a90e83197b23780, type: 2}
   graphicsRenderer: {fileID: 1836423676803648796}
+  shadowRenderer: {fileID: 0}
   collectParticle: {fileID: 0}
   despawnOffset: 7
+  isDropped: 0
 --- !u!114 &2454106647790641096
 MonoBehaviour:
   m_ObjectHideFlags: 0

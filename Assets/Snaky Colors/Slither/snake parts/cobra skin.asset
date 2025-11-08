@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4ff0697e89f7da44a9d2dd8707c9d66, type: 3}
   m_Name: cobra skin
   m_EditorClassIdentifier: 
+  skinName: cobra
   stripesCount: 15
   stripesSpacingBeforeStripe: 0
   stripesSpacingAfterStripe: 5
+  segmentSpacing: 0.43
   HeadSprite: {fileID: 21300000, guid: 773d261997576b049a36892cef02631a, type: 3}
   BodySprite: {fileID: 21300000, guid: 3181606c5d0d21049be8adc5e7a4001f, type: 3}
   useTail: 1

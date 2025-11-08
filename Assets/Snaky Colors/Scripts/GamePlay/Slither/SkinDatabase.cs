@@ -18,17 +18,16 @@ namespace SnakyColors // Or your 'SVassets' namespace
             foreach (Skin skin in allSkins)
             {
                 if (skin == null) continue;
-
-                // Use the ScriptableObject's name as its unique ID
-                if (!skinDictionary.ContainsKey(skin.name))
+                 
+                if (!skinDictionary.ContainsKey(skin.skinName))
                 {
-                    skinDictionary.Add(skin.name, skin);
+                    skinDictionary.Add(skin.skinName, skin);
                 }
             }
         }
 
         /// <summary>
-        /// Gets a Skin asset from the database by its string ID (its filename).
+        /// Gets a Skin asset from the database by its string ID (its given name).
         /// </summary>
         public Skin GetSkinByID(string skinID)
         {
@@ -37,7 +36,7 @@ namespace SnakyColors // Or your 'SVassets' namespace
             if (string.IsNullOrEmpty(skinID) || !skinDictionary.TryGetValue(skinID, out Skin skin))
             {
                 Debug.LogWarning($"Could not find skin with ID: {skinID}. Returning default.");
-                return allSkins[0]; // Return the first skin as a default
+                return allSkins[0]; 
             }
             return skin;
         }

@@ -2,72 +2,86 @@ using UnityEngine;
 
 namespace SnakyColors
 {
-    [RequireComponent(typeof(Collider2D))] // The snake's head collider
+    [RequireComponent(typeof(Collider2D))]
     public class SlitherCollisionManager : MonoBehaviour
     {
-        private SegmentedCreator snake; // Reference to our own snake
+        private SegmentedCreator snake;
+        private string myPlayerId; // Set by NetworkClient
+        // Cooldown to avoid duplicate reports on the same food in rapid succession
+        private System.Collections.Generic.Dictionary<int, float> _reportedFoodCooldown = new System.Collections.Generic.Dictionary<int, float>();
+        private const float ReportCooldownSeconds = 0.25f;
 
         private void Awake()
         {
             snake = GetComponent<SegmentedCreator>();
-            if (snake == null)
-            {
-                Debug.LogError("SlitherCollisionManager must be on the same GameObject as SegmentedCreator!", this);
-            }
+        }
+
+        public void SetPlayerId(string id)
+        {
+            myPlayerId = id;
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
+            if (NetworkClient.Instance == null) return;
+
             // --- 1. Check for Food ---
-            if (other.TryGetComponent<GeneratedItem>(out var item))
+            GeneratedItem item = other.GetComponent<GeneratedItem>()
+                                      ?? other.GetComponentInParent<GeneratedItem>()
+                                      ?? other.GetComponentInChildren<GeneratedItem>();
+            if (item != null)
             {
-                // In an authoritative server model, the client *should not*
-                // tell PlayerStats to add score. It should just play
-                // the "eat" animation and let the server handle the rest.
+                if (!item.gameObject.activeInHierarchy) return;
 
-                // We'll let NetworkClient handle the "eat" animation
-                // when it receives the "OnFoodEaten" event from the server.
-
-                // For now, we can play a local sound immediately.
-                if (item.data != null && item.data.collectSound != null)
+                // De-duplicate rapid re-entries for the same item id
+                if (item.Id != 0)
                 {
-                    AudioManager.Instance?.PlayClip(item.data.collectSound, Random.Range(0.9f, 1.1f));
+                    float now = Time.time;
+                    if (_reportedFoodCooldown.TryGetValue(item.Id, out float until) && now < until)
+                        return;
+                    _reportedFoodCooldown[item.Id] = now + ReportCooldownSeconds;
                 }
 
-                // We *could* destroy the food locally for instant feedback,
-                // but it's better to let the server tell us it was eaten.
+                Debug.Log($"COLLISION: Food hit (id={item.Id}). Reporting to server and playing VFX.");
+                // Tell the server we ate this
+                NetworkClient.Instance.ReportFoodEaten(item.Id);
 
-                // So, for now, this script does almost nothing for food.
-                // The server is handling the collision.
+                // Let the item handle all VFX/SFX + pooling for slither
+                item.CollectForSlither(this.transform);
                 return;
             }
 
             // --- 2. Check for Enemy Snake Body ---
-            // TODO: This logic needs to be implemented
-            // if (other.TryGetComponent<EnemySnakeBody>(out var bodyPart))
-            // {
-            //     // We hit another snake!
-            //     // In a server-auth model, we do nothing. We wait for
-            //     // the server to send us the "OnPlayerDied" message.
-            //     
-            //     // For client-side prediction, we could *predict* our death:
-            //     // HandleLocalDeath(); 
-            // }
+            // (This assumes other snakes have a collider on their body segments)
+            if (other.CompareTag("EnemySnakeBody")) // You'll need to tag your prefabs
+            {
+                // We hit another snake!
+                // Unknown killer for now; avoid misattribution
+                Debug.Log("COLLISION: EnemySnakeBody. Reporting death (killerId=null).");
+                NetworkClient.Instance.ReportPlayerDied(null);
+                HandleLocalDeath();
+            }
 
             // --- 3. Check for Boundary ---
-            // if(other.CompareTag("Boundary"))
-            // {
-            //     // We hit a wall.
-            //     // HandleLocalDeath();
-            // }
+            if (other.CompareTag("Boundary"))
+            {
+                // We hit a wall.
+                Debug.Log("COLLISION: Boundary. Reporting death (boundary).");
+                NetworkClient.Instance.ReportPlayerDied(null); // null = hit a wall
+                HandleLocalDeath();
+            }
         }
 
-        // private void HandleLocalDeath()
-        // {
-        //     // Play death effect, disable input, etc.
-        //     Debug.Log("Local Player Died (Prediction)");
-        //     this.enabled = false;
-        //     GetComponent<SlitherMovement>().enabled = false;
-        // }
+        // Local collection visuals handled by GeneratedItem.CollectForSlither
+
+        private void HandleLocalDeath()
+        {
+            // Disable this script and our input
+            this.enabled = false;
+            GetComponent<SlitherMovement>().enabled = false;
+
+            // TODO: Play local death particle effect
+            // ...
+        }
     }
 }

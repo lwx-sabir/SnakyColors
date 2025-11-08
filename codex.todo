@@ -1,0 +1,122 @@
+Hybrid Authoritative Slither – Notes & Next Steps
+
+Summary
+- Server: ASP.NET Core 8 + SignalR, EF Core (MySQL/Pomelo), Identity + JWT, Redis (StackExchange).
+- Client: Unity; local movement/collision for responsiveness; server authoritative for world/food/score/death; broadcasting world snapshots.
+- Design: hybrid authority. Client sends compact state; server validates, persists, and broadcasts. Local VFX happen instantly; server confirms truth.
+
+Immediate Fixes
+- Food key mismatch
+  - Server currently spawns keys: "RedApple", "Watermelon".
+  - Client item keys resemble asset names: e.g., "apple red_0", "water_melon_1".
+  - Action: align keys. Easiest: change FoodService to use client keys (or add alias map via appsettings).
+
+- HTTP/HTTPS mismatch for SignalR
+  - Server redirects to HTTPS and JwtBearer requires HTTPS metadata.
+  - Client uses http://localhost:5000/snakehub.
+  - Action: either switch client to https://localhost:<port>/snakehub, or in Development disable HTTPS metadata and redirection; add CORS if needed.
+
+Server Tasks (validation + authority)
+1) GameEngine.OnPlayerStateUpdate
+   - Recompute CurrentSpeed from server stats (Speed/BoostSpeed); do not trust client speed.
+   - Cap head displacement per tick: allowed = (isBoosting ? BoostSpeed : Speed) * dt * multiplier.
+   - Trim BodySegments to TargetLength + buffer; reject empty segments.
+   - Bounds handling: clamp into world or mark for death if repeatedly OOB.
+   - Optional: rate-limit updates per player (~10–20 Hz).
+
+2) GameEngine.OnPlayerAteFood
+   - Verify distance: Distance(snake.HeadPosition, food.Position) <= EAT_RADIUS before scoring/removing.
+
+3) World consistency & locks
+   - Wrap FoodService world writes in the same world lock used by WorldManager/ArenaManager.
+   - Consider tracking active worlds in a Redis set to avoid key scans each tick.
+
+4) Broadcasts / events
+   - Keep 10 Hz world updates; filter to IsAlive.
+   - Optional: make hub methods return bool to ack client reports (e.g., ReportFoodEaten).
+
+Client Tasks (local-first)
+1) Keep local movement & collisions authoritative for feel (done).
+2) Rejoin on reconnect
+   - Handle hubConnection.Reconnected → re-invoke JoinMainWorld with same playerId/skin.
+   - Persist playerId in PlayerPrefs to keep a stable ID across reconnects.
+3) Configurable hub URL
+   - Move hubUrl to a ScriptableObject or environment-based config.
+4) Remote interpolation (done)
+   - Continue moving remote snake targets smoothly; reconcile only score/length for local.
+
+Quality/Security Cleanups
+- Secrets: move MySQL/Redis passwords from appsettings.json to env vars or user-secrets.
+- Identity user ID: avoid Guid.Parse(user.Id) unless IDs are guaranteed GUIDs; otherwise store string.
+- File naming: rename "JwtTokenService .cs" (trailing space) to "JwtTokenService.cs".
+- AIService: remove duplicate constructor.
+- Packages: remove outdated Microsoft.AspNetCore.SignalR 1.x reference in server csproj.
+
+Anti‑Cheat Dials (server)
+- TELEPORT_MULTIPLIER: tolerance on head delta (2–3x of expected).
+- MAX_SEGMENT_BUFFER: cap extra segments beyond TargetLength.
+- EAT_RADIUS: distance threshold for valid food collection (e.g., 1.25f).
+
+Performance Considerations
+- Replace repeated server.KeysAsync("world:*") with a maintained Redis set (e.g., set "worlds") to list active worlds.
+- Prefer batching (db.CreateBatch) where multiple keys are touched; already used in several places.
+
+Verification Checklist
+1) Migrate DB: dotnet ef database update (Khela.Game project).
+2) Run server with valid MySQL/Redis; confirm Swagger in Development.
+3) Client: set hubUrl to server endpoint (HTTPS in dev if enabled).
+4) Join → observe OnJoinSuccess; see food spawn and movement snapshots.
+5) Eat food: client VFX instantly; server confirms via OnFoodEaten; score increases in snapshots.
+6) Death: local effect; server broadcasts OnPlayerDied and removes from snapshots.
+7) Disconnect/reconnect: client rejoins world automatically with same playerId.
+
+Open Questions / Future Work
+- Add server-validated kill credit logic (determine killer from proximity/heading if needed).
+- World sharding and matchmaking if player counts grow.
+- Persistence of top scores/leaders in DB.
+
+Rendering/Spacing Consideration
+- SegmentedCreator spacing currently multiplies by transform.localScale, so mass-based scaling increases segment spacing. Option: switch to pure world-space spacing (ignore localScale) to keep spacing consistent across sizes. Decide later.
+
+Data Cleanup / Redis Maintenance
+- Dev stale data after schema changes (e.g., Mass): old `snake:*` values may deserialize with Mass=0. Options:
+  - Flush dev keys `snake:*` (dev only) so new states get defaults.
+  - Temporary backfill: on broadcast, set `Mass = 25` if `<= 0`, optionally persist back to Redis.
+- Dead/disconnected player cleanup: periodic sweeper to remove `snake:*` with no `connection:*` mapping or `IsAlive=false` and not in a world’s `SnakeIds/AISnakeIds`; update world lists under lock.
+- AI pruning: `AIService` currently only spawns. Add pruning for surplus AI if `TargetAISnakeCount` decreases and remove stale AI IDs with missing `snake:*`.
+- TTLs: consider TTL on `connection:*` keys; audit `world:*` → `FoodIds` for orphans (no `food:*`) and clean.
+- Schema versioning: track a `schema:version` key; on bump, run a migration/backfill job for new fields (e.g., Mass) instead of relying on defaults.
+
+File Pointers (for implementation)
+- Server validation: ServerSide/Khela.Game/Khela.Game/Services/GameEngine.cs
+- Food spawn/keys: ServerSide/Khela.Game/Khela.Game/Services/FoodService.cs
+- HTTPS/JWT dev config: ServerSide/Khela.Game/Khela.Game/Program.cs
+ - Hubs: ServerSide/Khela.Game/Khela.Game/Managers/SRHubs/SnakeHub.cs
+ - Client reconnect/config: Assets/Snaky Colors/Scripts/GameMangers/NetworkClient.cs
+
+Addendum — Client Movement (2025-11-07)
+ - Single mover: SegmentedCreator moves in LateUpdate; SlitherMovement does not call MoveToTarget.
+ - Target lead: keep Target ahead by targetDistance (3–6) to prevent runaway/circling.
+ - Turn rate units: MoveToTarget.maxTurningAngle is degrees/second (frame-rate independent).
+ - Boost radius invariance: SlitherMovement scales turn rate with current speed to keep turning radius ~constant.
+   effectiveAngle = baseMaxAngle × (currentSpeed / nonBoostSpeedRef)
+ - Input: prefer SlitherJoystick; fallback to keyboard (WASD/Arrows); boost with LeftShift.
+ - State send: send in LateUpdate at stateSendRate after movement.
+ - DTO note: PlayerStateDto uses CurrentSpeed/BoostSpeed only; Speed removed; non-boost CurrentSpeed is used as base reference.
+
+Next Steps (movement)
+ - Tune base MaxTurningAngle (270–540 deg/s) and targetDistance (3–6).
+ - Optionally expose baseNonBoostSpeedRef and targetDistance in inspector or config.
+ - Ensure remote interpolation remains smooth (only move remote Target, not head).
+
+Server Validation (reminder)
+ - Add head-travel cap per tick, segment count cap, OOB clamp, and food distance check.
+ - Add world lock around FoodService world writes.
+
+Updates
+- Completed: Mass=0 stale Redis data cleanup. No backfill/flush on broadcast needed; keep remaining maintenance tasks (dead/disconnected cleanup, AI pruning, TTLs, schema versioning).
+ - Fixed: Client food VFX routing uses correct head (local vs remote) and avoids starting coroutines on inactive pooled items (GeneratedItem).
+ - Added: Client-side de-duplication of rapid food collision reports (SlitherCollisionManager).
+ - Added: Local growth visual refresh on TargetLength change (NetworkClient → RefreshSprites).
+ - Added: Server-side proximity validation for OnPlayerAteFood (EAT_RADIUS=0.75) to prevent phantom eats.
+ - Tweaked: AI eat radius reduced (0.75) and bounds clamp reaffirmed; continue to monitor AI drift.

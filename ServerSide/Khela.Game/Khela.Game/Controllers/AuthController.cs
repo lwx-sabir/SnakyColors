@@ -1,6 +1,6 @@
 ﻿using Khela.Game.Database.Models;
-using Khela.Game.Dtos;
 using Khela.Game.Dtos.RequestModels;
+using Khela.Game.Models.Configs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;

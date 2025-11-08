@@ -34,12 +34,12 @@ namespace SnakyColors
         public float dashRegenInterval = 0.5f;
 
         [Header("Movement Settings")]
-        public float baseSpeed = 2f;
+        public float baseSpeed = 5f;
         public bool autoIncreaseAcceleration = false;
         public float autoAccelerationRate = 0.02f;
         public float steeringSpeed = 15f;
         public float rotationSpeed = 10f;
         public float horizontalBounds = 3.4f;
-        public float dashSpeed = 6f;
+        public float dashSpeed = 10f;
     }
 }

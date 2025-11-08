@@ -1,69 +1,93 @@
-﻿using Khela.Game.Slither;
+﻿using Khela.Game.Services;
 using Microsoft.AspNetCore.SignalR;
 using System.Numerics;
+using Khela.Game.Services.Redis; // For IRedisService
+using Khela.Game.Models; // For SerializableVector2
 
 namespace Khela.Game.Managers.SRHubs
 {
     public class SnakeHub : Hub
     {
+        private readonly WorldManagerService _worldManager;
         private readonly GameEngine _gameEngine;
+        private readonly IRedisService _redis;
 
-        // Use Dependency Injection to get your singleton GameEngine
-        public SnakeHub(GameEngine gameEngine)
+        private const string CONNECTION_KEY_PREFIX = "connection:";
+
+        public SnakeHub(WorldManagerService worldManager, GameEngine gameEngine, IRedisService redis)
         {
+            _worldManager = worldManager;
             _gameEngine = gameEngine;
+            _redis = redis;
         }
 
-        // Called when a new player (Unity client) connects
-        public override async Task OnConnectedAsync()
+        public async Task JoinMainWorld(string playerId, string skinId)
         {
-            // Get the unique connection ID for this player
+            if (string.IsNullOrEmpty(playerId)) return;
             string connectionId = Context.ConnectionId;
+            var world = await _worldManager.GetOrCreateMainWorldAsync();
+            if (world == null)
+            {
+                await Clients.Caller.SendAsync("JoinFailed", "Could not find or create world.");
+                return;
+            }
 
-            // Tell the GameEngine to create a new snake for this player
-            await _gameEngine.AddPlayer(connectionId);
+            var player = await _worldManager.AddPlayerToWorldAsync(connectionId, world.WorldId, playerId, skinId);
+             
+            if (player == null)
+            {
+                await Clients.Caller.SendAsync("JoinFailed", "Player already in world or error.");
+                return;
+            } 
 
-            await base.OnConnectedAsync();
+            await Groups.AddToGroupAsync(connectionId, world.WorldId);
+             
+            await Clients.Caller.SendAsync("OnJoinSuccess", player);
         }
 
-        // Called when a player disconnects
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            // Get the unique connection ID for this player
-            string connectionId = Context.ConnectionId;
+            var (player, world) = await _worldManager.RemovePlayerFromWorldAsync(Context.ConnectionId);
 
-            // Tell the GameEngine to remove the snake for this player
-            await _gameEngine.RemovePlayer(connectionId);
+            if (player != null && world != null)
+            {
+                // --- FIX: Broadcast PlayerId, not ConnectionId ---
+                await Clients.Group(world.WorldId).SendAsync("OnPlayerLeft", player.PlayerId);
+            }
 
             await base.OnDisconnectedAsync(exception);
         }
 
-        /// <summary>
-        /// This is the main method your Unity client will call every frame.
-        /// It's a "fire and forget" update of the player's target direction.
-        /// </summary>
-        /// <param name="targetX">The world X-coordinate the player is pointing at.</param>
-        /// <param name="targetY">The world Y-coordinate the player is pointing at.</param>
-        public async Task UpdateTarget(float targetX, float targetY)
+        // --- NEW: Client reports its state ---
+        public async Task UpdateState(List<SerializableVector2> bodySegments, bool isBoosting)
         {
-            await _gameEngine.OnPlayerInput(Context.ConnectionId, new Vector2(targetX, targetY));
+            string playerId = await _redis.GetStringAsync(CONNECTION_KEY_PREFIX + Context.ConnectionId);
+            if (string.IsNullOrEmpty(playerId)) return;
+
+            await _gameEngine.OnPlayerStateUpdate(playerId, bodySegments, isBoosting);
         }
 
-        /// <summary>
-        /// Called when the player clicks the "boost" button.
-        /// </summary>
-        public async Task SetBoost(bool isBoosting)
+        // --- NEW: Client reports eating food ---
+        public async Task ReportFoodEaten(int foodId)
         {
-            await _gameEngine.OnPlayerBoost(Context.ConnectionId, isBoosting);
+            string playerId = await _redis.GetStringAsync(CONNECTION_KEY_PREFIX + Context.ConnectionId);
+            if (string.IsNullOrEmpty(playerId)) return;
+
+            await _gameEngine.OnPlayerAteFood(playerId, foodId);
         }
 
-        /// <summary>
-        /// A simple test method for the client to check the connection.
-        /// </summary>
+        // --- NEW: Client reports its own death ---
+        public async Task ReportPlayerDied(string killerId) // killerId can be null (for boundaries)
+        {
+            string playerId = await _redis.GetStringAsync(CONNECTION_KEY_PREFIX + Context.ConnectionId);
+            if (string.IsNullOrEmpty(playerId)) return;
+
+            await _gameEngine.OnPlayerDied(playerId, killerId);
+        }
+
         public async Task Ping()
         {
-            // Replies *only* to the client that called this method
             await Clients.Caller.SendAsync("Pong");
-        } 
+        }
     }
 }

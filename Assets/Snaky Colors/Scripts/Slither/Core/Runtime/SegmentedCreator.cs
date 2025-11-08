@@ -22,6 +22,7 @@ namespace SnakyColors
 
         // public List<Sprite> sprites; // No longer used as a class field, it's a local var
         public List<SpriteOverride> spriteOverrides = new();
+        [Tooltip("Fallback per-segment distance (world units). Overridden by Skin.segmentSpacing when set > 0.")]
         public float perSegmentDist = 0.87f;
 
         [Range(3, 100)]
@@ -44,6 +45,13 @@ namespace SnakyColors
         void LateUpdate()
         {
             UpdateShapeWithPath();
+        }
+
+        private float GetSegmentSpacing()
+        {
+            if (skin != null && skin.segmentSpacing > 0f)
+                return skin.segmentSpacing;
+            return perSegmentDist;
         }
 
         public void UpdateShapeWithPath(bool exclusiveRun = false)
@@ -80,7 +88,7 @@ namespace SnakyColors
                     }
 
                     bool hasAnyPoint = RibPositions.Count > 0;
-                    bool hasEnoughDistance = !hasAnyPoint || (MainPoints.Count > 0 && Vector3.Distance(MainPoints[^1], wobblingPoint) >= perSegmentDist * transform.localScale.x);
+                    bool hasEnoughDistance = !hasAnyPoint || (MainPoints.Count > 0 && Vector3.Distance(MainPoints[^1], wobblingPoint) >= GetSegmentSpacing() * transform.localScale.x);
                     bool transformMoved = transform.position != lastTransformPos;
                     bool pathTypeChanged = lastPathWasBasePath1 != (basePathAlgorithm == SlitherPathType.PenStroke);
 
@@ -118,7 +126,7 @@ namespace SnakyColors
 
             if (enable)
             {
-                float scaledDropDist = perSegmentDist * transform.localScale.x;
+                float scaledDropDist = GetSegmentSpacing() * transform.localScale.x;
                 float dist = Vector3.Distance(basePath[^1], wobblingPoint);
                 float distPerc = Mathf.Clamp01(dist / scaledDropDist);
 
@@ -275,7 +283,7 @@ namespace SnakyColors
             {
                 Vector3 lastMainPointsDist = wobblingPoint - MainPoints[^1];
                 float dist = lastMainPointsDist.magnitude;
-                float scaledDropDist = perSegmentDist * transform.localScale.x;
+                float scaledDropDist = GetSegmentSpacing() * transform.localScale.x;
 
                 if (dist > scaledDropDist)
                 {
@@ -310,7 +318,7 @@ namespace SnakyColors
 
                 Vector3 dir = RibPositions[i] - RibPositions[i + 1];
                 float dist = dir.magnitude;
-                float scaledDist = perSegmentDist * transform.localScale.x;
+                float scaledDist = GetSegmentSpacing() * transform.localScale.x;
 
                 if (dist > scaledDist && dist > 0.001f) // Added small threshold
                 {

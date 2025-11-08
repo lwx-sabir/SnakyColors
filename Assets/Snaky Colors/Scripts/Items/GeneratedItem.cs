@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 // using UnityEditor; // This should not be in a runtime script.
 
@@ -13,6 +13,7 @@ namespace SnakyColors
         [SerializeField] private SpriteRenderer shadowRenderer; // Added shadow reference
         [Header("Particles")]
         [SerializeField] private ParticleSystem collectParticle;
+        [HideInInspector] public int Id;
 
         // References set at runtime
         public IItemSpawner spawner { get; set; }
@@ -20,6 +21,10 @@ namespace SnakyColors
         private Transform playerHead;
         private Collider2D col;
         private Transform playerTransform;
+
+        [Header("Legacy Triggers")]
+        [Tooltip("If true, this item will auto-collect when colliding with a legacy 'Player' or objects with PlayerMovement (older modes). Disable for slither.")]
+        public bool autoCollectOnLegacyPlayer = false;
 
         [Header("Settings")]
         public float despawnOffset = 10f;
@@ -67,6 +72,7 @@ namespace SnakyColors
         public void SetData(ItemData newItemData, Transform player)
         {
             data = newItemData;
+            // Store as a fallback; runtime calls should explicitly set effect.playerHead
             playerHead = player;
             playerTransform = player;
         } 
@@ -108,7 +114,7 @@ namespace SnakyColors
             {
                 if (transform.position.y < playerTransform.position.y - despawnOffset)
                 {  
-                    ReturnToPool();
+                 //   ReturnToPool();
                 }
             }
         }
@@ -117,7 +123,7 @@ namespace SnakyColors
         {
             if (col == null || !col.enabled) return; // Already collected
 
-            if (other.CompareTag("Player") || other.GetComponent<PlayerMovement>() != null)
+            if (autoCollectOnLegacyPlayer && (other.CompareTag("Player") || other.GetComponent<PlayerMovement>() != null))
             {
                 if (GameManager.Instance == null || data == null) return;
 
@@ -143,6 +149,49 @@ namespace SnakyColors
                         Debug.LogWarning($"Unhandled ItemCategory: {data.category}", gameObject);
                         break;
                 }
+            }
+        }
+
+        // Unified collection entrypoint for slither mode
+        public void CollectForSlither(Transform collectorHead)
+        {
+            if (!gameObject.activeInHierarchy) return;
+            if (col == null || !col.enabled) return; // Already collected
+            if (data == null) return;
+
+            // Remember head for fallback paths
+            playerHead = collectorHead;
+
+            if (collectorHead != null && TryGetComponent<FruitCollectEffect>(out var effect))
+            {
+                effect.playerHead = collectorHead;
+            }
+
+            HandleCollection();
+            StartCollectSequence();
+        }
+
+        // Remote collection: play VFX into a given head without applying local PlayerStats
+        public void PlayRemoteCollect(Transform collectorHead)
+        {
+            if (!gameObject.activeInHierarchy) { ReturnToPool(); return; }
+            if (col != null) col.enabled = false;
+
+            if (collectorHead != null && TryGetComponent<FruitCollectEffect>(out var effect))
+            {
+                effect.playerHead = collectorHead;
+                // Use neutral score text; server handles scoring
+                var txt = data != null ? data.scoreText : "0";
+                var color = data != null ? data.itemColor : Color.white;
+                var type = data != null ? data.collectibleType : CollectibleType.Basic;
+                var icon = data != null ? data.icon : null;
+                float dur = effect.PlayCollectAnimation(txt, color, type, icon);
+                if (!gameObject.activeInHierarchy) return; // Safety: avoid coroutine on inactive object
+                StartCoroutine(ReturnToPoolAfterDelay(dur * 1.05f));
+            }
+            else
+            {
+                ReturnToPool();
             }
         }
 
@@ -242,7 +291,10 @@ namespace SnakyColors
 
             if (collectEffect != null)
             {
-                collectEffect.playerHead = playerHead;
+                // Prefer an explicitly assigned head if present; otherwise fallback
+                if (collectEffect.playerHead == null)
+                    collectEffect.playerHead = playerHead;
+                if (!gameObject.activeInHierarchy) { ReturnToPool(); return; }
                 StartCoroutine(CollectAndReturnToPool());
             }
             else
@@ -354,11 +406,11 @@ namespace SnakyColors
             Gizmos.color = Color.cyan;
 
             Vector3 tip = playerTransform.position;
-            Vector3 forward = playerTransform.up;   // Player’s facing direction
-            Vector3 right = playerTransform.right;  // Perpendicular
+            Vector3 forward = playerTransform.up;Â  Â // Playerâ€™s facing direction
+Â  Â  Â  Â  Â  Â  Vector3 right = playerTransform.right;Â  // Perpendicular
 
-            int steps = 10; // number of segments to draw triangle edges
-            for (int i = 1; i <= steps; i++)
+Â  Â  Â  Â  Â  Â  int steps = 10; // number of segments to draw triangle edges
+Â  Â  Â  Â  Â  Â  for (int i = 1; i <= steps; i++)
             {
                 float dist = (i / (float)steps) * data.magnetRange;
                 float halfWidth = (dist / data.magnetRange) * (data.magnetBaseWidth / 2f);
@@ -367,8 +419,8 @@ namespace SnakyColors
                 Vector3 left = baseCenter - right * halfWidth;
                 Vector3 rightPt = baseCenter + right * halfWidth;
 
-                // Draw edges
-                Gizmos.DrawLine(left, rightPt);
+Â  Â  Â  Â  Â  Â  Â  Â  // Draw edges
+Â  Â  Â  Â  Â  Â  Â  Â  Gizmos.DrawLine(left, rightPt);
                 Gizmos.DrawLine(tip, left);
                 Gizmos.DrawLine(tip, rightPt);
             }

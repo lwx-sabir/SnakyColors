@@ -1,100 +1,180 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 namespace SnakyColors
 {
+    [RequireComponent(typeof(SegmentedCreator))]
     public class SlitherMovement : MonoBehaviour
     {
-        private Camera mainCamera;
         private SegmentedCreator localSnake;
         private Transform snakeHead;
-        private Transform snakeTarget; // The target this snake's logic will follow
 
-        [Header("Movement Settings")]
-        [Tooltip("How far the input can pull the target to the side.")]
-        [SerializeField] private float steerSensitivity = 3f;
-        [Tooltip("How far ahead of the snake the target stays.")]
+        // Keep the target a fixed distance ahead of the head
         [SerializeField] private float targetDistance = 5f;
 
-        private Vector3 targetDirection = Vector3.up; // Default forward
-        private Vector3 currentVelocity = Vector3.zero; // For SmoothDamp
+        // Network throttle
+        private float nextStateSendTime = 0f;
+        [SerializeField] private float stateSendRate = 0.05f; // 20 Hz
+        [SerializeField] private float minSendDistance = 0.08f; // Only send if head moved this much or boosting changed
+
+        private Vector2 lastSentHeadPos = Vector2.zero;
+        private bool lastSentBoost = false;
+        private bool hasSentOnce = false;
+
+        private Transform snakeTarget;
+
+        // Local state
+        private bool isBoosting = false;
+        private Vector2 currentInputDirection = Vector2.up; // default forward
+        private PlayerStateDto playerState;
+
+        // Reference non-boost speed for turn scaling
+        private float baseNonBoostSpeedRef = -1f;
 
         void Start()
         {
-            mainCamera = Camera.main;
             localSnake = GetComponent<SegmentedCreator>();
-
-            if (localSnake == null)
+            if (localSnake == null || localSnake.moveToTarget == null)
             {
-                Debug.LogError("SlitherMovement script placed on object without SegmentedCreator!");
-                this.enabled = false;
+                Debug.LogError("SlitherMovement is missing references!", this);
+                enabled = false;
                 return;
             }
 
-            // Get the references set by NetworkClient
-            snakeHead = this.transform; // The head is the root transform
-            snakeTarget = localSnake.moveToTarget.Target; // The target we must move
-
+            snakeHead = transform;
+            snakeTarget = localSnake.moveToTarget.Target;
             if (snakeTarget == null)
             {
-                Debug.LogError("SlitherMovement: The snake's Target was not set on spawn!", this);
+                Debug.LogError("SlitherMovement's snake has no Target assigned!", this);
+                enabled = false;
+                return;
             }
+
+            // Ensure movement is enabled on the underlying mover
+            localSnake.moveToTarget.enableMoving = true;
+            localSnake.moveToTarget.moveThroughTarget = true;
+
+            // Initialize target orientation and position ahead of the head
+            if (snakeTarget.up.sqrMagnitude < 0.0001f)
+                snakeTarget.up = Vector3.up;
+
+            snakeTarget.position = snakeHead.position + snakeTarget.up * targetDistance;
         }
 
         void Update()
         {
-            if (InputManager.Instance == null || NetworkClient.Instance == null || localSnake == null || snakeTarget == null) return;
+            if (NetworkClient.Instance == null || localSnake == null)
+                return;
 
-            InputManager input = InputManager.Instance;
-            bool isInputHeld = (input.IsInputDown || input.IsInputHeld);
+            // Prefer on-screen joystick; fallback to keyboard if joystick missing
+            var joystick = SlitherJoystick.Instance; // may be null
+            bool hasJoyInput = joystick != null && joystick.IsInputHeld && joystick.Input.sqrMagnitude > 0f;
+            Vector2 inputDir = hasJoyInput ? joystick.Input : GetKeyboardInput();
 
-            // Get the snake's current forward direction (from its segments)
-            Vector3 headDir = (localSnake.RibPositions.Count > 1)
-                              ? (localSnake.RibPositions[^1] - localSnake.RibPositions[^2]).normalized
-                              : snakeHead.up;
-            if (headDir == Vector3.zero) headDir = Vector3.up; // Failsafe
+            // Only update desired direction if any input (otherwise keep last heading)
+            if (inputDir.sqrMagnitude > 0.0001f)
+                currentInputDirection = inputDir.normalized;
 
+            playerState = NetworkClient.Instance.localPlayerState;
 
-            if (isInputHeld && !input.IsInputOverUI)
+            // Boosting via keyboard
+            isBoosting = Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
+
+            // Apply local steering and target placement
+            RunLocalMovement();
+        }
+
+        void LateUpdate()
+        {
+            // Send state AFTER the snake has moved (SegmentedCreator updates in LateUpdate)
+            if (Time.time >= nextStateSendTime && NetworkClient.Instance != null && NetworkClient.Instance.localPlayerState != null)
             {
-                // --- Player is Steering ---
-                Vector3 worldPoint = mainCamera.ScreenToWorldPoint(input.ScreenPosition);
-
-                // Get direction from snake head to the input point
-                Vector3 dirToMouse = (worldPoint - snakeHead.position).normalized;
-
-                // This is the direction the player *wants* to go
-                targetDirection = dirToMouse;
+                SendStateToServer();
+                nextStateSendTime = Time.time + stateSendRate;
             }
-            else
+        }
+
+        // Client-side steering + target lead placement.
+        // Head motion is handled only by SegmentedCreator -> MoveToTarget in LateUpdate.
+        void RunLocalMovement()
+        {
+            if (snakeTarget == null || localSnake == null || localSnake.moveToTarget == null)
+                return;
+
+            // Orient the target from input; MoveToTarget will rotate the head with its own turn cap
+            Vector3 desired = new Vector3(currentInputDirection.x, currentInputDirection.y, 0f);
+            if (desired.sqrMagnitude > 0.0001f)
+                snakeTarget.up = desired.normalized;
+
+            // Speed for the head mover
+            float baseSpeed = (playerState != null)
+                ? (isBoosting ? playerState.BoostSpeed : playerState.CurrentSpeed)
+                : (localSnake.moveToTarget.movingSpeed > 0f ? localSnake.moveToTarget.movingSpeed : 3f);
+
+            localSnake.moveToTarget.movingSpeed = baseSpeed;
+
+            // Scale turn rate with speed so turning radius stays ~constant when boosting.
+            // Prefer server-provided BaseSpeed as reference; fall back to last non-boost speed snapshot.
+            if (playerState != null)
             {
-                // --- Auto-Forward ---
-                // No input, so the target direction is just the snake's *current* direction
-                targetDirection = headDir;
+                if (!isBoosting)
+                {
+                    baseNonBoostSpeedRef = Mathf.Max(0.001f, playerState.CurrentSpeed);
+                }
+
+                float refSpeed = (playerState.BaseSpeed > 0f)
+                    ? playerState.BaseSpeed
+                    : (baseNonBoostSpeedRef > 0f ? baseNonBoostSpeedRef : Mathf.Max(0.001f, playerState.CurrentSpeed));
+
+                float baseMaxAngle = playerState.MaxTurningAngle; // deg/sec at non-boost speed
+                float effectiveAngle = baseMaxAngle * (baseSpeed / refSpeed);
+                localSnake.moveToTarget.maxTurningAngle = effectiveAngle; // deg/sec
             }
 
-            // --- Update Target Position ---
-            // Calculate the desired position of the target
-            Vector3 targetPos = snakeHead.position + targetDirection * targetDistance;
+            // Keep the target a fixed lead ahead of the head (prevents runaway/circling)
+            snakeTarget.position = snakeHead.position + snakeTarget.up * targetDistance;
+        }
 
-            // Smoothly move the *actual target* towards the desired position
-            snakeTarget.position = Vector3.SmoothDamp(snakeTarget.position, targetPos, ref currentVelocity, 0.05f);
+        Vector2 GetKeyboardInput()
+        {
+            if (Keyboard.current == null) return Vector2.zero;
+            Vector2 v = Vector2.zero;
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) v += Vector2.up;
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) v += Vector2.down;
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) v += Vector2.left;
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) v += Vector2.right;
+            return v;
+        }
 
-            // --- Send the *aiming direction* to the server ---
-            // (We send the raw mouse position, the server will calculate direction)
-            NetworkClient.Instance.SendTarget(new Vector2(snakeTarget.position.x, snakeTarget.position.y));
+        // Converts our local visual state into serializable data and sends it.
+        void SendStateToServer()
+        {
+            if (NetworkClient.Instance == null || NetworkClient.Instance.localPlayerState == null) return;
+            // Throttle by movement delta to reduce payload
+            Vector2 currentHead = (localSnake != null && localSnake.RibPositions.Count > 0)
+                ? new Vector2(localSnake.RibPositions[^1].x, localSnake.RibPositions[^1].y)
+                : Vector2.zero;
 
-            // --- Handle Boost ---
-            bool isBoosting = Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
-            NetworkClient.Instance.SendBoost(isBoosting);
-
-            // --- CLIENT-SIDE PREDICTION (Boost) ---
-            // Set our local snake's speed immediately
-            if (PlayerStats.Instance != null && PlayerStats.Instance.GetActiveConfig() != null)
+            bool boostChanged = (isBoosting != lastSentBoost);
+            if (hasSentOnce && !boostChanged && Vector2.Distance(currentHead, lastSentHeadPos) < minSendDistance)
             {
-                var config = PlayerStats.Instance.GetActiveConfig();
-                localSnake.moveToTarget.movingSpeed = isBoosting ? config.dashSpeed : config.baseSpeed;
+                return;
             }
+
+            var bodySegments = new List<SerializableVector2>();
+            // Convert Unity Vector3s into SerializableVector2
+            foreach (var pos in localSnake.RibPositions)
+            {
+                bodySegments.Add(new SerializableVector2(pos.x, pos.y));
+            }
+
+            // Server is authoritative for speed; send only segments + boosting
+            NetworkClient.Instance.SendState(bodySegments, isBoosting);
+
+            lastSentHeadPos = currentHead;
+            lastSentBoost = isBoosting;
+            hasSentOnce = true;
         }
     }
 }

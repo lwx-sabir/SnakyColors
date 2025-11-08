@@ -75,5 +75,68 @@ namespace Khela.Game.Services.Redis
             }
             return keys;
         }
+
+        public async Task<Dictionary<string, T>> GetBatchAsync<T>(IEnumerable<string> keys)
+        {
+            var db = _redis.GetDatabase();
+            var results = new Dictionary<string, T>();
+
+            // Convert string keys to RedisKey[]
+            var redisKeys = keys.Select(k => (RedisKey)k).ToArray();
+            if (redisKeys.Length == 0)
+            {
+                return results;
+            }
+
+            // Get all values in one network call
+            RedisValue[] redisValues = await db.StringGetAsync(redisKeys);
+
+            for (int i = 0; i < redisKeys.Length; i++)
+            {
+                var key = redisKeys[i].ToString();
+                var value = redisValues[i];
+
+                if (!value.IsNullOrEmpty)
+                {
+                    try
+                    {
+                        results[key] = JsonSerializer.Deserialize<T>(value);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[RedisService] Failed to deserialize key {key} in batch: {ex.Message}");
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        public async Task SetAddAsync(string key, string value)
+        {
+            var db = _redis.GetDatabase();
+            await db.SetAddAsync(key, value);
+        }
+
+        public async Task SetRemoveAsync(string key, string value)
+        {
+            var db = _redis.GetDatabase();
+            await db.SetRemoveAsync(key, value);
+        }
+
+        public async Task<string[]> SetMembersAsync(string key)
+        {
+            var db = _redis.GetDatabase();
+            var members = await db.SetMembersAsync(key);
+            return Array.ConvertAll(members, m => (string)m);
+        }
+
+        public async Task<string[]> SetUnionAsync(string[] keys)
+        {
+            var db = _redis.GetDatabase();
+            var redisKeys = Array.ConvertAll(keys, k => (RedisKey)k);
+            var members = await db.SetCombineAsync(SetOperation.Union, redisKeys);
+            return Array.ConvertAll(members, m => (string)m);
+        }
     }
 }

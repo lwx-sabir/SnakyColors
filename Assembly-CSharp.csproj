@@ -92,7 +92,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\Dtos.cs" />
-    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\ObstacleArena\ObstaclePlayerManager.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\LevleMangers\LevelManager.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\UnlockItem.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\UI\Menus.cs" />
@@ -102,12 +101,12 @@
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\PlayerStatConfig.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\ItemData.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\LevleMangers\LevelEditorBtn.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\Others\WorldBoundaryDebug.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\PlayerVisuals.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\GeneratedItem.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\SelectItem.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Animations\UIAnimationManager.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\IItemSpawner.cs" />
-    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\ObstacleArena\ChangeColorObstacleAnimation.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\PlayerShooting\ProjectilePooler.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GameMangers\CameraFollow.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\GameMode.cs" />
@@ -120,7 +119,6 @@
     <Compile Include="Assets\Snaky Colors\Scripts\Items\ItemPooler.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GameMangers\GameManager.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\DailyGift.cs" />
-    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\ObstacleArena\AreaStarsGenerator.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\Vars.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\PlayerShooting\Projectile.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\LevleMangers\PatternSpawnerConfig.cs" />
@@ -140,6 +138,7 @@
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\InputManager.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\PlayerShooting\PlayerShooting.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\SlitherCollisionManager.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\LevleMangers\WorldConfig.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GameMangers\ParticleManager.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\LevleMangers\LevelData.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\PlayerSettings.cs" />
@@ -150,20 +149,22 @@
     <Compile Include="Assets\Snaky Colors\Scripts\Items\DynamicItemSpawner.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\SlitherMovement.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\TapParticleSpawner.cs" />
-    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\ObstacleArena\ObstacleArenaMode.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\AIMovement.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GameMangers\CameraSize.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\MainWorldMode.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\SlitherCameraFollow.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\ColorLib.cs" />
-    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\ObstacleArena\ArenaRandomColorGenerator.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\LevleMangers\DynamicSpawnerConfig.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\ItemDatabse.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\WeaponData.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Animations\HomeObjectiveAnimation.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\SerializableVector2.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\SubParticleColor.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\FruitCollectEffect.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Constants\SaveKey.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GameMangers\SoundManager.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\PlayerMovement.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\Joystick.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.4\cs\ja\Microsoft.Extensions.Logging.Generators.resources.dll" />

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4ff0697e89f7da44a9d2dd8707c9d66, type: 3}
+  m_Name: cobra_green
+  m_EditorClassIdentifier: 
+  skinName: greenskin
+  stripesCount: 8
+  stripesSpacingBeforeStripe: 1
+  stripesSpacingAfterStripe: 2
+  segmentSpacing: 1
+  HeadSprite: {fileID: 1349795459260939464, guid: 41adef032e3df6640b381553f87f30fd, type: 3}
+  BodySprite: {fileID: 8364640475377069927, guid: 4ab596d649c44ef4296cbd1d9fa87133, type: 3}
+  useTail: 1
+  TailSprite: {fileID: 1349795459260939464, guid: 41adef032e3df6640b381553f87f30fd, type: 3}
+  mat: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  EachSpriteRotAngle: 98
+  FlipConsecutive: 0
+  currentStripeType: 2
+  repeatedStripe:
+    sprite: {fileID: -3954499555237802404, guid: d5cf5eff69bba3047a4d2e5a729975bb, type: 3}
+    stripeLength: 5
+  customStripe:
+    sprites:
+    - {fileID: -3954499555237802404, guid: d5cf5eff69bba3047a4d2e5a729975bb, type: 3}
+    - {fileID: -3954499555237802404, guid: d5cf5eff69bba3047a4d2e5a729975bb, type: 3}
+    - {fileID: -3954499555237802404, guid: d5cf5eff69bba3047a4d2e5a729975bb, type: 3}
+    - {fileID: -3954499555237802404, guid: d5cf5eff69bba3047a4d2e5a729975bb, type: 3}

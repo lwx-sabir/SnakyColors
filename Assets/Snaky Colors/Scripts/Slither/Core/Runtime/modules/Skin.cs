@@ -8,9 +8,14 @@ namespace SnakyColors
     [Serializable]
     public class Skin : ScriptableObject
     {
+        public string skinName = "skin";
         public int stripesCount = 0;
         public int stripesSpacingBeforeStripe = 0;
         public int stripesSpacingAfterStripe = 0;
+
+        [Header("Geometry")]
+        [Tooltip("Desired distance between ribs/segments in world units (used by SegmentedCreator). If > 0, overrides SegmentedCreator per-segment distance.")]
+        public float segmentSpacing = 0.87f;
 
 
         public Sprite HeadSprite;

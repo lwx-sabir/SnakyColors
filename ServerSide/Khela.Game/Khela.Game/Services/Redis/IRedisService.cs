@@ -29,5 +29,17 @@ namespace Khela.Game.Services.Redis
         /// Gets all keys matching a specific pattern (e.g., "snake:*").
         /// </summary>
         Task<IEnumerable<string>> GetKeysByPatternAsync(string pattern);
+
+        /// <summary>
+        /// Gets multiple objects from Redis in a single batch operation.
+        /// </summary>
+        /// <param name="keys">The list of keys to fetch.</param>
+        /// <returns>A dictionary mapping the key to the deserialized object. Keys not found are omitted.</returns>
+        Task<Dictionary<string, T>> GetBatchAsync<T>(IEnumerable<string> keys);
+
+        Task SetAddAsync(string key, string value);
+        Task SetRemoveAsync(string key, string value);
+        Task<string[]> SetMembersAsync(string key);
+        Task<string[]> SetUnionAsync(string[] keys);
     }
 }
