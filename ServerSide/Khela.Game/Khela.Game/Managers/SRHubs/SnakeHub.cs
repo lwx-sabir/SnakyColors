@@ -57,8 +57,7 @@ namespace Khela.Game.Managers.SRHubs
 
             await base.OnDisconnectedAsync(exception);
         }
-
-        // --- NEW: Client reports its state ---
+         
         public async Task UpdateState(List<SerializableVector2> bodySegments, bool isBoosting)
         {
             string playerId = await _redis.GetStringAsync(CONNECTION_KEY_PREFIX + Context.ConnectionId);
@@ -66,17 +65,13 @@ namespace Khela.Game.Managers.SRHubs
 
             await _gameEngine.OnPlayerStateUpdate(playerId, bodySegments, isBoosting);
         }
-
-        // --- NEW: Client reports eating food ---
-        public async Task ReportFoodEaten(int foodId)
-        {
-            string playerId = await _redis.GetStringAsync(CONNECTION_KEY_PREFIX + Context.ConnectionId);
-            if (string.IsNullOrEmpty(playerId)) return;
-
+         
+        public async Task ReportFoodEaten(int foodId, string playerId)
+        { 
+            if (string.IsNullOrEmpty(playerId)) return; 
             await _gameEngine.OnPlayerAteFood(playerId, foodId);
         }
-
-        // --- NEW: Client reports its own death ---
+         
         public async Task ReportPlayerDied(string killerId) // killerId can be null (for boundaries)
         {
             string playerId = await _redis.GetStringAsync(CONNECTION_KEY_PREFIX + Context.ConnectionId);

@@ -72,7 +72,6 @@ namespace SnakyColors
         public void SetData(ItemData newItemData, Transform player)
         {
             data = newItemData;
-            // Store as a fallback; runtime calls should explicitly set effect.playerHead
             playerHead = player;
             playerTransform = player;
         } 
@@ -155,12 +154,8 @@ namespace SnakyColors
         // Unified collection entrypoint for slither mode
         public void CollectForSlither(Transform collectorHead)
         {
-            if (!gameObject.activeInHierarchy) return;
             if (col == null || !col.enabled) return; // Already collected
             if (data == null) return;
-
-            // Remember head for fallback paths
-            playerHead = collectorHead;
 
             if (collectorHead != null && TryGetComponent<FruitCollectEffect>(out var effect))
             {
@@ -174,7 +169,6 @@ namespace SnakyColors
         // Remote collection: play VFX into a given head without applying local PlayerStats
         public void PlayRemoteCollect(Transform collectorHead)
         {
-            if (!gameObject.activeInHierarchy) { ReturnToPool(); return; }
             if (col != null) col.enabled = false;
 
             if (collectorHead != null && TryGetComponent<FruitCollectEffect>(out var effect))
@@ -186,7 +180,6 @@ namespace SnakyColors
                 var type = data != null ? data.collectibleType : CollectibleType.Basic;
                 var icon = data != null ? data.icon : null;
                 float dur = effect.PlayCollectAnimation(txt, color, type, icon);
-                if (!gameObject.activeInHierarchy) return; // Safety: avoid coroutine on inactive object
                 StartCoroutine(ReturnToPoolAfterDelay(dur * 1.05f));
             }
             else
@@ -291,10 +284,7 @@ namespace SnakyColors
 
             if (collectEffect != null)
             {
-                // Prefer an explicitly assigned head if present; otherwise fallback
-                if (collectEffect.playerHead == null)
-                    collectEffect.playerHead = playerHead;
-                if (!gameObject.activeInHierarchy) { ReturnToPool(); return; }
+                collectEffect.playerHead = playerHead;
                 StartCoroutine(CollectAndReturnToPool());
             }
             else

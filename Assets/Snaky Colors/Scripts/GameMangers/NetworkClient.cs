@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.AspNetCore.SignalR.Client;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -43,6 +43,36 @@ public class NetworkClient : MonoBehaviour
     // --- Local World State ---
     private Dictionary<string, SegmentedCreator> otherSnakes = new Dictionary<string, SegmentedCreator>();
     private Dictionary<int, GameObject> activeFood = new Dictionary<int, GameObject>();
+    // Remote head tracking + simple client-side extrapolation
+    private class RemoteSample { public float t; public Vector3 pos; public float speed; }
+    private class RemoteTrack
+    {
+        public List<RemoteSample> samples = new List<RemoteSample>(16);
+        public Vector3 lastDir = Vector3.up;
+        public float lastSpeed = 3f;
+        // Smoothed render state for direct rendering
+        public Vector3 smoothPos;
+        public Vector3 smoothVel;
+        public bool smoothInit;
+        // Head path for arc-length resampling
+        public List<Vector3> path = new List<Vector3>(128);
+    }
+    private class RemoteBodySnapshot { public float t; public List<Vector3> segs; public float speed; }
+
+    private Dictionary<string, List<RemoteBodySnapshot>> remoteBodies = new Dictionary<string, List<RemoteBodySnapshot>>();
+    private Dictionary<string, RemoteTrack> remoteTracks = new Dictionary<string, RemoteTrack>();
+    private const float remoteInterpDelay = 0.12f; // render slightly behind server to smooth jitter
+    private const float remoteLeadFactor = 0.25f;  // target lead = speed * factor (more lead for stability)
+    private const float remoteMaxSnap = 2.0f;      // snap if drift exceeds this distance
+
+    [Header("Remote Render")]
+    [SerializeField] private bool remoteDirectRender = true; // place remote heads directly at interpolated server head
+    [SerializeField] private float remoteSnapLerp = 1.0f;    // 1 = hard snap to interpolated head; <1 = smooth toward it
+    [SerializeField] private float remoteDirLerp = 0.5f;     // orientation smoothing toward interpolated dir
+    [SerializeField] private float remoteSmoothTime = 0.06f; // SmoothDamp time for direct-render head
+    [SerializeField] private float remoteLeadSeconds = 0.08f; // render a bit ahead to counter latency
+    [SerializeField] private float remoteVelLerpRate = 10f;   // per-second rate to blend toward server velocity
+    [SerializeField] private float remoteCorrectionRate = 8f; // per-second rate to pull toward anchor
 
     // --- Thread-Safe Queues ---
     private ConcurrentQueue<WorldUpdateDto> worldUpdates = new ConcurrentQueue<WorldUpdateDto>();
@@ -64,6 +94,13 @@ public class NetworkClient : MonoBehaviour
         public string Message { get; }
         public PlayerDiedEvent(string deadId, string msg) { DeadPlayerId = deadId; Message = msg; }
     }
+
+    // --- Server Clock Sync ---
+    private bool serverClockInit = false;
+    private float serverTickToSec = 0.05f; // default (20 Hz)
+    private float serverTimeOffset = 0f;    // serverSeconds - Time.time
+    private System.DateTime serverStartUtc;
+    private float clientStartTimeSec = 0f;
 
 
     private void Awake()
@@ -95,7 +132,7 @@ public class NetworkClient : MonoBehaviour
     async void Start()
     {
         if (!autoConnectOnStart) return;
-        try { await ConnectAsync(Guid.NewGuid().ToString(), "cobra"); }
+        try { await ConnectAsync(Guid.NewGuid().ToString(), "greenskin"); }
         catch (Exception ex) { Debug.LogError($"Network Client: auto-connect failed: {ex.Message}"); }
     }
 
@@ -214,6 +251,78 @@ public class NetworkClient : MonoBehaviour
         {
             HandlePlayerLeft(playerId);
         }
+
+        // Advance remote snakes between snapshots using last known dir/speed (simple extrapolation)
+        AdvanceRemoteSnakes();
+    }
+
+    private void AdvanceRemoteSnakes()
+    {
+        // No-op: Remote snakes are driven exclusively by RemoteSnake interpolator component.
+    }
+
+    private Vector3 GetInterpolatedHead(RemoteTrack track, float tRender, out Vector3 dir, out float speed)
+    {
+        dir = track.lastDir;
+        speed = track.lastSpeed;
+        var s = track.samples;
+        if (s.Count == 1)
+        {
+            var only = s[0];
+            dir = track.lastDir;
+            speed = only.speed;
+            return only.pos;
+        }
+        // Find bracket around tRender
+        int i1 = 0, i2 = s.Count - 1;
+        for (int i = 0; i < s.Count; i++)
+        {
+            if (s[i].t <= tRender) i1 = i;
+            if (s[i].t >= tRender) { i2 = i; break; }
+        }
+        if (i2 == i1) { i2 = Mathf.Min(i1 + 1, s.Count - 1); }
+        var p0 = s[Mathf.Max(0, i1 - 1)];
+        var p1 = s[i1];
+        var p2 = s[i2];
+        var p3 = s[Mathf.Min(s.Count - 1, i2 + 1)];
+        float t1 = p1.t, t2 = Mathf.Max(p2.t, t1 + 0.0001f);
+        float mu = Mathf.Clamp01((tRender - t1) / (t2 - t1));
+        // Catmull-Rom spline interpolation (uniform)
+        Vector3 CR(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float m)
+        {
+            float m2 = m * m;
+            float m3 = m2 * m;
+            return 0.5f * ((2f * b)
+                           + (-a + c) * m
+                           + (2f * a - 5f * b + 4f * c - d) * m2
+                           + (-a + 3f * b - 3f * c + d) * m3);
+        }
+        Vector3 CRd(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float m)
+        {
+            float m2 = m * m;
+            return 0.5f * ((-a + c)
+                           + 2f * (2f * a - 5f * b + 4f * c - d) * m
+                           + 3f * (-a + 3f * b - 3f * c + d) * m2);
+        }
+        Vector3 posSpline = CR(p0.pos, p1.pos, p2.pos, p3.pos, mu);
+        Vector3 dPos = CRd(p0.pos, p1.pos, p2.pos, p3.pos, mu);
+        // Derive direction and speed from spline derivative combined with server-reported speed
+        Vector3 velDir = (dPos.sqrMagnitude > 0.000001f) ? dPos.normalized : (track.lastDir.sqrMagnitude > 0.0f ? track.lastDir : Vector3.up);
+        float srvSpeed = Mathf.Max(0.1f, p2.speed);
+        Vector3 vel = velDir * srvSpeed;
+        Vector3 posLead = posSpline + vel * Mathf.Max(0f, remoteLeadSeconds);
+        dir = velDir;
+        speed = srvSpeed;
+        track.lastDir = dir;
+        track.lastSpeed = speed;
+        // Cull old samples
+        float minKeep = tRender - 0.5f;
+        if (s[0].t < minKeep && s.Count > 2)
+        {
+            int remove = 0; while (remove < s.Count - 2 && s[remove + 1].t < minKeep) remove++;
+            if (remove > 0) s.RemoveRange(0, remove);
+        }
+        return posLead;
     }
 
     private void HandleJoinSuccess(PlayerStateDto playerState)
@@ -234,54 +343,73 @@ public class NetworkClient : MonoBehaviour
 
         CurrentWorldSize = worldState.WorldSize;
 
-        HashSet<string> seenSnakes = new HashSet<string>();
-        foreach (var snakeDto in worldState.Snakes)
+        // Initialize server clock once (absolute server seconds)
+        if (!serverClockInit)
         {
-            if (snakeDto == null) continue;
-            seenSnakes.Add(snakeDto.PlayerId);
+            if (worldState.TickRate > 0)
+                serverTickToSec = 1f / Mathf.Max(1, worldState.TickRate);
+            float serverSecondsAbs = (float)(worldState.ServerUtc - System.DateTime.UnixEpoch).TotalSeconds;
+            float clientSecondsAbs = Time.time;
+            serverTimeOffset = serverSecondsAbs - clientSecondsAbs; // serverTime = Time.time + offset
+            serverClockInit = true;
+            Debug.Log($"[ClockInit] ServerAbs={serverSecondsAbs:F3}  Client={clientSecondsAbs:F3}  Offset={serverTimeOffset:F3}");
+        }
+
+        // Per-update diagnostics for timing alignment
+        Debug.Log($"[NET] ServerUtc: {worldState.ServerUtc:o}  Offset: {serverTimeOffset:F3}  LocalTime: {Time.time:F3}");
+
+        HashSet<string> seenSnakes = new HashSet<string>();
+        foreach (var kin in worldState.Snakes)
+        {
+            if (kin == null) continue;
+            seenSnakes.Add(kin.PlayerId);
 
             // --- LOCAL PLAYER ---
-            if (snakeDto.PlayerId == myPlayerId)
+            if (kin.PlayerId == myPlayerId)
             {
                 if (localPlayerSnake != null)
                 {
-                    this.localPlayerState = snakeDto;
                     // --- RECONCILIATION ---
-                    // Server is the authority on our score and length
-                    if (localPlayerSnake.ribCount != snakeDto.TargetLength)
+                    // Server is the authority on our target length
+                    if (localPlayerSnake.ribCount != kin.TargetLength)
                     {
-                        localPlayerSnake.ribCount = snakeDto.TargetLength;
+                        localPlayerSnake.ribCount = kin.TargetLength;
                         // Force a refresh only when the target length changes so growth is visible immediately
                         localPlayerSnake.RefreshSprites();
-                        Debug.Log($"LOCAL STATE: score={snakeDto.Score} targetLen={snakeDto.TargetLength}");
+                        Debug.Log($"LOCAL STATE: targetLen={kin.TargetLength}");
                     }
                     // Keep local visual scale in sync with Mass
-                    ApplyScaleFromMass(localPlayerSnake, snakeDto);
-                    // We *could* also apply speed here if server calculates it
-                    // localPlayerSnake.baseSpeed = snakeDto.BaseSpeed;
-                    // localPlayerSnake.boostSpeed = snakeDto.BoostSpeed;
+                    ApplyScaleFromMass(localPlayerSnake, kin.Mass);
+
+                    // Keep local speeds/turn settings in sync
+                    if (localPlayerState != null)
+                    {
+                        if (kin.CurrentSpeed > 0.01f) localPlayerState.CurrentSpeed = kin.CurrentSpeed;
+                        if (kin.BaseSpeed > 0.01f) localPlayerState.BaseSpeed = kin.BaseSpeed;
+                        localPlayerState.MaxTurningAngle = kin.MaxTurningAngle;
+                        localPlayerState.Mass = kin.Mass;
+                    }
                 }
             }
             // --- OTHER PLAYER or AI ---
-            else if (otherSnakes.TryGetValue(snakeDto.PlayerId, out SegmentedCreator snake))
+            else if (otherSnakes.TryGetValue(kin.PlayerId, out SegmentedCreator snake))
             {
-                // --- INTERPOLATION ---
-                // This is an existing snake. We smoothly move its target.
-                if (snake.moveToTarget.Target != null)
-                {
-                    // We just move the target. The snake's own MoveToTarget
-                    // component will handle the visual smoothing.
-                    snake.moveToTarget.Target.position = new Vector3(snakeDto.HeadPosition.X, snakeDto.HeadPosition.Y, 0);
-                }
-                snake.ribCount = snakeDto.TargetLength;
-                snake.moveToTarget.movingSpeed = snakeDto.CurrentSpeed;
-                // Keep remote visual scale in sync with Mass
-                ApplyScaleFromMass(snake, snakeDto);
+                // Simple timestamped interpolation; never simulate remotes locally
+                if (!snake.TryGetComponent<RemoteSnake>(out var remote))
+                    remote = snake.gameObject.AddComponent<RemoteSnake>();
+                remote.ConfigureServerClock(serverTickToSec, serverTimeOffset);
+                remote.SetTargetLength(kin.TargetLength);
+                if (snake.moveToTarget != null) snake.moveToTarget.enableMoving = false;
+                Vector2 head2 = new Vector2(kin.HeadPosition.X, kin.HeadPosition.Y);
+                float spd = (kin.CurrentSpeed > 0.01f) ? kin.CurrentSpeed : (kin.BaseSpeed > 0f ? kin.BaseSpeed : 0f);
+                float serverSecondsNow = (float)(worldState.ServerUtc - System.DateTime.UnixEpoch).TotalSeconds;
+                remote.OnServerUpdate(head2, serverSecondsNow, spd);
+                ApplyScaleFromMass(snake, kin.Mass);
             }
             else
             {
                 // This is a new snake. Spawn it.
-                SpawnSnake(snakeDto, isLocalPlayer: false);
+                SpawnRemoteSnake(kin);
             }
         }
 
@@ -332,6 +460,10 @@ public class NetworkClient : MonoBehaviour
 
         Vector3 startPos = new Vector3(playerState.HeadPosition.X, playerState.HeadPosition.Y, 0);
         GameObject newSnakeObj = Instantiate(prefabToSpawn, startPos, Quaternion.identity);
+        if (!isLocalPlayer) 
+        {
+            newSnakeObj.tag = "EnemySnake";
+        }
 
         SegmentedCreator newSnake = newSnakeObj.GetComponent<SegmentedCreator>();
         if (newSnake == null)
@@ -349,7 +481,9 @@ public class NetworkClient : MonoBehaviour
         ApplyScaleFromMass(newSnake, playerState);
 
         newSnake.moveToTarget.enableMoving = true;
+        // Local uses mover; remote renders by snapshot/extrapolation
         newSnake.moveToTarget.moveThroughTarget = true;
+        newSnake.moveToTarget.enableWobble = false;
 
         Transform target = new GameObject($"{playerState.PlayerId}_Target").transform;
         target.position = startPos;
@@ -387,12 +521,75 @@ public class NetworkClient : MonoBehaviour
         }
         else
         { 
-            otherSnakes.Add(playerState.PlayerId, newSnake);
+            // Remote/AI snakes are driven by server snapshots.
+            // Ensure no local AI scripts override movement (they can zero out speed).
+           // var aiComp = newSnakeObj.GetComponent<AIMovement>();
+         //   if (aiComp != null) Destroy(aiComp);
+            var localMove = newSnakeObj.GetComponent<SlitherMovement>();
+            if (localMove != null) Destroy(localMove);
 
-            // Do not move AI locally; server drives AI movement via snapshots
+            otherSnakes.Add(playerState.PlayerId, newSnake);
+            // Do not move AI locally; server drives via snapshots via RemoteSnake interpolator
+            newSnake.moveToTarget.enableMoving = false;
+            var remote = newSnakeObj.GetComponent<RemoteSnake>();
+            if (remote == null) remote = newSnakeObj.AddComponent<RemoteSnake>();
+            remote.ConfigureServerClock(serverTickToSec, serverTimeOffset);
+            remote.SetTargetLength(playerState.TargetLength);
+            float serverSecondsSeed = (float)(System.DateTime.UtcNow - System.DateTime.UnixEpoch).TotalSeconds;
+            remote.OnServerUpdate(new Vector2(startPos.x, startPos.y), serverSecondsSeed, playerState.CurrentSpeed > 0.01f ? playerState.CurrentSpeed : (playerState.BaseSpeed > 0f ? playerState.BaseSpeed : 0f));
         }
     }
-    
+
+    /// <summary>
+    /// Spawns a remote/AI snake from kinematics-only data.
+    /// </summary>
+    private void SpawnRemoteSnake(SnakeKinematicsDto kin)
+    {
+        if (enemyBasePrefab == null)
+        {
+            Debug.LogError("Prefab for enemyBasePrefab is not assigned!");
+            return;
+        }
+
+        Vector3 startPos = new Vector3(kin.HeadPosition.X, kin.HeadPosition.Y, 0);
+        GameObject newSnakeObj = Instantiate(enemyBasePrefab, startPos, Quaternion.identity);
+        newSnakeObj.tag = "EnemySnake";
+
+        SegmentedCreator newSnake = newSnakeObj.GetComponent<SegmentedCreator>();
+        if (newSnake == null)
+        {
+            Debug.LogError($"CRITICAL: Prefab '{enemyBasePrefab.name}' is missing 'SegmentedCreator'!", enemyBasePrefab);
+            Destroy(newSnakeObj);
+            return;
+        }
+
+        // Apply skin and length
+        Skin skin = skinDatabase.GetSkinByID(kin.SkinID);
+        newSnake.skin = skin;
+        newSnake.ribCount = Mathf.Max(2, kin.TargetLength);
+        newSnake.RefreshSprites();
+        ApplyScaleFromMass(newSnake, kin.Mass);
+
+        // Configure movement for remote rendering only
+        newSnake.moveToTarget.enableMoving = false;
+        newSnake.moveToTarget.moveThroughTarget = true;
+        newSnake.moveToTarget.enableWobble = false;
+
+        Transform target = new GameObject($"{kin.PlayerId}_Target").transform;
+        target.position = startPos;
+        newSnake.moveToTarget.Target = target;
+
+        otherSnakes.Add(kin.PlayerId, newSnake);
+
+        // Remote interpolation component
+        var remote = newSnakeObj.GetComponent<RemoteSnake>();
+        if (remote == null) remote = newSnakeObj.AddComponent<RemoteSnake>();
+        remote.ConfigureServerClock(serverTickToSec, serverTimeOffset);
+        float serverSecondsNow = (float)(System.DateTime.UtcNow - System.DateTime.UnixEpoch).TotalSeconds;
+        remote.SetTargetLength(kin.TargetLength);
+        remote.OnServerUpdate(new Vector2(startPos.x, startPos.y), serverSecondsNow, kin.CurrentSpeed > 0.01f ? kin.CurrentSpeed : (kin.BaseSpeed > 0f ? kin.BaseSpeed : 0f));
+    }
+
     // Mass ? uniform visual scale to normalize sprite size differences
     private void ApplyScaleFromMass(SegmentedCreator snake, PlayerStateDto state)
     {
@@ -414,6 +611,20 @@ public class NetworkClient : MonoBehaviour
         snake.transform.localScale = new Vector3(uniformScale, uniformScale, uniformScale);
     }
     
+    // Overload for kinematics-only payloads
+    private void ApplyScaleFromMass(SegmentedCreator snake, int mass)
+    {
+        if (snake == null || snake.skin == null) return;
+        var refSprite = snake.skin.BodySprite != null ? snake.skin.BodySprite : snake.skin.HeadSprite;
+        if (refSprite == null) return;
+        var size = refSprite.bounds.size;
+        float spriteThickness = Mathf.Max(size.x, size.y);
+        if (spriteThickness <= 0.0001f) return;
+        float desiredThickness = Mathf.Clamp(baseThickness + (mass * thicknessPerMass), minThickness, maxThickness);
+        float uniformScale = desiredThickness / spriteThickness;
+        snake.transform.localScale = new Vector3(uniformScale, uniformScale, uniformScale);
+    }
+    
 
     private void HandlePlayerDeath(string deadPlayerId, string message)
     {
@@ -430,8 +641,8 @@ public class NetworkClient : MonoBehaviour
                 Destroy(localPlayerSnake.gameObject);
                 localPlayerSnake = null;
             }
-            // TODO: Show "Game Over" screen
-        }
+  // TODO: Show "Game Over" screen
+  }
         else
         {
             DespawnSnake(deadPlayerId);
@@ -442,7 +653,7 @@ public class NetworkClient : MonoBehaviour
     {
         Debug.Log($"PLAYER LEFT: {playerId}");
         DespawnSnake(playerId); // Use helper
-    }
+  }
 
     private void DespawnSnake(string playerId)
     {
@@ -474,8 +685,8 @@ public class NetworkClient : MonoBehaviour
     }
 
     /// <summary>
-    /// Processes a specific "OnFoodEaten" event from the server.
-    /// </summary>
+  /// Processes a specific "OnFoodEaten" event from the server.
+  /// </summary>
     private void ProcessFoodEaten(FoodEatenEvent foodEvent)
     {
         if (!activeFood.TryGetValue(foodEvent.FoodId, out GameObject foodObj)) return;
@@ -517,17 +728,17 @@ public class NetworkClient : MonoBehaviour
 
     private void DespawnUnseenSnakes(HashSet<string> seenSnakes)
     {
-        // We must create a copy of the keys to iterate over
-        // otherwise we can't modify the dictionary`
-        List<string> snakesToDespawn = otherSnakes.Keys.ToList();
+         // We must create a copy of the keys to iterate over
+         // otherwise we can't modify the dictionary`
+         List<string> snakesToDespawn = otherSnakes.Keys.ToList();
 
         foreach (string snakeId in snakesToDespawn)
         {
             if (!seenSnakes.Contains(snakeId))
             {
-                // This snake is in our local list but not in the server state.
-                // It must have disconnected or died.
-                DespawnSnake(snakeId);
+                 // This snake is in our local list but not in the server state.
+                 // It must have disconnected or died.
+                 DespawnSnake(snakeId);
             }
         }
     }
@@ -540,9 +751,9 @@ public class NetworkClient : MonoBehaviour
         {
             if (!seenFood.Contains(foodId))
             {
-                // This food is in our local list but not in the server state.
-                // It was eaten by someone (or despawned).
-                DespawnFood(foodId);
+                 // This food is in our local list but not in the server state.
+                 // It was eaten by someone (or despawned).
+                 DespawnFood(foodId);
             }
         }
     }
@@ -565,7 +776,7 @@ public class NetworkClient : MonoBehaviour
         try
         {
             Debug.Log($"NET: ReportFoodEaten({foodId})");
-            await hubConnection.InvokeAsync("ReportFoodEaten", foodId);
+            await hubConnection.InvokeAsync("ReportFoodEaten", foodId, myPlayerId);
         }
         catch (Exception ex) { Debug.LogWarning($"Failed to report food: {ex.Message}"); }
     }
@@ -583,6 +794,7 @@ public class NetworkClient : MonoBehaviour
     }
      
 }
+
 
 
 

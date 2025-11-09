@@ -11,11 +11,10 @@ GameObject:
   - component: {fileID: 8022996550919892260}
   - component: {fileID: 4371027790166340197}
   - component: {fileID: -5111056512927573655}
-  - component: {fileID: -148072578002420997}
   - component: {fileID: -3944242301389749759}
   m_Layer: 0
   m_Name: PlayerSlither AI
-  m_TagString: Untagged
+  m_TagString: EnemySnake
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -756,18 +755,6 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
---- !u!114 &-148072578002420997
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6360206223930948518}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c78621dfa9d7d3743b233e1b2db7134e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.SlitherCollisionManager
 --- !u!50 &-3944242301389749759
 Rigidbody2D:
   serializedVersion: 5

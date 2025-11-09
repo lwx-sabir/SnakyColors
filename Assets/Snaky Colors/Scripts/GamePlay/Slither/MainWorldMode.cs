@@ -9,7 +9,7 @@ namespace SnakyColors
         public override bool IsInitialized { get; set; } = false;
 
         [Header("Network Settings")]
-        [SerializeField] private string defaultSkinId = "cobra";
+        [SerializeField] private string defaultSkinId = "greenskin";
         [Tooltip("Leave empty to auto-generate a GUID each session.")]
         [SerializeField] private string playerIdOverride = string.Empty;
 

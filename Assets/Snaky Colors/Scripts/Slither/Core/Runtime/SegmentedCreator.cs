@@ -10,6 +10,7 @@ namespace SnakyColors
     [ExecuteInEditMode]
     public class SegmentedCreator : MonoBehaviour
     {
+
         public SlitherPathType basePathAlgorithm = SlitherPathType.SlidingChain;
         public bool preview = true;
         public bool UIPath = true; // Not used in code, but part of your original
@@ -45,6 +46,36 @@ namespace SnakyColors
         void LateUpdate()
         {
             UpdateShapeWithPath();
+        }
+
+        // Non-destructive rib resize to avoid flicker when length changes at runtime
+        public void SetRibCountNoClear(int newCount)
+        {
+            if (newCount < 2) newCount = 2;
+            if (ribCount == newCount && RibPositions != null && RibPositions.Count == newCount) return;
+
+            ribCount = newCount;
+            if (RibPositions == null) RibPositions = new List<Vector3>(ribCount);
+            if (MainPoints == null) MainPoints = new List<Vector3>(ribCount);
+
+            int diff = ribCount - RibPositions.Count;
+            if (diff > 0)
+            {
+                Vector3 seed = (RibPositions.Count == 0) ? transform.position : RibPositions[0];
+                for (int i = 0; i < diff; i++)
+                {
+                    RibPositions.Insert(0, seed);
+                    if (basePathAlgorithm == SlitherPathType.PenStroke) MainPoints.Insert(0, seed);
+                }
+            }
+            else if (diff < 0)
+            {
+                int remove = -diff;
+                if (remove > 0 && remove <= RibPositions.Count) RibPositions.RemoveRange(0, remove);
+                if (basePathAlgorithm == SlitherPathType.PenStroke && MainPoints.Count >= remove)
+                    MainPoints.RemoveRange(0, remove);
+            }
+            // Do not call meshDrawer.Clear() here; allow LateUpdate to rebuild without flicker
         }
 
         private float GetSegmentSpacing()

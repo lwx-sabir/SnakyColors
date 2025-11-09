@@ -143,13 +143,14 @@
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\LevleMangers\LevelData.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\PlayerSettings.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\ItemSpawner.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\Others\WorldBoundaryScaler.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\FoodHunter\FoodHunterGameMode.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\DropItems\DropItemData.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\LevleMangers\LevelDatabase.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\DynamicItemSpawner.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\AIMovement.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\SlitherMovement.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\TapParticleSpawner.cs" />
-    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\AIMovement.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GameMangers\CameraSize.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\MainWorldMode.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\SlitherCameraFollow.cs" />
@@ -161,10 +162,12 @@
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\SerializableVector2.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Others\SubParticleColor.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Items\FruitCollectEffect.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\Others\WorldBackgroundTiler.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Constants\SaveKey.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GameMangers\SoundManager.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\PlayerMovement.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\Joystick.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\RemoteSnake.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.4\cs\ja\Microsoft.Extensions.Logging.Generators.resources.dll" />

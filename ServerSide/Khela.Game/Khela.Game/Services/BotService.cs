@@ -1,9 +1,12 @@
-﻿using Khela.Game.Models;
-using Khela.Game.Models.Configs; // Import Configs
+using Khela.Game.Models;
+using Khela.Game.Models.Configs;
 using Khela.Game.Services.Redis;
 using Microsoft.Extensions.Hosting;
 using System.Numerics;
 using System.Linq;
+using Khela.Game.Dtos;
+using StackExchange.Redis;
+using System.Collections.Concurrent;
 
 namespace Khela.Game.Services
 {
@@ -14,29 +17,50 @@ namespace Khela.Game.Services
         private readonly WorldManagerService _worldManager;
         private readonly GameEngine _gameEngine;
 
-        private readonly TimeSpan _aiTickInterval = TimeSpan.FromMilliseconds(100); // 10Hz AI updates
+        // === PERFORMANCE CONSTANTS ===
+        private readonly TimeSpan _aiTickInterval = TimeSpan.FromMilliseconds(50); // 20 Hz movement
         private const string SNAKE_KEY_PREFIX = "snake:";
-        private const string WORLD_KEY_PREFIX = "world:"; 
+        private const string WORLD_KEY_PREFIX = "world:";
+        private const string FOODCACHE_PREFIX = "foodcache:";
+
+        // === Steering tunables ===
+        private const float FOOD_ATTRACT_WEIGHT = 1.0f;
+        private const float INWARD_WEIGHT = 0.35f;
+        private const float PREV_DIR_WEIGHT = 0.3f;
+        private const int SEGMENT_SAMPLE_STRIDE = 5;
+
+        private const float EAT_RADIUS = 0.75f;
+        private const float COLLISION_RADIUS = 0.75f;
+
+        // Cache to avoid redundant Redis reads
+        private readonly ConcurrentDictionary<string, WorldState> _worldCache = new();
+        private readonly ConcurrentDictionary<string, Dictionary<string, PlayerState>> _snakeCache = new();
+
+        // Persistent per-AI state
+        private readonly ConcurrentDictionary<string, int> _targetFood = new();
+
         public AIService(ILogger<AIService> logger, IRedisService redis, WorldManagerService worldManager, GameEngine gameEngine)
         {
             _logger = logger;
             _redis = redis;
-            _worldManager = worldManager; 
+            _worldManager = worldManager;
             _gameEngine = gameEngine;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await Task.Delay(5000, stoppingToken); // Wait for services
-            _logger.LogInformation("AI Service started.");
+            await Task.Delay(5000, stoppingToken); // Let other systems boot
+            _logger.LogInformation("AI Service started (20Hz).");
+
+            try { await Task.Delay(Random.Shared.Next(10, 25), stoppingToken); } catch { }
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var startTime = DateTime.UtcNow;
+                var tickStart = DateTime.UtcNow;
                 try
                 {
                     var worldKeys = await _redis.GetKeysByPatternAsync(WORLD_KEY_PREFIX + "*");
-                     
+
                     foreach (var worldKey in worldKeys)
                     {
                         await ManageAIForWorld(worldKey, stoppingToken);
@@ -44,165 +68,208 @@ namespace Khela.Game.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in AI Service loop.");
+                    _logger.LogError(ex, "AI main loop error.");
                 }
-                 
-                var endTime = DateTime.UtcNow;
-                var timeToWait = _aiTickInterval - (endTime - startTime);
-                if (timeToWait > TimeSpan.Zero)
-                {
-                    await Task.Delay(timeToWait, stoppingToken);
-                }
+
+                var elapsed = DateTime.UtcNow - tickStart;
+                var delay = _aiTickInterval - elapsed;
+                if (delay > TimeSpan.Zero)
+                    await Task.Delay(delay, stoppingToken);
+
+                _logger.LogDebug($"AI tick took {elapsed.TotalMilliseconds:F1}ms");
             }
         }
 
-        public AIService(ILogger<AIService> logger, IRedisService redis, WorldManagerService worldManager)
-        {
-            _logger = logger;
-            _redis = redis;
-            _worldManager = worldManager;
-        }
-         
         private async Task ManageAIForWorld(string worldKey, CancellationToken token)
         {
-            var world = await _redis.GetAsync<WorldState>(worldKey);
-            if (world == null || world.Config == null || world.CurrentState != GameState.Running) return;
-
-            // 1. Get all *alive* AI snake count
-            var aiKeys = world.AISnakeIds.Keys.Select(id => SNAKE_KEY_PREFIX + id).ToArray();
-            int aliveAICount = 0;
-            if (aiKeys.Length > 0)
+            if (!_worldCache.TryGetValue(worldKey, out var world) || world.Tick % 40 == 0)
             {
-                var aiSnakes = (await _redis.GetBatchAsync<PlayerState>(aiKeys)).Values;
-                foreach (var aiSnake in aiSnakes)
-                {
-                    if (aiSnake != null && aiSnake.IsAlive)
-                    {
-                        aliveAICount++;
-                    }
-                }
+                world = await _redis.GetAsync<WorldState>(worldKey);
+                if (world != null)
+                    _worldCache[worldKey] = world;
             }
 
-            // 2. Spawn new AI if needed
+            if (world == null || world.Config == null || world.CurrentState != GameState.Running)
+                return;
+
+            var aiKeys = world.AISnakeIds.Keys.Select(id => SNAKE_KEY_PREFIX + id).ToArray();
+            if (aiKeys.Length == 0) return;
+
+            var aiSnakes = (await _redis.GetBatchAsync<PlayerState>(aiKeys)).Values.Where(s => s?.IsAlive == true).ToList();
+
+            int aliveAICount = aiSnakes.Count;
             int aiNeeded = world.Config.TargetAISnakeCount - aliveAICount;
+
             if (aiNeeded > 0)
             {
-                _logger.LogInformation($"World {world.WorldId} needs {aiNeeded} AI. Spawning...");
                 for (int i = 0; i < aiNeeded; i++)
                 {
                     string aiPlayerId = $"ai-pid-{Guid.NewGuid():N}";
-                    string aiConnId = $"ai-conn-{Guid.NewGuid():N}"; // This is just a placeholder
-
+                    string aiConnId = $"ai-conn-{Guid.NewGuid():N}";
                     await _worldManager.AddPlayerToWorldAsync(aiConnId, world.WorldId, aiPlayerId, "greenskin", isAi: true);
                 }
             }
 
-            // Move AI toward nearest food and report eats
-            await MoveAIsAndEat(world);
-             
-        } 
+            await MoveAIs(world, aiSnakes);
+        }
 
-        private const float EAT_RADIUS = 0.75f;
-
-        private async Task MoveAIsAndEat(WorldState world)
+        private async Task MoveAIs(WorldState world, List<PlayerState> aiSnakes)
         {
-            if (world.AISnakeIds.Count == 0) return;
-
             var db = _redis.GetDatabase();
             float worldHalf = world.Config.WorldSize / 2f;
+            float dt = (float)_aiTickInterval.TotalSeconds;
 
-            var foodIds = world.FoodIds.Keys.ToList();
-            var foodMap = await _redis.GetBatchAsync<Food>(foodIds.Select(id => $"food:{id}"));
+            // --- Lightweight food fetch ---
+            var foodArr = await _redis.GetAsync<FoodStateDto[]>(FOODCACHE_PREFIX + world.WorldId);
+            if (foodArr == null || foodArr.Length == 0) return;
+            var foods = foodArr.Select(f => new Food(f.Id, new Vector2(f.PosX, f.PosY), f.ItemKey)).ToList();
 
-            foreach (var aiId in world.AISnakeIds.Keys.ToList())
+            // --- Cached snake map for collisions ---
+            if (!_snakeCache.TryGetValue(world.WorldId, out var allSnakesMap) || world.Tick % 10 == 0)
             {
-                string playerKey = $"{SNAKE_KEY_PREFIX}{aiId}";
-                string lockKey = $"lock:{playerKey}";
-                string lockToken = Guid.NewGuid().ToString();
-                if (await db.LockTakeAsync(lockKey, lockToken, TimeSpan.FromMilliseconds(50)))
+                var allSnakeIds = world.SnakeIds.Keys.Concat(world.AISnakeIds.Keys).ToArray();
+                var allSnakeKeys = allSnakeIds.Select(id => $"{SNAKE_KEY_PREFIX}{id}").ToArray();
+                allSnakesMap = await _redis.GetBatchAsync<PlayerState>(allSnakeKeys);
+                _snakeCache[world.WorldId] = allSnakesMap;
+            }
+
+            // --- AI Movement ---
+            foreach (var snake in aiSnakes)
+            {
+                string aiId = snake.PlayerId;
+
+                if ((StableHash(aiId) & 1) != (world.Tick & 1))
+                    continue; // staggered update to halve load
+
+                var segments = snake.BodySegments ?? new List<SerializableVector2>();
+                Vector2 head = segments.Count > 0 ? segments[^1] : Vector2.Zero;
+                Vector2 prevDir = Vector2.Zero;
+                if (segments.Count >= 2)
                 {
-                    try
+                    var tail2 = segments[^1] - segments[^2];
+                    if (tail2.Length() > 0.0001f) prevDir = Vector2.Normalize(tail2);
+                }
+
+                // --- Target food selection ---
+                Food nearest = null;
+                if (_targetFood.TryGetValue(aiId, out var targetId))
+                    nearest = foods.FirstOrDefault(f => f.Id == targetId);
+
+                if (nearest == null)
+                {
+                    var nearby = foods.OrderBy(f => Vector2.DistanceSquared(head, f.Position)).Take(8).ToList();
+                    if (nearby.Count > 0)
                     {
-                        var snake = await _redis.GetAsync<PlayerState>(playerKey);
-                        if (snake == null || !snake.IsAlive) continue;
-
-                        var segments = snake.BodySegments ?? new List<SerializableVector2>();
-                        Vector2 head = segments.Count > 0 ? segments[^1] : Vector2.Zero;
-
-                        // Find nearest food
-                        Food nearest = null;
-                        float nearestDist2 = float.MaxValue;
-                        foreach (var kv in foodMap)
-                        {
-                            var f = kv.Value;
-                            if (f == null) continue;
-                            float dx = f.Position.X - head.X;
-                            float dy = f.Position.Y - head.Y;
-                            float d2 = dx * dx + dy * dy;
-                            if (d2 < nearestDist2)
-                            {
-                                nearestDist2 = d2;
-                                nearest = f;
-                            }
-                        }
-
-                        // Direction
-                        Vector2 dir;
-                        if (nearest != null)
-                        {
-                            var toFood = new Vector2(nearest.Position.X - head.X, nearest.Position.Y - head.Y);
-                            dir = toFood.Length() > 0.0001f ? Vector2.Normalize(toFood) : Vector2.Zero;
-                        }
-                        else
-                        {
-                            dir = new Vector2(Random.Shared.NextSingle() * 2 - 1, Random.Shared.NextSingle() * 2 - 1);
-                            if (dir.Length() > 0.0001f) dir = Vector2.Normalize(dir);
-                        }
-
-                        float speed = snake.IsBoosting ? snake.BoostSpeed : (snake.BaseSpeed > 0 ? snake.BaseSpeed : snake.CurrentSpeed);
-                        float dt = (float)_aiTickInterval.TotalSeconds; // match service tick
-                        Vector2 newHead = new Vector2(head.X + dir.X * speed * dt, head.Y + dir.Y * speed * dt);
-
-                        // clamp and gently steer inward if near boundary to prevent sticking outside
-                        newHead.X = Math.Clamp(newHead.X, -worldHalf, worldHalf);
-                        newHead.Y = Math.Clamp(newHead.Y, -worldHalf, worldHalf);
-                        if (Math.Abs(newHead.X) >= worldHalf - 0.5f || Math.Abs(newHead.Y) >= worldHalf - 0.5f)
-                        {
-                            var inward = Vector2.Zero - newHead;
-                            if (inward.Length() > 0.0001f)
-                                inward = Vector2.Normalize(inward);
-                            // Nudge head slightly inward to escape boundary
-                            newHead += inward * (speed * dt * 0.5f);
-                            newHead.X = Math.Clamp(newHead.X, -worldHalf, worldHalf);
-                            newHead.Y = Math.Clamp(newHead.Y, -worldHalf, worldHalf);
-                        }
-
-                        // update segments
-                        segments.Add(new SerializableVector2(newHead));
-                        int targetLen = snake.TargetLength;
-                        while (segments.Count > targetLen && segments.Count > 1)
-                            segments.RemoveAt(0);
-                        snake.BodySegments = segments;
-
-                        await _redis.SetAsync(playerKey, snake);
-
-                        // eat check
-                        if (nearest != null)
-                        {
-                            float ex = nearest.Position.X - newHead.X;
-                            float ey = nearest.Position.Y - newHead.Y;
-                            if (ex * ex + ey * ey <= EAT_RADIUS * EAT_RADIUS && _gameEngine != null)
-                            {
-                                await _gameEngine.OnPlayerAteFood(aiId, nearest.Id);
-                                foodMap.Remove($"food:{nearest.Id}");
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        await db.LockReleaseAsync(lockKey, lockToken);
+                        int pick = Math.Abs(StableHash(aiId) + world.Tick) % nearby.Count;
+                        nearest = nearby[pick];
+                        _targetFood[aiId] = nearest.Id;
                     }
                 }
+
+                Vector2 desired = Vector2.Zero;
+
+                if (nearest != null)
+                    desired += NormalizeSafe(nearest.Position - (SerializableVector2)head) * FOOD_ATTRACT_WEIGHT;
+
+                // Inward bias near walls
+                float margin = MathF.Max(2f, worldHalf * 0.02f);
+                float distEdgeX = worldHalf - MathF.Abs(head.X);
+                float distEdgeY = worldHalf - MathF.Abs(head.Y);
+                if (distEdgeX < margin || distEdgeY < margin)
+                    desired += NormalizeSafe(new Vector2(-head.X, -head.Y)) * INWARD_WEIGHT;
+
+                // Keep momentum
+                if (prevDir.Length() > 0.0001f)
+                    desired += prevDir * PREV_DIR_WEIGHT;
+
+                desired = NormalizeSafe(desired);
+
+                float speed = snake.IsBoosting ? snake.BoostSpeed : (snake.BaseSpeed > 0 ? snake.BaseSpeed : snake.CurrentSpeed);
+                float turnDeg = snake.MaxTurningAngle > 0 ? snake.MaxTurningAngle : 360f;
+                float maxRad = turnDeg * (MathF.PI / 180f) * dt;
+                Vector2 moveDir = prevDir.Length() > 0.0001f ? RotateTowards(prevDir, desired, maxRad) : desired;
+                Vector2 newHead = head + moveDir * speed * dt;
+
+                // Boundary kill
+                if (MathF.Abs(newHead.X) >= worldHalf || MathF.Abs(newHead.Y) >= worldHalf)
+                {
+                    _ = _gameEngine.OnPlayerDied(aiId, null);
+                    continue;
+                }
+
+                // Collision check (sampled)
+                bool collided = false;
+                string killerId = null;
+                float colR2 = COLLISION_RADIUS * COLLISION_RADIUS;
+
+                foreach (var kv in allSnakesMap)
+                {
+                    var other = kv.Value;
+                    if (other == null || !other.IsAlive || other.PlayerId == aiId) continue;
+                    var segs = other.BodySegments;
+                    if (segs == null || segs.Count == 0) continue;
+
+                    for (int i = 0; i < segs.Count; i += SEGMENT_SAMPLE_STRIDE)
+                    {
+                        float dx = segs[i].X - newHead.X, dy = segs[i].Y - newHead.Y;
+                        if (dx * dx + dy * dy <= colR2)
+                        {
+                            collided = true; killerId = other.PlayerId; break;
+                        }
+                    }
+                    if (collided) break;
+                }
+
+                if (collided)
+                {
+                    _ = _gameEngine.OnPlayerDied(aiId, killerId);
+                    continue;
+                }
+
+                // Update body
+                segments.Add(new SerializableVector2(newHead));
+                int targetLen = snake.TargetLength;
+                while (segments.Count > targetLen && segments.Count > 1)
+                    segments.RemoveAt(0);
+                snake.BodySegments = segments;
+                snake.CurrentSpeed = speed;
+                snake.IsBoosting = false;
+
+                await _redis.SetAsync($"{SNAKE_KEY_PREFIX}{aiId}", snake);
+
+                // Eat check
+                if (nearest != null)
+                {
+                    float ex = nearest.Position.X - newHead.X, ey = nearest.Position.Y - newHead.Y;
+                    if (ex * ex + ey * ey <= EAT_RADIUS * EAT_RADIUS)
+                    {
+                        _ = _gameEngine.OnPlayerAteFood(aiId, nearest.Id);
+                        _targetFood.TryRemove(aiId, out _);
+                    }
+                }
+            }
+        }
+
+        // Utility methods
+        private static Vector2 NormalizeSafe(Vector2 v) => v.Length() < 0.0001f ? Vector2.Zero : Vector2.Normalize(v);
+
+        private static Vector2 RotateTowards(Vector2 from, Vector2 to, float maxRadians)
+        {
+            var f = NormalizeSafe(from);
+            var t = NormalizeSafe(to);
+            float angle = MathF.Atan2(f.X * t.Y - f.Y * t.X, f.X * t.X + f.Y * t.Y);
+            float clamped = Math.Clamp(angle, -maxRadians, maxRadians);
+            float cos = MathF.Cos(clamped), sin = MathF.Sin(clamped);
+            return new Vector2(f.X * cos - f.Y * sin, f.X * sin + f.Y * cos);
+        }
+
+        private static int StableHash(string s)
+        {
+            unchecked
+            {
+                int h = 23;
+                foreach (char c in s) h = h * 31 + c;
+                return h;
             }
         }
     }

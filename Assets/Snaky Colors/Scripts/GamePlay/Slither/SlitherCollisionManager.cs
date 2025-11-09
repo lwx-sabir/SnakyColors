@@ -53,7 +53,7 @@ namespace SnakyColors
 
             // --- 2. Check for Enemy Snake Body ---
             // (This assumes other snakes have a collider on their body segments)
-            if (other.CompareTag("EnemySnakeBody")) // You'll need to tag your prefabs
+            if (other.CompareTag("EnemySnake")) // You'll need to tag your prefabs
             {
                 // We hit another snake!
                 // Unknown killer for now; avoid misattribution
@@ -78,7 +78,11 @@ namespace SnakyColors
         {
             // Disable this script and our input
             this.enabled = false;
-            GetComponent<SlitherMovement>().enabled = false;
+            TryGetComponent<SlitherMovement>(out var mov);
+            if( mov != null )
+            {
+                mov.enabled = false;
+            }
 
             // TODO: Play local death particle effect
             // ...
