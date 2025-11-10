@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.SignalR.Client;
-using System.Collections;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using SnakyColors;
 using System;
-using System.Linq; 
-using UnityEngine.Playables; // You had this, so I'm keeping it
+using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 // --- The Main Client ---
 public class NetworkClient : MonoBehaviour
@@ -42,28 +43,7 @@ public class NetworkClient : MonoBehaviour
 
     // --- Local World State ---
     private Dictionary<string, SegmentedCreator> otherSnakes = new Dictionary<string, SegmentedCreator>();
-    private Dictionary<int, GameObject> activeFood = new Dictionary<int, GameObject>();
-    // Remote head tracking + simple client-side extrapolation
-    private class RemoteSample { public float t; public Vector3 pos; public float speed; }
-    private class RemoteTrack
-    {
-        public List<RemoteSample> samples = new List<RemoteSample>(16);
-        public Vector3 lastDir = Vector3.up;
-        public float lastSpeed = 3f;
-        // Smoothed render state for direct rendering
-        public Vector3 smoothPos;
-        public Vector3 smoothVel;
-        public bool smoothInit;
-        // Head path for arc-length resampling
-        public List<Vector3> path = new List<Vector3>(128);
-    }
-    private class RemoteBodySnapshot { public float t; public List<Vector3> segs; public float speed; }
-
-    private Dictionary<string, List<RemoteBodySnapshot>> remoteBodies = new Dictionary<string, List<RemoteBodySnapshot>>();
-    private Dictionary<string, RemoteTrack> remoteTracks = new Dictionary<string, RemoteTrack>();
-    private const float remoteInterpDelay = 0.12f; // render slightly behind server to smooth jitter
-    private const float remoteLeadFactor = 0.25f;  // target lead = speed * factor (more lead for stability)
-    private const float remoteMaxSnap = 2.0f;      // snap if drift exceeds this distance
+    private Dictionary<int, GameObject> activeFood = new Dictionary<int, GameObject>(); 
 
     [Header("Remote Render")]
     [SerializeField] private bool remoteDirectRender = true; // place remote heads directly at interpolated server head
@@ -158,6 +138,11 @@ public class NetworkClient : MonoBehaviour
 
         hubConnection = new HubConnectionBuilder()
             .WithUrl(hubUrl)
+            .AddMessagePackProtocol()
+            .ConfigureLogging(logging =>
+            { 
+                logging.SetMinimumLevel(LogLevel.Debug);
+            })
             .WithAutomaticReconnect()
             .Build();
 
@@ -166,7 +151,7 @@ public class NetworkClient : MonoBehaviour
         try
         {
             await hubConnection.StartAsync();
-            Debug.Log("Network Client: Connection Started.");
+            Debug.Log("Network Client: Connection Started."); 
             await hubConnection.InvokeAsync("Ping");
             await hubConnection.InvokeAsync("JoinMainWorld", playerId, skinId);
         }
@@ -250,80 +235,8 @@ public class NetworkClient : MonoBehaviour
         while (playerLeftQueue.TryDequeue(out string playerId))
         {
             HandlePlayerLeft(playerId);
-        }
-
-        // Advance remote snakes between snapshots using last known dir/speed (simple extrapolation)
-        AdvanceRemoteSnakes();
-    }
-
-    private void AdvanceRemoteSnakes()
-    {
-        // No-op: Remote snakes are driven exclusively by RemoteSnake interpolator component.
-    }
-
-    private Vector3 GetInterpolatedHead(RemoteTrack track, float tRender, out Vector3 dir, out float speed)
-    {
-        dir = track.lastDir;
-        speed = track.lastSpeed;
-        var s = track.samples;
-        if (s.Count == 1)
-        {
-            var only = s[0];
-            dir = track.lastDir;
-            speed = only.speed;
-            return only.pos;
-        }
-        // Find bracket around tRender
-        int i1 = 0, i2 = s.Count - 1;
-        for (int i = 0; i < s.Count; i++)
-        {
-            if (s[i].t <= tRender) i1 = i;
-            if (s[i].t >= tRender) { i2 = i; break; }
-        }
-        if (i2 == i1) { i2 = Mathf.Min(i1 + 1, s.Count - 1); }
-        var p0 = s[Mathf.Max(0, i1 - 1)];
-        var p1 = s[i1];
-        var p2 = s[i2];
-        var p3 = s[Mathf.Min(s.Count - 1, i2 + 1)];
-        float t1 = p1.t, t2 = Mathf.Max(p2.t, t1 + 0.0001f);
-        float mu = Mathf.Clamp01((tRender - t1) / (t2 - t1));
-        // Catmull-Rom spline interpolation (uniform)
-        Vector3 CR(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float m)
-        {
-            float m2 = m * m;
-            float m3 = m2 * m;
-            return 0.5f * ((2f * b)
-                           + (-a + c) * m
-                           + (2f * a - 5f * b + 4f * c - d) * m2
-                           + (-a + 3f * b - 3f * c + d) * m3);
-        }
-        Vector3 CRd(Vector3 a, Vector3 b, Vector3 c, Vector3 d, float m)
-        {
-            float m2 = m * m;
-            return 0.5f * ((-a + c)
-                           + 2f * (2f * a - 5f * b + 4f * c - d) * m
-                           + 3f * (-a + 3f * b - 3f * c + d) * m2);
-        }
-        Vector3 posSpline = CR(p0.pos, p1.pos, p2.pos, p3.pos, mu);
-        Vector3 dPos = CRd(p0.pos, p1.pos, p2.pos, p3.pos, mu);
-        // Derive direction and speed from spline derivative combined with server-reported speed
-        Vector3 velDir = (dPos.sqrMagnitude > 0.000001f) ? dPos.normalized : (track.lastDir.sqrMagnitude > 0.0f ? track.lastDir : Vector3.up);
-        float srvSpeed = Mathf.Max(0.1f, p2.speed);
-        Vector3 vel = velDir * srvSpeed;
-        Vector3 posLead = posSpline + vel * Mathf.Max(0f, remoteLeadSeconds);
-        dir = velDir;
-        speed = srvSpeed;
-        track.lastDir = dir;
-        track.lastSpeed = speed;
-        // Cull old samples
-        float minKeep = tRender - 0.5f;
-        if (s[0].t < minKeep && s.Count > 2)
-        {
-            int remove = 0; while (remove < s.Count - 2 && s[remove + 1].t < minKeep) remove++;
-            if (remove > 0) s.RemoveRange(0, remove);
-        }
-        return posLead;
-    }
+        } 
+    } 
 
     private void HandleJoinSuccess(PlayerStateDto playerState)
     {
@@ -352,11 +265,11 @@ public class NetworkClient : MonoBehaviour
             float clientSecondsAbs = Time.time;
             serverTimeOffset = serverSecondsAbs - clientSecondsAbs; // serverTime = Time.time + offset
             serverClockInit = true;
-            Debug.Log($"[ClockInit] ServerAbs={serverSecondsAbs:F3}  Client={clientSecondsAbs:F3}  Offset={serverTimeOffset:F3}");
+         //   Debug.Log($"[ClockInit] ServerAbs={serverSecondsAbs:F3}  Client={clientSecondsAbs:F3}  Offset={serverTimeOffset:F3}");
         }
 
         // Per-update diagnostics for timing alignment
-        Debug.Log($"[NET] ServerUtc: {worldState.ServerUtc:o}  Offset: {serverTimeOffset:F3}  LocalTime: {Time.time:F3}");
+  //      Debug.Log($"[NET] ServerUtc: {worldState.ServerUtc:o}  Offset: {serverTimeOffset:F3}  LocalTime: {Time.time:F3}");
 
         HashSet<string> seenSnakes = new HashSet<string>();
         foreach (var kin in worldState.Snakes)

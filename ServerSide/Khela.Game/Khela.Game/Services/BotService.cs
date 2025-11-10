@@ -1,4 +1,4 @@
-using Khela.Game.Models;
+﻿using Khela.Game.Models;
 using Khela.Game.Models.Configs;
 using Khela.Game.Services.Redis;
 using Microsoft.Extensions.Hosting;
@@ -32,9 +32,12 @@ namespace Khela.Game.Services
         private const float EAT_RADIUS = 0.75f;
         private const float COLLISION_RADIUS = 0.75f;
 
-        // Cache to avoid redundant Redis reads
-        private readonly ConcurrentDictionary<string, WorldState> _worldCache = new();
+        // Cache to avoid redundant Redis reads 
         private readonly ConcurrentDictionary<string, Dictionary<string, PlayerState>> _snakeCache = new();
+        private readonly ConcurrentDictionary<string, (WorldState world, DateTime lastFetch)> _worldCache = new();
+        private readonly TimeSpan _worldCacheTTL = TimeSpan.FromMilliseconds(500);
+        private long _aiTickIndex = 0;
+
 
         // Persistent per-AI state
         private readonly ConcurrentDictionary<string, int> _targetFood = new();
@@ -63,7 +66,14 @@ namespace Khela.Game.Services
 
                     foreach (var worldKey in worldKeys)
                     {
-                        await ManageAIForWorld(worldKey, stoppingToken);
+                        try
+                        {
+                            await ManageAIForWorld(worldKey, stoppingToken);
+                        }
+                        catch(Exception ex)
+                        {
+
+                        } 
                     }
                 }
                 catch (Exception ex)
@@ -76,45 +86,59 @@ namespace Khela.Game.Services
                 if (delay > TimeSpan.Zero)
                     await Task.Delay(delay, stoppingToken);
 
-                _logger.LogDebug($"AI tick took {elapsed.TotalMilliseconds:F1}ms");
+               // _logger.LogDebug($"AI tick took {elapsed.TotalMilliseconds:F1}ms");
             }
         }
 
         private async Task ManageAIForWorld(string worldKey, CancellationToken token)
         {
-            if (!_worldCache.TryGetValue(worldKey, out var world) || world.Tick % 40 == 0)
-            {
-                world = await _redis.GetAsync<WorldState>(worldKey);
-                if (world != null)
-                    _worldCache[worldKey] = world;
-            }
+            var world = await GetWorldCachedAsync(worldKey);
 
             if (world == null || world.Config == null || world.CurrentState != GameState.Running)
                 return;
 
+            // Get AI snakes from Redis
             var aiKeys = world.AISnakeIds.Keys.Select(id => SNAKE_KEY_PREFIX + id).ToArray();
-            if (aiKeys.Length == 0) return;
+            var aiSnakes = new List<PlayerState>();
 
-            var aiSnakes = (await _redis.GetBatchAsync<PlayerState>(aiKeys)).Values.Where(s => s?.IsAlive == true).ToList();
+            if (aiKeys.Length > 0)
+            {
+                aiSnakes = (await _redis.GetBatchAsync<PlayerState>(aiKeys))
+                           .Values.Where(s => s?.IsAlive == true)
+                           .ToList();
+            }
 
             int aliveAICount = aiSnakes.Count;
             int aiNeeded = world.Config.TargetAISnakeCount - aliveAICount;
 
             if (aiNeeded > 0)
             {
+                _logger.LogInformation($"World {world.WorldId} needs {aiNeeded} AI snakes. Spawning...");
+
                 for (int i = 0; i < aiNeeded; i++)
                 {
                     string aiPlayerId = $"ai-pid-{Guid.NewGuid():N}";
                     string aiConnId = $"ai-conn-{Guid.NewGuid():N}";
+
                     await _worldManager.AddPlayerToWorldAsync(aiConnId, world.WorldId, aiPlayerId, "greenskin", isAi: true);
+                     
+                    world.AISnakeIds.TryAdd(aiPlayerId, true);
                 }
+                 
+                await _redis.SetAsync(WORLD_KEY_PREFIX + world.WorldId, world);
+                _worldCache.AddOrUpdate(WORLD_KEY_PREFIX + world.WorldId, (world, DateTime.UtcNow), (_, _) => (world, DateTime.UtcNow));
+
             }
 
-            await MoveAIs(world, aiSnakes);
+            if (world.AISnakeIds.Count > 0)
+                await MoveAIs(world, aiSnakes);
         }
+
+
 
         private async Task MoveAIs(WorldState world, List<PlayerState> aiSnakes)
         {
+            _aiTickIndex++;
             var db = _redis.GetDatabase();
             float worldHalf = world.Config.WorldSize / 2f;
             float dt = (float)_aiTickInterval.TotalSeconds;
@@ -138,7 +162,7 @@ namespace Khela.Game.Services
             {
                 string aiId = snake.PlayerId;
 
-                if ((StableHash(aiId) & 1) != (world.Tick & 1))
+                if (((StableHash(aiId) + _aiTickIndex) & 1) != 0)
                     continue; // staggered update to halve load
 
                 var segments = snake.BodySegments ?? new List<SerializableVector2>();
@@ -271,6 +295,20 @@ namespace Khela.Game.Services
                 foreach (char c in s) h = h * 31 + c;
                 return h;
             }
+        }
+
+        private async Task<WorldState?> GetWorldCachedAsync(string worldKey)
+        {
+            if (_worldCache.TryGetValue(worldKey, out var entry))
+            {
+                if (DateTime.UtcNow - entry.lastFetch < _worldCacheTTL)
+                    return entry.world;
+            }
+
+            var world = await _redis.GetAsync<WorldState>(worldKey);
+            if (world != null)
+                _worldCache[worldKey] = (world, DateTime.UtcNow);
+            return world;
         }
     }
 }

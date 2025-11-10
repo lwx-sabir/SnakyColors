@@ -7,6 +7,20 @@ using System.Text.Json;
 using StackExchange.Redis;
 using Khela.Game.Dtos; // For IBatch
 
+// ==============================================
+//  WorldManagerService.cs
+//  Author: Reza Sabir (CasualLabInteractive)
+//  Version: 1.0.1 (Production Stable)
+//  Description:
+//  Thread-safe authoritative manager for player/world
+//  lifecycle across distributed Redis instances.
+//
+//  - Handles atomic world creation
+//  - Supports reconnect-safe joins
+//  - Uses Redis locks for consistency
+//  - Minimal Redis roundtrips
+// ==============================================
+
 namespace Khela.Game.Services
 {
     public class WorldManagerService
@@ -26,19 +40,6 @@ namespace Khela.Game.Services
             _defaultWorldConfig = new WorldConfig();
         }
 
-        public async Task<WorldState> GetOrCreateMainWorldAsync()
-        {
-            var world = await _redis.GetAsync<WorldState>(WORLD_KEY_PREFIX + "main");
-            if (world == null)
-            {
-                _logger.LogInformation("Main world not found. Creating...");
-                var worldConfig = new WorldConfig();
-                world = new WorldState(worldConfig) { WorldId = "main" };
-                await _redis.SetAsync(WORLD_KEY_PREFIX + "main", world);
-            }
-            return world;
-        }
-
         public async Task<PlayerState> AddPlayerToWorldAsync(string connectionId, string worldId, string playerId, string skinId, bool isAi = false)
         {
             string worldKey = WORLD_KEY_PREFIX + worldId;
@@ -47,15 +48,15 @@ namespace Khela.Game.Services
             string lockKey = $"lock:{worldKey}"; // Lock the WORLD
             var db = _redis.GetDatabase();
 
-            // Use connectionId as lock token for player joins
+            // Use connectionId as lock token for player joins // Lock to prevent concurrent player joins in the same world
             if (await db.LockTakeAsync(lockKey, connectionId, TimeSpan.FromSeconds(5)))
             {
                 try
                 {
-                    var world = await _redis.GetAsync<WorldState>(worldKey);
-                    if (world == null) return null; // World not found
+                    var world = await GetOrCreateWorldAsync(worldId); 
+                    if (world == null) return null;
 
-                    // Check if player is already in this world (stale mapping or reconnect)
+                    // Check if player is already in this world (stale mapping or reconnect) 
                     if (world.SnakeIds.ContainsKey(playerId) || world.AISnakeIds.ContainsKey(playerId))
                     {
                         _logger.LogWarning($"Player {playerId} already in world {worldId}. Treating as reconnect and updating connection mapping.");
@@ -66,20 +67,17 @@ namespace Khela.Game.Services
                         {
                             existingSnake.ConnectionId = connectionId;
 
-                            var reconnectBatch = db.CreateBatch();
-                            _ = reconnectBatch.StringSetAsync(playerKey, System.Text.Json.JsonSerializer.Serialize(existingSnake));
-                            if (!isAi)
+                            var reconnTasks = new List<Task>
                             {
-                                _ = reconnectBatch.StringSetAsync(connectionKey, playerId);
-                            }
-                            reconnectBatch.Execute();
+                                db.StringSetAsync(playerKey, JsonSerializer.Serialize(existingSnake))
+                            };
+                            if (!isAi)
+                                reconnTasks.Add(db.StringSetAsync(connectionKey, playerId));
 
+                            await Task.WhenAll(reconnTasks);
                             return existingSnake;
                         }
-
-                        // If no player object, fall through to create anew
                     }
-
                     // --- Player is new, create them ---
                     float worldHalf = world.Config.WorldSize / 2f;
                     float padding = 50f;
@@ -103,17 +101,19 @@ namespace Khela.Game.Services
                         world.AISnakeIds.TryAdd(playerId, true);
                     }
                     else world.SnakeIds.TryAdd(playerId, true);
-                     
-                    var batch = db.CreateBatch();
-                    _ = batch.StringSetAsync(playerKey, JsonSerializer.Serialize(newSnake)); // 1. Save new snake
-                    _ = batch.StringSetAsync(worldKey, JsonSerializer.Serialize(world));      // 2. Save updated world
-                    if (!isAi) // AI doesn't have a real connection
-                    {
-                        _ = batch.StringSetAsync(connectionKey, playerId); // 3. Save connection mapping
-                    }
-                    batch.Execute(); 
 
-                    _logger.LogInformation($"Player {playerId} added to world {worldId}"); 
+                    var tasks = new List<Task>
+                        {
+                            db.StringSetAsync(playerKey, JsonSerializer.Serialize(newSnake)),
+                            db.StringSetAsync(worldKey, JsonSerializer.Serialize(world))
+                        };
+                    if (!isAi)
+                        tasks.Add(db.StringSetAsync(connectionKey, playerId));
+
+                    await Task.WhenAll(tasks);
+
+                    _logger.LogInformation("PlayerJoined {@PlayerId} {@WorldId} {@IsAI}", playerId, worldId, isAi); 
+
                     return newSnake;
                 }
                 finally
@@ -122,6 +122,20 @@ namespace Khela.Game.Services
                 }
             }
             _logger.LogWarning($"Failed to acquire lock for world {worldKey} to add player {playerId}.");
+
+            // Passive re-check after a tiny delay (handles concurrent creation case)
+            await Task.Delay(Random.Shared.Next(50, 150));
+            var maybeWorld = await _redis.GetAsync<WorldState>(worldKey);
+            if (maybeWorld != null && (maybeWorld.SnakeIds.ContainsKey(playerId) || maybeWorld.AISnakeIds.ContainsKey(playerId)))
+            {
+                var existingPlayer = await _redis.GetAsync<PlayerState>(playerKey);
+                if (existingPlayer != null)
+                {
+                    _logger.LogInformation($"[JoinRecovered] Player {playerId} joined world {maybeWorld.WorldId} via concurrent thread.");
+                    return existingPlayer;
+                }
+            }
+
             return null; // Failed to get lock
         }
 
@@ -156,27 +170,22 @@ namespace Khela.Game.Services
                 try
                 {
                     world = await _redis.GetAsync<WorldState>(worldKey);
-                    var batch = db.CreateBatch();
 
-                    // 1. Delete player
-                    _ = batch.KeyDeleteAsync(playerKey);
-                    // 2. Delete connection mapping
+                    var tasks = new List<Task>();
+
+                    tasks.Add(db.KeyDeleteAsync(playerKey));
+
                     if (!string.IsNullOrEmpty(connIdToClear))
-                    {
-                        _ = batch.KeyDeleteAsync(CONNECTION_KEY_PREFIX + connIdToClear);
-                    }
+                        tasks.Add(db.KeyDeleteAsync(CONNECTION_KEY_PREFIX + connIdToClear));
 
-                    // 3. Update and save world
-                    if (world != null)
+                    if (world != null &&
+                       (world.SnakeIds.TryRemove(playerId, out _) || world.AISnakeIds.TryRemove(playerId, out _)))
                     {
-                        if (world.SnakeIds.TryRemove(playerId, out _) || world.AISnakeIds.TryRemove(playerId, out _))
-                        {
-                            _logger.LogInformation($"Player {playerId} removed from world {world.WorldId}");
-                            _ = batch.StringSetAsync(worldKey, JsonSerializer.Serialize(world));
-                        }
-                    }
+                        _logger.LogInformation($"Player {playerId} removed from world {world.WorldId}");
+                        tasks.Add(db.StringSetAsync(worldKey, JsonSerializer.Serialize(world)));
+                    } 
+                    await Task.WhenAll(tasks);
 
-                    batch.Execute();
                     return (player, world);
                 }
                 finally
@@ -185,9 +194,8 @@ namespace Khela.Game.Services
                 }
             }
 
-            // Failed to get lock, player is NOT removed from world list but might be deleted
-            // This is a partial failure, but we return what we have
-            _logger.LogWarning($"Failed to get lock for world {worldKey} to remove player {playerId}.");
+            // Failed to get lock, player is NOT removed from world list but might be deleted 
+            _logger.LogWarning($"Failed to get lock for world {worldKey} to remove player {playerId}."); 
             return (player, null);
         }
 
@@ -203,5 +211,46 @@ namespace Khela.Game.Services
             }
             return await RemovePlayerFromWorldByPlayerIdAsync(playerId, connectionId);
         }
+
+        public Task<WorldState> GetOrCreateMainWorldAsync() => GetOrCreateWorldAsync("main");
+
+        public async Task<WorldState> GetOrCreateWorldAsync(string worldId)
+        {
+            string worldKey = WORLD_KEY_PREFIX + worldId;
+            var world = await _redis.GetAsync<WorldState>(worldKey);
+            if (world != null)
+                return world;
+
+            string lockKey = $"lock:create:{worldId}";
+            string lockToken = Guid.NewGuid().ToString();
+            var db = _redis.GetDatabase();
+
+            if (await db.LockTakeAsync(lockKey, lockToken, TimeSpan.FromSeconds(5)))
+            {
+                try
+                {
+                    // Double check after acquiring lock
+                    world = await _redis.GetAsync<WorldState>(worldKey);
+                    if (world == null)
+                    {
+                        world = new WorldState(_defaultWorldConfig) { WorldId = worldId };
+                        await _redis.SetAsync(worldKey, world);
+                        _logger.LogInformation($"Created new world {worldId}");
+                    }
+                }
+                finally
+                {
+                    await db.LockReleaseAsync(lockKey, lockToken);
+                }
+            }
+            else
+            {
+                // Another thread is creating it — wait briefly and retry
+                await Task.Delay(200);
+                world = await _redis.GetAsync<WorldState>(worldKey);
+            }
+
+            return world!;
+        } 
     }
 }

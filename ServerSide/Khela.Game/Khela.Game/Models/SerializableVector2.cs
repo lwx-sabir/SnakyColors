@@ -6,8 +6,11 @@ namespace Khela.Game.Models
     /// A simple, JSON-serializable struct to replace System.Numerics.Vector2
     /// for state storage in Redis.
     /// </summary>    
+    using System;
+    using System.Numerics;
+
     [Serializable]
-    public struct SerializableVector2
+    public struct SerializableVector2 : IEquatable<SerializableVector2>
     {
         public float X { get; set; }
         public float Y { get; set; }
@@ -72,7 +75,25 @@ namespace Khela.Game.Models
             return this / len;
         }
 
+        // === Comparison operators ===
+        public static bool operator ==(SerializableVector2 a, SerializableVector2 b)
+            => MathF.Abs(a.X - b.X) < 0.0001f && MathF.Abs(a.Y - b.Y) < 0.0001f;
+
+        public static bool operator !=(SerializableVector2 a, SerializableVector2 b)
+            => !(a == b);
+
+        // === Equality overrides ===
+        public bool Equals(SerializableVector2 other)
+            => this == other;
+
+        public override bool Equals(object? obj)
+            => obj is SerializableVector2 other && Equals(other);
+
+        public override int GetHashCode()
+            => HashCode.Combine(X, Y);
+
         // === ToString override (for debugging) ===
         public override string ToString() => $"({X:0.###}, {Y:0.###})";
-    } 
+    }
+
 }

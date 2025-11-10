@@ -15,11 +15,10 @@ namespace Khela.Game.Services
         private readonly IRedisService _redis;
         private readonly ILogger<FoodService> _logger;
 
-        private const string FOOD_KEY_PREFIX = "food:"; // legacy per-food key (kept for compatibility)
+        private const string FOOD_KEY_PREFIX = "food:";
         private const string WORLD_KEY_PREFIX = "world:";
-        private const string FOODHASH_PREFIX = "foodhash:";   // Redis HASH per world: field=id, value=Food JSON
-        private const string FOODCACHE_PREFIX = "foodcache:"; // cached FoodStateDto[] for broadcast/AI
-        private const string FOODLIST_PREFIX = "foodlist:";
+        private const string FOODHASH_PREFIX = "foodhash:";   
+        private const string FOODCACHE_PREFIX = "foodcache:"; 
         private static readonly Random _rng = new Random();
 
         private readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _lastSpawnUtc = new();
@@ -37,29 +36,74 @@ namespace Khela.Game.Services
             var db = _redis.GetDatabase();
 
             // Reconcile world.FoodIds against HASH occasionally (cheap scan)
-            if (!_lastReconcileUtc.TryGetValue(world.WorldId, out var lastRecon) || (now - lastRecon) >= TimeSpan.FromSeconds(5))
+            if (!_lastReconcileUtc.TryGetValue(world.WorldId, out var lastRecon) || (now - lastRecon) >= TimeSpan.FromSeconds(4))
             {
                 _lastReconcileUtc[world.WorldId] = now;
                 var hashKey = FOODHASH_PREFIX + world.WorldId;
-                var hlen = await db.HashLengthAsync(hashKey);
-                if (hlen == 0)
+                var entries = await db.HashGetAllAsync(hashKey);
+
+                if (entries.Length == 0)
                 {
                     world.FoodIds.Clear();
+                    await _redis.SetAsync(FOODCACHE_PREFIX + world.WorldId, Array.Empty<FoodStateDto>());
                 }
                 else
                 {
-                    // Use HKEYS to avoid fetching values
-                    var keys = await db.HashKeysAsync(hashKey);
-                    var idSet = new HashSet<int>(keys.Select(k => int.TryParse(k.ToString(), out var id) ? id : -1).Where(i => i >= 0));
-                    foreach (var id in world.FoodIds.Keys)
+                    var foodDtos = new List<FoodStateDto>(entries.Length);
+                    var idSet = new HashSet<int>();
+
+                    foreach (var e in entries)
                     {
-                        if (!idSet.Contains(id)) world.FoodIds.TryRemove(id, out _);
+                        if (int.TryParse(e.Name.ToString(), out var id))
+                        {
+                            idSet.Add(id);
+                            try
+                            {
+                                var food = JsonSerializer.Deserialize<Food>(e.Value!);
+                                if (food != null)
+                                    foodDtos.Add(new FoodStateDto { Id = food.Id, PosX = food.Position.X, PosY = food.Position.Y, ItemKey = food.ItemKey });
+                            }
+                            catch { /* ignore broken entries */ }
+                        }
                     }
+
+                    // sync world.FoodIds
+                    foreach (var id in world.FoodIds.Keys.Where(k => !idSet.Contains(k)).ToArray())
+                        world.FoodIds.TryRemove(id, out _);
+
                     foreach (var id in idSet)
-                    {
                         world.FoodIds[id] = true;
+
+                    // update cache if stale or missing
+                    var cacheKeyW = FOODCACHE_PREFIX + world.WorldId;
+                    var existingF = await _redis.GetAsync<FoodStateDto[]>(cacheKeyW);
+
+                    bool shouldUpdateCache = false;
+
+                    if (existingF == null)
+                    {
+                        shouldUpdateCache = true; // cache missing
+                    }
+                    else if (existingF.Length != foodDtos.Count)
+                    {
+                        shouldUpdateCache = true; // count mismatch
+                    }
+                    else
+                    {
+                        // Check if IDs differ (avoid full object comparison)
+                        var existingIds = existingF.Select(f => f.Id).OrderBy(id => id);
+                        var newIds = foodDtos.Select(f => f.Id).OrderBy(id => id);
+                        if (!existingIds.SequenceEqual(newIds))
+                            shouldUpdateCache = true;
+                    }
+
+                    if (shouldUpdateCache)
+                    {
+                        await _redis.SetAsync(cacheKeyW, foodDtos.ToArray());
+                        _logger.LogDebug($"[FoodCache] Rebuilt for world={world.WorldId}, count={foodDtos.Count}");
                     }
                 }
+
                 await _redis.SetAsync(WORLD_KEY_PREFIX + world.WorldId, world);
             }
 

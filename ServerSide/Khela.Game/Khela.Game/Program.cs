@@ -6,24 +6,54 @@ using Khela.Game.Services;
 using Khela.Game.Services.Redis;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args); 
- 
+/**
+* -----------------------------------------------------------------------------
+*  File: Entry
+*  Project: Khela.Game (Authoritative Multiplayer Server)
+*  Author: Reza Sabir (CasualLab Interactive)
+*  Description:
+*      The GameEngine is the central authoritative tick loop responsible for
+*      driving world updates, player state synchronization, food management, and
+*      gameplay events across all active worlds.
+* 
+*      - Each world operates independently, running parallel ticks.
+*      - All player movements, deaths, and food interactions are validated
+*        server-side to prevent cheating and maintain deterministic gameplay.
+*      - Event dispatching (OnWorldTickCompleted, OnFoodEaten, PlayerDied)
+*        is fully async-safe, concurrent, and exception-tolerant.
+*      - The engine maintains a fixed tick rate defined by WorldConfig.TickRate,
+*        using Redis as the real-time authoritative state backend.
+* 
+*  Key Features:
+*      • Fully async-safe with distributed Redis locks per player/world.
+*      • Parallelized tick processing for multiple worlds.
+*      • Deterministic physics & score logic for anti-cheat enforcement.
+*      • Decoupled event model for Broadcast / AI / Analytics modules.
+* 
+*  Notes:
+*      - The engine does not directly handle network transport; it relies on
+*        SignalR or other services to propagate delta updates to connected clients.
+*      - All gameplay state is persisted in Redis for durability and scalability.
+* 
+*  License: Proprietary © SiliconBangla LLC. All rights reserved.
+* -----------------------------------------------------------------------------
+*/
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+// --- Database ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
- 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
- 
-//builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-//    .AddEntityFrameworkStores<AppDbContext>()
-//    .AddDefaultTokenProviders();
 
-// Add Identity
+// --- Identity ---
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -36,11 +66,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// Bind JwtSettings
+// --- JWT ---
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-builder.Services.AddSingleton(jwtSettings); 
+builder.Services.AddSingleton(jwtSettings);
 
-// Add Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -48,32 +77,33 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = true; // Production
+    options.RequireHttpsMetadata = true;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidIssuer = jwtSettings.Issuer,
-
         ValidateAudience = true,
         ValidAudience = jwtSettings.Audience,
-
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
-
         ValidateLifetime = true,
-        ClockSkew = TimeSpan.FromMinutes(1) // Reduce default 5 min skew
+        ClockSkew = TimeSpan.FromMinutes(1)
     };
 });
 
-builder.Services.AddAuthorization(); 
+builder.Services.AddAuthorization();
 
+// --- Controllers & Swagger ---
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSignalR();
 
+// --- SignalR + MessagePack ---
+builder.Services.AddSignalR() 
+    .AddMessagePackProtocol(); // enable MessagePack support
+
+// --- Redis ---
 var redisString = !builder.Environment.IsDevelopment()
     ? builder.Configuration.GetConnectionString("RedisConnection")
     : builder.Configuration.GetConnectionString("RedisConnectionDevelopment");
@@ -81,9 +111,10 @@ var redisString = !builder.Environment.IsDevelopment()
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisString));
 builder.Services.AddMemoryCache();
 
-builder.Services.AddSingleton<IRedisService , RedisService>(); 
+builder.Services.AddSingleton<IRedisService, RedisService>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 
+// --- Game Services ---
 builder.Services.AddSingleton<WorldManagerService>();
 builder.Services.AddSingleton<ArenaManagerService>();
 builder.Services.AddSingleton<FoodService>();
@@ -96,9 +127,16 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<GameBr
 builder.Services.AddHostedService(provider => provider.GetRequiredService<AIService>());
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ArenaManagerService>());
 
+builder.Services.AddResponseCompression(opts =>
+{
+   opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+       new[] { "application/octet-stream" });
+   opts.Providers.Add<BrotliCompressionProvider>();
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// --- HTTP pipeline ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -106,13 +144,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
+app.UseRouting();                
+app.UseResponseCompression();    
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHub<SnakeHub>("/snakehub");
+app.MapHub<SnakeHub>("/snakehub");        
 app.MapHub<CommunicationHub>("/comhub");
 
 app.Run();

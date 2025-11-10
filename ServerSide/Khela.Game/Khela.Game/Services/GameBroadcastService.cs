@@ -14,14 +14,23 @@ namespace Khela.Game.Services
         private readonly GameEngine _gameEngine;
         private readonly ILogger<GameBroadcastService> _logger;
 
-        private readonly ConcurrentDictionary<string, WorldState> _worldCache = new();
+        private readonly ConcurrentDictionary<string, (WorldState world, DateTime lastFetch)> _worldCache = new();
+        private readonly TimeSpan _worldCacheTTL = TimeSpan.FromMilliseconds(300);
+
+        private readonly ConcurrentDictionary<string, (Dictionary<string, PlayerState> snakes, DateTime lastFetch)> _snakeCache = new();
+        private readonly TimeSpan _snakeCacheTTL = TimeSpan.FromMilliseconds(200);
+
+        private readonly ConcurrentDictionary<string, (FoodStateDto[] foods, DateTime lastFetch)> _foodCache = new();
+        private readonly TimeSpan _foodCacheTTL = TimeSpan.FromMilliseconds(300);
+
+        private readonly ConcurrentDictionary<string, WorldUpdateDto> _lastSentState = new();
+        private readonly ConcurrentDictionary<string, DateTime> _lastBroadcastPerWorld = new();
 
         private const string SNAKE_KEY_PREFIX = "snake:";
         private const string WORLD_KEY_PREFIX = "world:";
         private const string FOODCACHE_PREFIX = "foodcache:";
 
         private readonly TimeSpan _broadcastInterval = TimeSpan.FromMilliseconds(100); // 10Hz
-        private DateTime _lastBroadcast = DateTime.MinValue;
 
         public GameBroadcastService(IHubContext<SnakeHub> hubContext, IRedisService redis, GameEngine gameEngine, ILogger<GameBroadcastService> logger)
         {
@@ -29,25 +38,25 @@ namespace Khela.Game.Services
             _redis = redis;
             _gameEngine = gameEngine;
             _logger = logger;
-
-            _gameEngine.OnWorldTickCompleted += HandleWorldTickCompleted;
-            _gameEngine.OnFoodEaten += HandleFoodEaten;
-            _gameEngine.PlayerDied += HandlePlayerDied;
+             
+            _gameEngine.OnWorldTickCompleted += async (worldId, utcNow) => await HandleWorldTickCompleted(worldId, utcNow);
+            _gameEngine.OnFoodEaten += async (playerId, foodId, worldId) => await HandleFoodEaten(playerId, foodId, worldId);
+            _gameEngine.PlayerDied += async (dead, killer) => await HandlePlayerDied(dead, killer);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             await Task.Delay(3000, stoppingToken);
             _logger.LogInformation("GameBroadcastService started (10Hz).");
+
             try { await Task.Delay(Timeout.Infinite, stoppingToken); } catch { }
         }
 
-        private async void HandleWorldTickCompleted(string worldId, DateTime utcNow)
+        // ✅ Now Task instead of async void
+        private async Task HandleWorldTickCompleted(string worldId, DateTime utcNow)
         {
-            if ((DateTime.UtcNow - _lastBroadcast) < _broadcastInterval)
-                return; // throttle to 10Hz
-
-            _lastBroadcast = DateTime.UtcNow;
+            if (!ShouldBroadcast(worldId))
+                return;
 
             try
             {
@@ -62,20 +71,26 @@ namespace Khela.Game.Services
         private async Task BroadcastWorldById(string worldId, DateTime utcNow)
         {
             var start = DateTime.UtcNow;
-            if (!_worldCache.TryGetValue(worldId, out var world) || world.Tick % 40 == 0)
+            var world = await GetWorldCachedAsync(worldId);
+            if (world == null || world.CurrentState != GameState.Running)
+                return;
+
+            // --- Cached snakes ---
+            var allIds = world.SnakeIds.Keys.Concat(world.AISnakeIds.Keys).ToArray();
+            List<PlayerState> snakes;
+            if (!_snakeCache.TryGetValue(worldId, out var entry) || DateTime.UtcNow - entry.lastFetch >= _snakeCacheTTL)
             {
-                world = await _redis.GetAsync<WorldState>(WORLD_KEY_PREFIX + worldId);
-                if (world != null)
-                    _worldCache[worldId] = world;
+                var snakeKeys = allIds.Select(id => SNAKE_KEY_PREFIX + id).ToArray();
+                var snakesToCache = await _redis.GetBatchAsync<PlayerState>(snakeKeys);
+                _snakeCache[worldId] = (snakesToCache, DateTime.UtcNow);
+                snakes = [.. snakesToCache.Values];
+            }
+            else
+            {
+                snakes = [.. entry.snakes.Values];
             }
 
-            if (world == null || world.CurrentState != GameState.Running) return;
-
-            var allIds = world.SnakeIds.Keys.Concat(world.AISnakeIds.Keys).ToArray();
-            var snakeKeys = allIds.Select(id => SNAKE_KEY_PREFIX + id).ToArray();
-            var snakesMap = (await _redis.GetBatchAsync<PlayerState>(snakeKeys)).Values;
-
-            var snakeKinematics = snakesMap
+            var snakeKinematics = snakes
                 .Where(s => s != null && s.IsAlive)
                 .Select(s => new SnakeKinematicsDto
                 {
@@ -91,7 +106,7 @@ namespace Khela.Game.Services
                 })
                 .ToArray();
 
-            var foodState = await _redis.GetAsync<FoodStateDto[]>(FOODCACHE_PREFIX + world.WorldId) ?? Array.Empty<FoodStateDto>();
+            var foodState = await GetFoodCachedAsync(world.WorldId);
 
             var worldUpdate = new WorldUpdateDto
             {
@@ -103,17 +118,40 @@ namespace Khela.Game.Services
                 ServerUtc = utcNow
             };
 
-            await _hubContext.Clients.Group(world.WorldId).SendAsync("WorldUpdate", worldUpdate);
+            // --- Diff check to reduce spam ---
+            if (_lastSentState.TryGetValue(worldId, out var prev))
+            {
+                bool snakesChanged = snakeKinematics.Any(s =>
+                    prev.Snakes.All(p => p.PlayerId != s.PlayerId ||
+                                         p.HeadPosition != s.HeadPosition));
+
+                bool foodChanged = foodState.Any(f =>
+                    prev.Food.All(p => p.Id != f.Id || p.PosX != f.PosX || p.PosY != f.PosY));
+
+                if (!snakesChanged && !foodChanged)
+                    return;
+            }
+
+            try
+            {
+                await _hubContext.Clients.Group(world.WorldId).SendAsync("WorldUpdate", worldUpdate);
+                _lastSentState[worldId] = worldUpdate;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Broadcast send failed for {world.WorldId}");
+            }
 
             var ms = (DateTime.UtcNow - start).TotalMilliseconds;
-            _logger.LogDebug($"Broadcast world={world.WorldId} took {ms:F1}ms (snakes={snakeKinematics.Length}, food={worldUpdate.Food.Length})");
+            _logger.LogTrace($"Broadcast world={world.WorldId} took {ms:F1}ms (snakes={snakeKinematics.Length}, food={worldUpdate.Food.Length})");
         }
 
-        private async void HandleFoodEaten(string playerId, int foodId, string worldId)
+        private async Task HandleFoodEaten(string playerId, int foodId, string worldId)
         {
             try
             {
-                await _hubContext.Clients.Group(worldId).SendAsync("OnFoodEaten", foodId, playerId);
+                await _hubContext.Clients.Group(worldId)
+                    .SendAsync("OnFoodEaten", foodId, playerId);
             }
             catch (Exception ex)
             {
@@ -121,9 +159,10 @@ namespace Khela.Game.Services
             }
         }
 
-        private async void HandlePlayerDied(PlayerState deadPlayer, PlayerState killer)
+        private async Task HandlePlayerDied(PlayerState deadPlayer, PlayerState killer)
         {
             if (deadPlayer == null) return;
+
             string message = killer != null
                 ? $"{deadPlayer.PlayerName} was eaten by {killer.PlayerName}"
                 : $"{deadPlayer.PlayerName} hit a wall.";
@@ -137,6 +176,46 @@ namespace Khela.Game.Services
             {
                 _logger.LogError(ex, $"Error broadcasting death: {ex.Message}");
             }
+        }
+
+        private async Task<WorldState?> GetWorldCachedAsync(string worldId)
+        {
+            if (_worldCache.TryGetValue(worldId, out var entry))
+            {
+                if (DateTime.UtcNow - entry.lastFetch < _worldCacheTTL)
+                    return entry.world;
+            }
+
+            var world = await _redis.GetAsync<WorldState>(WORLD_KEY_PREFIX + worldId);
+            if (world != null)
+                _worldCache[worldId] = (world, DateTime.UtcNow);
+
+            return world;
+        }
+
+        private async Task<FoodStateDto[]> GetFoodCachedAsync(string worldId)
+        {
+            if (_foodCache.TryGetValue(worldId, out var entry))
+            {
+                if (DateTime.UtcNow - entry.lastFetch < _foodCacheTTL)
+                    return entry.foods;
+            }
+
+            var food = await _redis.GetAsync<FoodStateDto[]>(FOODCACHE_PREFIX + worldId)
+                       ?? Array.Empty<FoodStateDto>();
+            _foodCache[worldId] = (food, DateTime.UtcNow);
+            return food;
+        }
+
+        private bool ShouldBroadcast(string worldId)
+        {
+            var now = DateTime.UtcNow;
+            if (_lastBroadcastPerWorld.TryGetValue(worldId, out var last) &&
+                (now - last) < _broadcastInterval)
+                return false;
+
+            _lastBroadcastPerWorld[worldId] = now;
+            return true;
         }
     }
 }
