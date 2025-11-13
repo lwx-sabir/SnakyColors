@@ -7,6 +7,6 @@
         public int MaxPlayers { get; set; } = 500;
         public int TargetFoodCount { get; set; } = 50;
         public int TickRate { get; set; } = 20; 
-        public int TargetAISnakeCount { get; set; } = 1;
+        public int TargetAISnakeCount { get; set; } = 10;
     }
 }

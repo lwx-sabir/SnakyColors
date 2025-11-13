@@ -1,31 +1,16 @@
 ﻿using Khela.Game.Models.Configs;
-using Khela.Game.Models;
-using Khela.Game.Services.Redis;
-using Microsoft.Extensions.Options;
+using Khela.Game.Models.States;
+using Microsoft.Extensions.Logging;
 using System.Numerics;
-using System.Text.Json;
-using StackExchange.Redis;
-using Khela.Game.Dtos; // For IBatch
-
-// ==============================================
-//  WorldManagerService.cs
-//  Author: Reza Sabir (CasualLabInteractive)
-//  Version: 1.0.1 (Production Stable)
-//  Description:
-//  Thread-safe authoritative manager for player/world
-//  lifecycle across distributed Redis instances.
-//
-//  - Handles atomic world creation
-//  - Supports reconnect-safe joins
-//  - Uses Redis locks for consistency
-//  - Minimal Redis roundtrips
-// ==============================================
 
 namespace Khela.Game.Services
 {
+    /// <summary>
+    /// Thread-safe authoritative manager for player/world lifecycle.
+    /// In-memory version: uses GameState.Instance; Redis persistence is handled elsewhere.
+    /// </summary>
     public class WorldManagerService
     {
-        private readonly IRedisService _redis;
         private readonly ILogger<WorldManagerService> _logger;
         private readonly WorldConfig _defaultWorldConfig;
 
@@ -33,224 +18,243 @@ namespace Khela.Game.Services
         private const string WORLD_KEY_PREFIX = "world:";
         private const string CONNECTION_KEY_PREFIX = "connection:";
 
-        public WorldManagerService(IRedisService redis, ILogger<WorldManagerService> logger)
+        public WorldManagerService(ILogger<WorldManagerService> logger)
         {
-            _redis = redis;
             _logger = logger;
             _defaultWorldConfig = new WorldConfig();
         }
 
-        public async Task<PlayerState> AddPlayerToWorldAsync(string connectionId, string worldId, string playerId, string skinId, bool isAi = false)
+        // =====================================================================
+        // ADD PLAYER TO WORLD (async API preserved)
+        // =====================================================================
+
+        public async Task<PlayerState?> AddPlayerToWorldAsync(
+            string connectionId,
+            string worldId,
+            string playerId,
+            string? skinId,
+            bool isAi = false)
         {
-            string worldKey = WORLD_KEY_PREFIX + worldId;
-            string playerKey = SNAKE_KEY_PREFIX + playerId;
-            string connectionKey = CONNECTION_KEY_PREFIX + connectionId;
-            string lockKey = $"lock:{worldKey}"; // Lock the WORLD
-            var db = _redis.GetDatabase();
+            var gs = GameState.Instance;
+            var worldLock = gs.GetWorldLock(worldId);
 
-            // Use connectionId as lock token for player joins // Lock to prevent concurrent player joins in the same world
-            if (await db.LockTakeAsync(lockKey, connectionId, TimeSpan.FromSeconds(5)))
+            // Try to mimic Redis lock semantics: wait a bit, else fallback
+            if (!await worldLock.WaitAsync(TimeSpan.FromSeconds(5)))
             {
-                try
+                _logger.LogWarning("Failed to acquire lock for world {WorldKey} to add player {PlayerId}.",
+                    WORLD_KEY_PREFIX + worldId, playerId);
+
+                // Passive re-check (as in original)
+                await Task.Delay(Random.Shared.Next(50, 150));
+
+                if (gs.TryGetWorld(worldId, out var maybeWorld) &&
+                    (maybeWorld.SnakeIds.ContainsKey(playerId) ||
+                     maybeWorld.AISnakeIds.ContainsKey(playerId)) &&
+                    gs.TryGetPlayer(playerId, out var existingPlayer))
                 {
-                    var world = await GetOrCreateWorldAsync(worldId); 
-                    if (world == null) return null;
-
-                    // Check if player is already in this world (stale mapping or reconnect) 
-                    if (world.SnakeIds.ContainsKey(playerId) || world.AISnakeIds.ContainsKey(playerId))
-                    {
-                        _logger.LogWarning($"Player {playerId} already in world {worldId}. Treating as reconnect and updating connection mapping.");
-
-                        // Try to fetch existing player and update connection
-                        var existingSnake = await _redis.GetAsync<PlayerState>(playerKey);
-                        if (existingSnake != null)
-                        {
-                            existingSnake.ConnectionId = connectionId;
-
-                            var reconnTasks = new List<Task>
-                            {
-                                db.StringSetAsync(playerKey, JsonSerializer.Serialize(existingSnake))
-                            };
-                            if (!isAi)
-                                reconnTasks.Add(db.StringSetAsync(connectionKey, playerId));
-
-                            await Task.WhenAll(reconnTasks);
-                            return existingSnake;
-                        }
-                    }
-                    // --- Player is new, create them ---
-                    float worldHalf = world.Config.WorldSize / 2f;
-                    float padding = 50f;
-                    Vector2 startPos = new Vector2(
-                        (Random.Shared.NextSingle() * (world.Config.WorldSize - 2 * padding)) - (worldHalf - padding),
-                        (Random.Shared.NextSingle() * (world.Config.WorldSize - 2 * padding)) - (worldHalf - padding)
-                    );
-
-                    var newSnake = new PlayerState(connectionId, startPos)
-                    {
-                        PlayerId = playerId,
-                        CurrentWorldId = worldId,
-                        SkinID = skinId ?? "DefaultSkin",
-                        IsAI = isAi,
-                        PlayerName = isAi ? "AI" : "Player" // TODO: Get from token
-                    };
-
-                    // --- Add player to world's list ---
-                    if (isAi)
-                    {
-                        world.AISnakeIds.TryAdd(playerId, true);
-                    }
-                    else world.SnakeIds.TryAdd(playerId, true);
-
-                    var tasks = new List<Task>
-                        {
-                            db.StringSetAsync(playerKey, JsonSerializer.Serialize(newSnake)),
-                            db.StringSetAsync(worldKey, JsonSerializer.Serialize(world))
-                        };
-                    if (!isAi)
-                        tasks.Add(db.StringSetAsync(connectionKey, playerId));
-
-                    await Task.WhenAll(tasks);
-
-                    _logger.LogInformation("PlayerJoined {@PlayerId} {@WorldId} {@IsAI}", playerId, worldId, isAi); 
-
-                    return newSnake;
-                }
-                finally
-                {
-                    await db.LockReleaseAsync(lockKey, connectionId);
-                }
-            }
-            _logger.LogWarning($"Failed to acquire lock for world {worldKey} to add player {playerId}.");
-
-            // Passive re-check after a tiny delay (handles concurrent creation case)
-            await Task.Delay(Random.Shared.Next(50, 150));
-            var maybeWorld = await _redis.GetAsync<WorldState>(worldKey);
-            if (maybeWorld != null && (maybeWorld.SnakeIds.ContainsKey(playerId) || maybeWorld.AISnakeIds.ContainsKey(playerId)))
-            {
-                var existingPlayer = await _redis.GetAsync<PlayerState>(playerKey);
-                if (existingPlayer != null)
-                {
-                    _logger.LogInformation($"[JoinRecovered] Player {playerId} joined world {maybeWorld.WorldId} via concurrent thread.");
+                    _logger.LogInformation("[JoinRecovered] Player {PlayerId} already joined world {WorldId}.",
+                        playerId, maybeWorld.WorldId);
                     return existingPlayer;
                 }
+
+                return null;
             }
 
-            return null; // Failed to get lock
+            try
+            {
+                // Get or create world (same semantics)
+                var world = await GetOrCreateWorldAsync(worldId);
+                if (world == null)
+                    return null;
+
+                // Reconnect / stale mapping check
+                if (world.SnakeIds.ContainsKey(playerId) || world.AISnakeIds.ContainsKey(playerId))
+                {
+                    _logger.LogWarning(
+                        "Player {PlayerId} already in world {WorldId}. Treating as reconnect and updating connection mapping.",
+                        playerId, worldId);
+
+                    if (gs.TryGetPlayer(playerId, out var existingSnake))
+                    {
+                        existingSnake.ConnectionId = connectionId;
+                        gs.AddOrUpdatePlayer(existingSnake);
+
+                        if (!isAi)
+                            gs.Connections[connectionId] = playerId;
+
+                        return existingSnake;
+                    }
+                }
+
+                // --- New player creation (unchanged math) ---
+                float worldHalf = world.Config.WorldSize / 2f;
+                float padding = 50f;
+
+                Vector2 startPos = new(
+                    (Random.Shared.NextSingle() * (world.Config.WorldSize - 2 * padding)) - (worldHalf - padding),
+                    (Random.Shared.NextSingle() * (world.Config.WorldSize - 2 * padding)) - (worldHalf - padding)
+                );
+
+                var newSnake = new PlayerState(connectionId, startPos)
+                {
+                    PlayerId = playerId,
+                    CurrentWorldId = worldId,
+                    SkinID = skinId ?? "DefaultSkin",
+                    IsAI = isAi,
+                    PlayerName = isAi ? "AI" : "Player"
+                };
+
+                // Track in world indexes
+                if (isAi)
+                    world.AISnakeIds.TryAdd(playerId, true);
+                else
+                    world.SnakeIds.TryAdd(playerId, true);
+
+                // Persist in in-memory state
+                gs.AddOrUpdatePlayer(newSnake);
+                gs.AddOrUpdateWorld(world);
+
+                if (!isAi)
+                    gs.Connections[connectionId] = playerId;
+
+                _logger.LogInformation("PlayerJoined {PlayerId} {WorldId} IsAI={IsAI}",
+                    playerId, worldId, isAi);
+
+                return newSnake;
+            }
+            finally
+            {
+                worldLock.Release();
+            }
         }
 
-        public async Task<(PlayerState, WorldState)> RemovePlayerFromWorldByPlayerIdAsync(string playerId, string connectionId = null)
+        // =====================================================================
+        // REMOVE BY PLAYER ID (async API preserved)
+        // =====================================================================
+
+        public async Task<(PlayerState? player, WorldState? world)>
+            RemovePlayerFromWorldByPlayerIdAsync(string playerId, string? connectionId = null)
         {
-            string playerKey = SNAKE_KEY_PREFIX + playerId;
-            var player = await _redis.GetAsync<PlayerState>(playerKey);
+            var gs = GameState.Instance;
 
-            string connIdToClear = connectionId ?? player?.ConnectionId;
-            string worldKey = WORLD_KEY_PREFIX + player?.CurrentWorldId;
-            string lockKey = $"lock:{worldKey}";
-            string lockToken = Guid.NewGuid().ToString(); // Use a unique token for removal
-
-            if (player == null || string.IsNullOrEmpty(player.CurrentWorldId))
+            if (!gs.TryGetPlayer(playerId, out var player) ||
+                string.IsNullOrEmpty(player.CurrentWorldId))
             {
-                // Player or world is missing, just clean up
-                var dB = _redis.GetDatabase();
-                var cleanupBatch = dB.CreateBatch();
-                _ = cleanupBatch.KeyDeleteAsync(playerKey);
-                if (!string.IsNullOrEmpty(connIdToClear))
-                {
-                    _ = cleanupBatch.KeyDeleteAsync(CONNECTION_KEY_PREFIX + connIdToClear);
-                }
-                cleanupBatch.Execute();
+                // Cleanup connection mapping only (equivalent to old behavior)
+                if (!string.IsNullOrEmpty(connectionId))
+                    gs.Connections.TryRemove(connectionId, out _);
+
                 return (player, null);
             }
 
-            var db = _redis.GetDatabase();
-            if (await db.LockTakeAsync(lockKey, lockToken, TimeSpan.FromSeconds(5)))
+            string worldId = player.CurrentWorldId;
+            var worldLock = gs.GetWorldLock(worldId);
+
+            if (!await worldLock.WaitAsync(TimeSpan.FromSeconds(5)))
             {
-                WorldState world = null;
-                try
-                {
-                    world = await _redis.GetAsync<WorldState>(worldKey);
-
-                    var tasks = new List<Task>();
-
-                    tasks.Add(db.KeyDeleteAsync(playerKey));
-
-                    if (!string.IsNullOrEmpty(connIdToClear))
-                        tasks.Add(db.KeyDeleteAsync(CONNECTION_KEY_PREFIX + connIdToClear));
-
-                    if (world != null &&
-                       (world.SnakeIds.TryRemove(playerId, out _) || world.AISnakeIds.TryRemove(playerId, out _)))
-                    {
-                        _logger.LogInformation($"Player {playerId} removed from world {world.WorldId}");
-                        tasks.Add(db.StringSetAsync(worldKey, JsonSerializer.Serialize(world)));
-                    } 
-                    await Task.WhenAll(tasks);
-
-                    return (player, world);
-                }
-                finally
-                {
-                    await db.LockReleaseAsync(lockKey, lockToken);
-                }
+                _logger.LogWarning("Failed to get lock for world {WorldKey} to remove player {PlayerId}.",
+                    WORLD_KEY_PREFIX + worldId, playerId);
+                return (player, null);
             }
 
-            // Failed to get lock, player is NOT removed from world list but might be deleted 
-            _logger.LogWarning($"Failed to get lock for world {worldKey} to remove player {playerId}."); 
-            return (player, null);
+            try
+            {
+                if (!gs.TryGetWorld(worldId, out var world))
+                {
+                    // World missing: just delete player + connection
+                    gs.RemovePlayer(playerId);
+                    if (!string.IsNullOrEmpty(connectionId))
+                        gs.Connections.TryRemove(connectionId, out _);
+                    return (player, null);
+                }
+
+                // Remove player from dictionaries
+                gs.RemovePlayer(playerId);
+
+                world.SnakeIds.TryRemove(playerId, out _);
+                world.AISnakeIds.TryRemove(playerId, out _);
+
+                gs.AddOrUpdateWorld(world);
+
+                // Remove connection mapping
+                var connToClear = connectionId ?? player.ConnectionId;
+                if (!string.IsNullOrEmpty(connToClear))
+                    gs.Connections.TryRemove(connToClear, out _);
+
+                _logger.LogInformation("Player {PlayerId} removed from world {WorldId}", playerId, world.WorldId);
+                return (player, world);
+            }
+            finally
+            {
+                worldLock.Release();
+            }
         }
 
-        public async Task<(PlayerState, WorldState)> RemovePlayerFromWorldAsync(string connectionId)
-        {
-            string connectionKey = CONNECTION_KEY_PREFIX + connectionId;
-            string playerId = await _redis.GetStringAsync(connectionKey);
+        // =====================================================================
+        // REMOVE BY CONNECTION ID (same contract)
+        // =====================================================================
 
-            if (string.IsNullOrEmpty(playerId))
+        public async Task<(PlayerState? player, WorldState? world)>
+            RemovePlayerFromWorldAsync(string connectionId)
+        {
+            var gs = GameState.Instance;
+
+            if (!gs.Connections.TryGetValue(connectionId, out var playerId) ||
+                string.IsNullOrEmpty(playerId))
             {
-                _logger.LogWarning($"Player (Conn: {connectionId}) disconnected but had no PlayerId mapping.");
+                _logger.LogWarning(
+                    "Player (Conn: {ConnectionId}) disconnected but had no PlayerId mapping.",
+                    connectionId);
                 return (null, null);
             }
+
             return await RemovePlayerFromWorldByPlayerIdAsync(playerId, connectionId);
         }
 
-        public Task<WorldState> GetOrCreateMainWorldAsync() => GetOrCreateWorldAsync("main");
+        // =====================================================================
+        // GET OR CREATE WORLD (async signature preserved)
+        // =====================================================================
+
+        public Task<WorldState> GetOrCreateMainWorldAsync()
+            => GetOrCreateWorldAsync("main");
 
         public async Task<WorldState> GetOrCreateWorldAsync(string worldId)
         {
-            string worldKey = WORLD_KEY_PREFIX + worldId;
-            var world = await _redis.GetAsync<WorldState>(worldKey);
-            if (world != null)
+            var gs = GameState.Instance;
+
+            if (gs.TryGetWorld(worldId, out var existing))
+                return existing;
+
+            var worldLock = gs.GetWorldLock(worldId);
+
+            if (!await worldLock.WaitAsync(TimeSpan.FromSeconds(5)))
+            {
+                // Another thread probably created it; try again
+                if (gs.TryGetWorld(worldId, out var w2))
+                    return w2;
+
+                // Fallback: create anyway
+                var fallback = new WorldState(_defaultWorldConfig) { WorldId = worldId };
+                gs.AddOrUpdateWorld(fallback);
+                _logger.LogInformation("Created new world {WorldId} (fallback, no lock).", worldId);
+                return fallback;
+            }
+
+            try
+            {
+                if (!gs.TryGetWorld(worldId, out var world))
+                {
+                    world = new WorldState(_defaultWorldConfig) { WorldId = worldId };
+                    gs.AddOrUpdateWorld(world);
+                    _logger.LogInformation("Created new world {WorldId}", worldId);
+                }
+
                 return world;
-
-            string lockKey = $"lock:create:{worldId}";
-            string lockToken = Guid.NewGuid().ToString();
-            var db = _redis.GetDatabase();
-
-            if (await db.LockTakeAsync(lockKey, lockToken, TimeSpan.FromSeconds(5)))
-            {
-                try
-                {
-                    // Double check after acquiring lock
-                    world = await _redis.GetAsync<WorldState>(worldKey);
-                    if (world == null)
-                    {
-                        world = new WorldState(_defaultWorldConfig) { WorldId = worldId };
-                        await _redis.SetAsync(worldKey, world);
-                        _logger.LogInformation($"Created new world {worldId}");
-                    }
-                }
-                finally
-                {
-                    await db.LockReleaseAsync(lockKey, lockToken);
-                }
             }
-            else
+            finally
             {
-                // Another thread is creating it — wait briefly and retry
-                await Task.Delay(200);
-                world = await _redis.GetAsync<WorldState>(worldKey);
+                worldLock.Release();
             }
-
-            return world!;
-        } 
+        }
     }
 }

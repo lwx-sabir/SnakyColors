@@ -1,0 +1,844 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MessagePack</name>
+    </assembly>
+    <members>
+        <member name="T:MessagePack.Formatters.CollectionHelpers`2">
+            <summary>
+            Provides general helpers for creating collections (including dictionaries).
+            </summary>
+            <typeparam name="TCollection">The concrete type of collection to create.</typeparam>
+            <typeparam name="TEqualityComparer">The type of equality comparer that we would hope to pass into the collection's constructor.</typeparam>
+        </member>
+        <member name="F:MessagePack.Formatters.CollectionHelpers`2.collectionCreator">
+            <summary>
+            The delegate that will create the collection, if the typical (int count, IEqualityComparer{T} equalityComparer) constructor was found.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Formatters.CollectionHelpers`2.#cctor">
+            <summary>
+            Initializes static members of the <see cref="T:MessagePack.Formatters.CollectionHelpers`2"/> class.
+            </summary>
+            <remarks>
+            Initializes a delegate that is optimized to create a collection of a given size and using the given equality comparer, if possible.
+            </remarks>
+        </member>
+        <member name="M:MessagePack.Formatters.CollectionHelpers`2.CreateHashCollection(System.Int32,`1)">
+            <summary>
+            Initializes a new instance of the <typeparamref name="TCollection"/> collection.
+            </summary>
+            <param name="count">The number of elements the collection should be prepared to receive.</param>
+            <param name="equalityComparer">The equality comparer to initialize the collection with.</param>
+            <returns>The newly initialized collection.</returns>
+            <remarks>
+            Use of the <paramref name="count"/> and <paramref name="equalityComparer"/> are a best effort.
+            If we can't find a constructor on the collection in the expected shape, we'll just instantiate the collection with its default constructor.
+            </remarks>
+        </member>
+        <member name="T:MessagePack.Formatters.NativeDateTimeFormatter">
+            <summary>
+            Serialize by .NET native DateTime binary format.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Formatters.OldSpecStringFormatter">
+            <summary>
+            Old-MessagePack spec's string formatter.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Formatters.OldSpecBinaryFormatter">
+            <summary>
+            Old-MessagePack spec's binary formatter.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Formatters.TypelessFormatter">
+            <summary>
+            For `object` field that holds derived from `object` value, ex: var arr = new object[] { 1, "a", new Model() };
+            </summary>
+        </member>
+        <member name="F:MessagePack.Formatters.TypelessFormatter.RemoveAssemblyVersion">
+            <summary>
+            When type name does not have Version, Culture, Public token - sometimes can not find type, example - ExpandoObject
+            In that can set to `false`
+            </summary>
+        </member>
+        <member name="M:MessagePack.Formatters.TypelessFormatter.DeserializeByTypeName(System.ArraySegment{System.Byte},System.Byte[],System.Int32,MessagePack.IFormatterResolver,System.Int32@)">
+            <summary>
+            Does not support deserializing of anonymous types
+            Type should be covered by preceeding resolvers in complex/standard resolver
+            </summary>
+        </member>
+        <member name="F:MessagePack.Formatters.BinaryGuidFormatter.Instance">
+            <summary>
+            Unsafe binary Guid formatter. this is only allows on LittleEndian environment.
+            </summary>
+        </member>
+        <member name="F:MessagePack.Formatters.BinaryDecimalFormatter.Instance">
+            <summary>
+            Unsafe binary Decimal formatter. this is only allows on LittleEndian environment.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ExpressionUtility.GetMethodInfo``1(System.Linq.Expressions.Expression{System.Func{``0}})">
+            <summary>
+            Get MethodInfo from Expression for Static(with result) method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ExpressionUtility.GetMethodInfo(System.Linq.Expressions.Expression{System.Action})">
+            <summary>
+            Get MethodInfo from Expression for Static(void) method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ExpressionUtility.GetMethodInfo``2(System.Linq.Expressions.Expression{System.Func{``0,``1}})">
+            <summary>
+            Get MethodInfo from Expression for Instance(with result) method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ExpressionUtility.GetMethodInfo``1(System.Linq.Expressions.Expression{System.Action{``0}})">
+            <summary>
+            Get MethodInfo from Expression for Instance(void) method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ExpressionUtility.GetMethodInfo``3(System.Linq.Expressions.Expression{System.Func{``0,``1,``2}})">
+            <summary>
+            Get MethodInfo from Expression for Instance(with result) method.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Internal.ILGeneratorExtensions">
+            <summary>
+            Provides optimized generation code and helpers.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ILGeneratorExtensions.EmitLdloc(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            Loads the local variable at a specific index onto the evaluation stack.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ILGeneratorExtensions.EmitStloc(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            Pops the current value from the top of the evaluation stack and stores it in a the local variable list at a specified index.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ILGeneratorExtensions.EmitLdloca(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            Loads the address of the local variable at a specific index onto the evaluation statck.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ILGeneratorExtensions.EmitLdc_I4(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            Pushes a supplied value of type int32 onto the evaluation stack as an int32.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ILGeneratorExtensions.EmitPop(System.Reflection.Emit.ILGenerator,System.Int32)">
+            <summary>
+            Helper for Pop op.
+            </summary>
+        </member>
+        <member name="M:MessagePack.Internal.ILGeneratorExtensions.EmitIncrementFor(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.LocalBuilder,System.Action{System.Reflection.Emit.LocalBuilder})">
+            <summary>for  var i = 0, i ..., i++ </summary>
+        </member>
+        <member name="T:MessagePack.LZ4.LZ4Codec">
+            <summary>Safe LZ4 codec.</summary>
+            <summary>Unsafe LZ4 codec.</summary>
+        </member>
+        <member name="F:MessagePack.LZ4.LZ4Codec.MEMORY_USAGE">
+            <summary>
+            Memory usage formula : N->2^N Bytes (examples : 10 -> 1KB; 12 -> 4KB ; 16 -> 64KB; 20 -> 1MB; etc.)
+            Increasing memory usage improves compression ratio
+            Reduced memory usage can improve speed, due to cache effect
+            Default value is 14, for 16KB, which nicely fits into Intel x86 L1 cache
+            </summary>
+        </member>
+        <member name="F:MessagePack.LZ4.LZ4Codec.NOTCOMPRESSIBLE_DETECTIONLEVEL">
+            <summary>
+            Decreasing this value will make the algorithm skip faster data segments considered "incompressible"
+            This may decrease compression ratio dramatically, but will be faster on incompressible data
+            Increasing this value will make the algorithm search more before declaring a segment "incompressible"
+            This could improve compression a bit, but will be slower on incompressible data
+            The default value (6) is recommended
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.MaximumOutputLength(System.Int32)">
+            <summary>Gets maximum the length of the output.</summary>
+            <param name="inputLength">Length of the input.</param>
+            <returns>Maximum number of bytes needed for compressed buffer.</returns>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.Encode32Safe(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32,System.Int32)">
+            <summary>Encodes the specified input.</summary>
+            <param name="input">The input.</param>
+            <param name="inputOffset">The input offset.</param>
+            <param name="inputLength">Length of the input.</param>
+            <param name="output">The output.</param>
+            <param name="outputOffset">The output offset.</param>
+            <param name="outputLength">Length of the output.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.Encode64Safe(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32,System.Int32)">
+            <summary>Encodes the specified input.</summary>
+            <param name="input">The input.</param>
+            <param name="inputOffset">The input offset.</param>
+            <param name="inputLength">Length of the input.</param>
+            <param name="output">The output.</param>
+            <param name="outputOffset">The output offset.</param>
+            <param name="outputLength">Length of the output.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.Decode32Safe(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32,System.Int32)">
+            <summary>Decodes the specified input.</summary>
+            <param name="input">The input.</param>
+            <param name="inputOffset">The input offset.</param>
+            <param name="inputLength">Length of the input.</param>
+            <param name="output">The output.</param>
+            <param name="outputOffset">The output offset.</param>
+            <param name="outputLength">Length of the output.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.Decode64Safe(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32,System.Int32)">
+            <summary>Decodes the specified input.</summary>
+            <param name="input">The input.</param>
+            <param name="inputOffset">The input offset.</param>
+            <param name="inputLength">Length of the input.</param>
+            <param name="output">The output.</param>
+            <param name="outputOffset">The output offset.</param>
+            <param name="outputLength">Length of the output.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.BlockCopy(System.Byte*,System.Byte*,System.Int32)">
+            <summary>Copies block of memory.</summary>
+            <param name="src">The source.</param>
+            <param name="dst">The destination.</param>
+            <param name="len">The length (in bytes).</param>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.Encode32Unsafe(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32,System.Int32)">
+            <summary>Encodes the specified input.</summary>
+            <param name="input">The input.</param>
+            <param name="inputOffset">The input offset.</param>
+            <param name="inputLength">Length of the input.</param>
+            <param name="output">The output.</param>
+            <param name="outputOffset">The output offset.</param>
+            <param name="outputLength">Length of the output.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.Decode32Unsafe(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32,System.Int32)">
+            <summary>Decodes the specified input.</summary>
+            <param name="input">The input.</param>
+            <param name="inputOffset">The input offset.</param>
+            <param name="inputLength">Length of the input.</param>
+            <param name="output">The output.</param>
+            <param name="outputOffset">The output offset.</param>
+            <param name="outputLength">Length of the output.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.Encode64Unsafe(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32,System.Int32)">
+            <summary>Encodes the specified input.</summary>
+            <param name="input">The input.</param>
+            <param name="inputOffset">The input offset.</param>
+            <param name="inputLength">Length of the input.</param>
+            <param name="output">The output.</param>
+            <param name="outputOffset">The output offset.</param>
+            <param name="outputLength">Length of the output.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="M:MessagePack.LZ4.LZ4Codec.Decode64Unsafe(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32,System.Int32)">
+            <summary>Decode64s the specified input.</summary>
+            <param name="input">The input.</param>
+            <param name="inputOffset">The input offset.</param>
+            <param name="inputLength">Length of the input.</param>
+            <param name="output">The output.</param>
+            <param name="outputOffset">The output offset.</param>
+            <param name="outputLength">Length of the output.</param>
+            <returns>Number of bytes written.</returns>
+        </member>
+        <member name="T:MessagePack.LZ4MessagePackSerializer">
+            <summary>
+            LZ4 Compressed special serializer.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.Serialize``1(``0)">
+            <summary>
+            Serialize to binary with default resolver.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.Serialize``1(``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Serialize to binary with specified resolver.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.Serialize``1(System.IO.Stream,``0)">
+            <summary>
+            Serialize to stream.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.Serialize``1(System.IO.Stream,``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Serialize to stream with specified resolver.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.DecodeUnsafe(System.Byte[])">
+            <summary>
+            Get the war memory pool byte[]. The result can not share across thread and can not hold and can not call LZ4Deserialize before use it.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.DecodeUnsafe(System.ArraySegment{System.Byte})">
+            <summary>
+            Get the war memory pool byte[]. The result can not share across thread and can not hold and can not call LZ4Deserialize before use it.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.ToJson``1(``0)">
+            <summary>
+            Dump to JSON string.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.ToJson``1(``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Dump to JSON string.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.ToJson(System.Byte[])">
+            <summary>
+            Dump message-pack binary to JSON string.
+            </summary>
+        </member>
+        <member name="M:MessagePack.LZ4MessagePackSerializer.FromJson(System.IO.TextReader)">
+            <summary>
+            From Json String to LZ4MessagePack binary
+            </summary>
+        </member>
+        <member name="T:MessagePack.MessagePackBinary">
+            <summary>
+            Encode/Decode Utility of MessagePack Spec.
+            https://github.com/msgpack/msgpack/blob/master/spec.md
+            </summary>
+        </member>
+        <member name="F:MessagePack.MessagePackBinary.MaxArrayAllocationSize">
+            <summary>
+            A maximum allowable element count for any array or map allocated by this class
+            when reading from non-seekable streams.
+            The default is <see cref="F:System.Int32.MaxValue"/>.
+            </summary>
+            <remarks>
+            When reading from a byte array or seekable streams, the actual length
+            of the remaining buffer or stream is used to calculate a safe limit.
+            </remarks>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteFixedMapHeaderUnsafe(System.Byte[]@,System.Int32,System.Int32)">
+            <summary>
+            Unsafe. If value is guranteed 0 ~ MessagePackRange.MaxFixMapCount(15), can use this method.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteMapHeader(System.Byte[]@,System.Int32,System.Int32)">
+            <summary>
+            Write map count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteMapHeader(System.Byte[]@,System.Int32,System.UInt32)">
+            <summary>
+            Write map count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteMapHeaderForceMap32Block(System.Byte[]@,System.Int32,System.UInt32)">
+            <summary>
+            Write map format header, always use map32 format(length is fixed, 5).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadMapHeader(System.Byte[],System.Int32,System.Int32@)">
+            <summary>
+            Return map count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadMapHeaderRaw(System.Byte[],System.Int32,System.Int32@)">
+            <summary>
+            Return map count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteFixedArrayHeaderUnsafe(System.Byte[]@,System.Int32,System.Int32)">
+            <summary>
+            Unsafe. If value is guranteed 0 ~ MessagePackRange.MaxFixArrayCount(15), can use this method.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteArrayHeader(System.Byte[]@,System.Int32,System.Int32)">
+            <summary>
+            Write array count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteArrayHeader(System.Byte[]@,System.Int32,System.UInt32)">
+            <summary>
+            Write array count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteArrayHeaderForceArray32Block(System.Byte[]@,System.Int32,System.UInt32)">
+            <summary>
+            Write array format header, always use array32 format(length is fixed, 5).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadArrayHeader(System.Byte[],System.Int32,System.Int32@)">
+            <summary>
+            Return array count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadArrayHeaderRaw(System.Byte[],System.Int32,System.Int32@)">
+            <summary>
+            Return array count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WritePositiveFixedIntUnsafe(System.Byte[]@,System.Int32,System.Int32)">
+            <summary>
+            Unsafe. If value is guranteed 0 ~ MessagePackCode.MaxFixInt(127), can use this method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteInt32ForceInt32Block(System.Byte[]@,System.Int32,System.Int32)">
+            <summary>
+            Acquire static message block(always 5 bytes).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteFixedStringUnsafe(System.Byte[]@,System.Int32,System.String,System.Int32)">
+            <summary>
+            Unsafe. If value is guranteed length is 0 ~ 31, can use this method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteStringUnsafe(System.Byte[]@,System.Int32,System.String,System.Int32)">
+            <summary>
+            Unsafe. If pre-calculated byteCount of target string, can use this method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteExtensionFormatHeaderForceExt32Block(System.Byte[]@,System.Int32,System.SByte,System.Int32)">
+            <summary>
+            Write extension format header, always use ext32 format(length is fixed, 6).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadExtensionFormatHeader(System.Byte[],System.Int32,System.Int32@)">
+            <summary>
+            return byte length of ExtensionFormat.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ThrowNotEnoughBytesException">
+            <summary>
+            Throws an exception indicating that there aren't enough bytes remaining in the buffer to store
+            the promised data.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadMessageBlockFromStreamUnsafe(System.IO.Stream,System.Boolean,System.Int32@)">
+            <summary>
+            Read MessageBlock, returns byte[] block is in MemoryPool so careful to use.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteFixedMapHeaderUnsafe(System.IO.Stream,System.Int32)">
+            <summary>
+            Unsafe. If value is guranteed 0 ~ MessagePackRange.MaxFixMapCount(15), can use this method.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteMapHeader(System.IO.Stream,System.Int32)">
+            <summary>
+            Write map count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteMapHeader(System.IO.Stream,System.UInt32)">
+            <summary>
+            Write map count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteMapHeaderForceMap32Block(System.IO.Stream,System.UInt32)">
+            <summary>
+            Write map format header, always use map32 format(length is fixed, 5).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadMapHeader(System.IO.Stream)">
+            <summary>
+            Return map count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadMapHeaderRaw(System.IO.Stream)">
+            <summary>
+            Return map count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteFixedArrayHeaderUnsafe(System.IO.Stream,System.Int32)">
+            <summary>
+            Unsafe. If value is guranteed 0 ~ MessagePackRange.MaxFixArrayCount(15), can use this method.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteArrayHeader(System.IO.Stream,System.Int32)">
+            <summary>
+            Write array count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteArrayHeader(System.IO.Stream,System.UInt32)">
+            <summary>
+            Write array count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteArrayHeaderForceArray32Block(System.IO.Stream,System.UInt32)">
+            <summary>
+            Write array format header, always use array32 format(length is fixed, 5).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadArrayHeader(System.IO.Stream)">
+            <summary>
+            Return array count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadArrayHeaderRaw(System.IO.Stream)">
+            <summary>
+            Return array count.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WritePositiveFixedIntUnsafe(System.IO.Stream,System.Int32)">
+            <summary>
+            Unsafe. If value is guranteed 0 ~ MessagePackCode.MaxFixInt(127), can use this method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteInt32ForceInt32Block(System.IO.Stream,System.Int32)">
+            <summary>
+            Acquire static message block(always 5 bytes).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteFixedStringUnsafe(System.IO.Stream,System.String,System.Int32)">
+            <summary>
+            Unsafe. If value is guranteed length is 0 ~ 31, can use this method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteStringUnsafe(System.IO.Stream,System.String,System.Int32)">
+            <summary>
+            Unsafe. If pre-calculated byteCount of target string, can use this method.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.WriteExtensionFormatHeaderForceExt32Block(System.IO.Stream,System.SByte,System.Int32)">
+            <summary>
+            Write extension format header, always use ext32 format(length is fixed, 6).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackBinary.ReadExtensionFormatHeader(System.IO.Stream)">
+            <summary>
+            return byte length of ExtensionFormat.
+            </summary>
+        </member>
+        <member name="T:MessagePack.MessagePackType">
+            <summary>
+            https://github.com/msgpack/msgpack/blob/master/spec.md#serialization-type-to-format-conversion
+            </summary>
+        </member>
+        <member name="T:MessagePack.MessagePackCode">
+            <summary>
+            https://github.com/msgpack/msgpack/blob/master/spec.md#overview
+            </summary>
+        </member>
+        <member name="T:MessagePack.MessagePackSecurity">
+            <summary>
+            Settings related to security, particularly relevant when deserializing data from untrusted sources.
+            </summary>
+        </member>
+        <member name="F:MessagePack.MessagePackSecurity.ObjectGraphDepth">
+            <summary>
+            The thread-local value tracking recursion for an ongoing deserialization operation.
+            </summary>
+        </member>
+        <member name="F:MessagePack.MessagePackSecurity.TrustedData">
+            <summary>
+            Gets an instance preconfigured with settings that omit all protections. Useful for deserializing fully-trusted and valid msgpack sequences.
+            </summary>
+        </member>
+        <member name="F:MessagePack.MessagePackSecurity.UntrustedData">
+            <summary>
+            Gets an instance preconfigured with protections applied with reasonable settings for deserializing untrusted msgpack sequences.
+            </summary>
+        </member>
+        <member name="F:MessagePack.MessagePackSecurity.Active">
+            <summary>
+            The <see cref="T:MessagePack.MessagePackSecurity"/> instance that is active for all deserialization operations within this AppDomain or process.
+            </summary>
+            <value>Defaults to <see cref="F:MessagePack.MessagePackSecurity.TrustedData"/>.</value>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.#ctor(MessagePack.MessagePackSecurity)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MessagePack.MessagePackSecurity"/> class
+            with properties copied from a provided template.
+            </summary>
+            <param name="copyFrom">The template to copy from.</param>
+        </member>
+        <member name="P:MessagePack.MessagePackSecurity.HashCollisionResistant">
+            <summary>
+            Gets a value indicating whether data to be deserialized is untrusted and thus should not be allowed to create
+            dictionaries or other hash-based collections unless the hashed type has a hash collision resistant implementation available.
+            This can mitigate some denial of service attacks when deserializing untrusted code.
+            </summary>
+            <value>
+            The value is <c>false</c> for <see cref="F:MessagePack.MessagePackSecurity.TrustedData"/> and <c>true</c> for <see cref="F:MessagePack.MessagePackSecurity.UntrustedData"/>.
+            </value>
+        </member>
+        <member name="P:MessagePack.MessagePackSecurity.MaximumObjectGraphDepth">
+            <summary>
+            Gets the maximum depth of an object graph that may be deserialized.
+            </summary>
+            <remarks>
+            <para>
+            This value can be reduced to avoid a stack overflow that would crash the process when deserializing a msgpack sequence designed to cause deep recursion.
+            A very short callstack on a thread with 1MB of total stack space might deserialize ~2000 nested arrays before crashing due to a stack overflow.
+            Since stack space occupied may vary by the kind of object deserialized, a conservative value for this property to defend against stack overflow attacks might be 500.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.WithMaximumObjectGraphDepth(System.Int32)">
+            <summary>
+            Gets a copy of these options with the <see cref="P:MessagePack.MessagePackSecurity.MaximumObjectGraphDepth"/> property set to a new value.
+            </summary>
+            <param name="maximumObjectGraphDepth">The new value for the <see cref="P:MessagePack.MessagePackSecurity.MaximumObjectGraphDepth"/> property.</param>
+            <returns>The new instance; or the original if the value is unchanged.</returns>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.WithHashCollisionResistant(System.Boolean)">
+            <summary>
+            Gets a copy of these options with the <see cref="P:MessagePack.MessagePackSecurity.HashCollisionResistant"/> property set to a new value.
+            </summary>
+            <param name="hashCollisionResistant">The new value for the <see cref="P:MessagePack.MessagePackSecurity.HashCollisionResistant"/> property.</param>
+            <returns>The new instance; or the original if the value is unchanged.</returns>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.GetEqualityComparer``1">
+            <summary>
+            Gets an <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> that is suitable to use with a hash-based collection.
+            </summary>
+            <typeparam name="T">The type of key that will be hashed in the collection.</typeparam>
+            <returns>The <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> to use.</returns>
+            <remarks>
+            When <see cref="P:MessagePack.MessagePackSecurity.HashCollisionResistant"/> is active, this will be a collision resistant instance which may reject certain key types.
+            When <see cref="P:MessagePack.MessagePackSecurity.HashCollisionResistant"/> is not active, this will be <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+            </remarks>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.GetEqualityComparer">
+            <summary>
+            Gets an <see cref="T:System.Collections.IEqualityComparer"/> that is suitable to use with a hash-based collection.
+            </summary>
+            <returns>The <see cref="T:System.Collections.IEqualityComparer"/> to use.</returns>
+            <remarks>
+            When <see cref="P:MessagePack.MessagePackSecurity.HashCollisionResistant"/> is active, this will be a collision resistant instance which may reject certain key types.
+            When <see cref="P:MessagePack.MessagePackSecurity.HashCollisionResistant"/> is not active, this will be <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+            </remarks>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.GetHashCollisionResistantEqualityComparer``1">
+            <summary>
+            Returns a hash collision resistant equality comparer.
+            </summary>
+            <typeparam name="T">The type of key that will be hashed in the collection.</typeparam>
+            <returns>A hash collision resistant equality comparer.</returns>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.DepthStep">
+            <summary>
+            Should be called within the expression of a <c>using</c> statement around which a <see cref="M:MessagePack.Formatters.IMessagePackFormatter`1.Deserialize(System.Byte[],System.Int32,MessagePack.IFormatterResolver,System.Int32@)"/> method
+            deserializes a sub-element.
+            </summary>
+            <returns>A value to be disposed of when deserializing the sub-element is complete.</returns>
+            <exception cref="T:System.InsufficientExecutionStackException">Thrown when the depth of the object graph being deserialized exceeds <see cref="P:MessagePack.MessagePackSecurity.MaximumObjectGraphDepth"/>.</exception>
+            <remarks>
+            Rather than wrap the body of every <see cref="M:MessagePack.Formatters.IMessagePackFormatter`1.Deserialize(System.Byte[],System.Int32,MessagePack.IFormatterResolver,System.Int32@)"/> method,
+            this should wrap *calls* to these methods. They need not appear in pure "thunk" methods that simply delegate the deserialization to another formatter.
+            In this way, we can avoid repeatedly incrementing and decrementing the counter when deserializing each element of a collection.
+            </remarks>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.GetHashCollisionResistantEqualityComparer">
+            <summary>
+            Returns a hash collision resistant equality comparer.
+            </summary>
+            <returns>A hash collision resistant equality comparer.</returns>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.Clone">
+            <summary>
+            Creates a new instance that is a copy of this one.
+            </summary>
+            <remarks>
+            Derived types should override this method to instantiate their own derived type.
+            </remarks>
+        </member>
+        <member name="T:MessagePack.MessagePackSecurity.ObjectGraphDepthStep">
+            <summary>
+            The struct returned from <see cref="M:MessagePack.MessagePackSecurity.DepthStep"/>
+            that when disposed will decrement the object graph depth counter to reverse
+            the effect of the call to <see cref="M:MessagePack.MessagePackSecurity.DepthStep"/>.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSecurity.ObjectGraphDepthStep.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:MessagePack.MessagePackSecurity.CollisionResistantHasher`1">
+            <summary>
+            A hash collision resistant implementation of <see cref="T:System.Collections.Generic.IEqualityComparer`1"/>.
+            </summary>
+            <typeparam name="T">The type of key that will be hashed.</typeparam>
+        </member>
+        <member name="T:MessagePack.MessagePackSecurity.ObjectFallbackEqualityComparer">
+            <summary>
+            A special hash-resistent equality comparer that defers picking the actual implementation
+            till it can check the runtime type of each value to be hashed.
+            </summary>
+        </member>
+        <member name="T:MessagePack.MessagePackSerializer">
+            <summary>
+            High-Level API of MessagePack for C#.
+            </summary>
+        </member>
+        <member name="P:MessagePack.MessagePackSerializer.DefaultResolver">
+            <summary>
+            FormatterResolver that used resolver less overloads. If does not set it, used StandardResolver.
+            </summary>
+        </member>
+        <member name="P:MessagePack.MessagePackSerializer.IsInitialized">
+            <summary>
+            Is resolver decided?
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.SetDefaultResolver(MessagePack.IFormatterResolver)">
+            <summary>
+            Set default resolver of MessagePackSerializer APIs.
+            </summary>
+            <param name="resolver"></param>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.Serialize``1(``0)">
+            <summary>
+            Serialize to binary with default resolver.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.Serialize``1(``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Serialize to binary with specified resolver.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.SerializeUnsafe``1(``0)">
+            <summary>
+            Serialize to binary. Get the raw memory pool byte[]. The result can not share across thread and can not hold, so use quickly.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.SerializeUnsafe``1(``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Serialize to binary with specified resolver. Get the raw memory pool byte[]. The result can not share across thread and can not hold, so use quickly.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.Serialize``1(System.IO.Stream,``0)">
+            <summary>
+            Serialize to stream.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.Serialize``1(System.IO.Stream,``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Serialize to stream with specified resolver.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.Serialize``1(System.Byte[]@,System.Int32,``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Reflect of resolver.GetFormatterWithVerify[T].Serialize.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.SerializeAsync``1(System.IO.Stream,``0)">
+            <summary>
+            Serialize to stream(async).
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.SerializeAsync``1(System.IO.Stream,``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Serialize to stream(async) with specified resolver.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.Deserialize``1(System.Byte[],System.Int32,MessagePack.IFormatterResolver,System.Int32@)">
+            <summary>
+            Reflect of resolver.GetFormatterWithVerify[T].Deserialize.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.ToJson``1(``0)">
+            <summary>
+            Dump to JSON string.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.ToJson``1(``0,MessagePack.IFormatterResolver)">
+            <summary>
+            Dump to JSON string.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.ToJson(System.Byte[])">
+            <summary>
+            Dump message-pack binary to JSON string.
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.FromJson(System.IO.TextReader)">
+            <summary>
+            From Json String to MessagePack binary
+            </summary>
+        </member>
+        <member name="M:MessagePack.MessagePackSerializer.FromJsonUnsafe(System.IO.TextReader)">
+            <summary>
+            return buffer is from memory pool, be careful to use. 
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.AttributeFormatterResolver">
+            <summary>
+            Get formatter from [MessaegPackFromatter] attribute.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.DynamicEnumResolver">
+            <summary>
+            EnumResolver by dynamic code generation, serialized underlying type.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.DynamicObjectResolver">
+            <summary>
+            ObjectResolver by dynamic code generation.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.DynamicObjectResolverAllowPrivate">
+            <summary>
+            ObjectResolver by dynamic code generation, allow private member.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.DynamicContractlessObjectResolver">
+            <summary>
+            ObjectResolver by dynamic code generation, no needs MessagePackObject attribute and serialized key as string.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.DynamicContractlessObjectResolverAllowPrivate">
+            <summary>
+            ObjectResolver by dynamic code generation, no needs MessagePackObject attribute and serialized key as string, allow private member.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.DynamicUnionResolver">
+            <summary>
+            UnionResolver by dynamic code generation.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.StandardResolver">
+            <summary>
+            Default composited resolver, builtin -> attribute -> dynamic enum -> dynamic generic -> dynamic union -> dynamic object -> primitive.
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.TypelessContractlessStandardResolver">
+            <summary>
+            Embed c# type names for `object` typed fields/collection items
+            Preserve c# DateTime timezone
+            </summary>
+        </member>
+        <member name="T:MessagePack.Resolvers.TypelessObjectResolver">
+            <summary>
+            Used for `object` fields/collections, ex: var arr = new object[] { 1, "a", new Model() };
+            The runtime type of value in object field, should be covered by one of resolvers in complex/standard resolver.
+            TypelessObjectResolver should be placed before DynamicObjectTypeFallbackResolver and PrimitiveObjectFormatter in resolvers list.
+            Deserializer uses Namescape.TypeName, AssemblyName to get runtime type in destination app, so that combination must be present in destination app.
+            Serialized binary is valid MessagePack binary used ext-format and custom typecode(100).
+            Inside ext - assembly qualified type name, and serialized object
+            </summary>
+        </member>
+        <member name="T:System.Numerics.BitOperations">
+            <summary>
+            Utility methods for intrinsic bit-twiddling operations.
+            The methods use hardware intrinsics when available on the underlying platform,
+            otherwise they use optimized software fallbacks.
+            </summary>
+        </member>
+        <member name="M:System.Numerics.BitOperations.RotateLeft(System.UInt32,System.Int32)">
+            <summary>
+            Rotates the specified value left by the specified number of bits.
+            Similar in behavior to the x86 instruction ROL.
+            </summary>
+            <param name="value">The value to rotate.</param>
+            <param name="offset">The number of bits to rotate by.
+            Any value outside the range [0..31] is treated as congruent mod 32.</param>
+            <returns>The rotated value.</returns>
+        </member>
+    </members>
+</doc>

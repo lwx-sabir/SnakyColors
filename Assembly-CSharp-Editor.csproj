@@ -56,34 +56,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Analyzer Include="C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\it\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\zh-Hant\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\ru\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\pl\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\es\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\tr\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\pl\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\pt-BR\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\it\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\Microsoft.Extensions.Logging.Generators.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\fr\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\cs\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\ja\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\zh-Hant\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\tr\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\ru\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\de\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\System.Text.Json.SourceGeneration.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\pt-BR\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\zh-Hans\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\de\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\ja\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\ko\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\ko\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\fr\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\es\System.Text.Json.SourceGeneration.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\analyzers\dotnet\roslyn4.0\cs\cs\Microsoft.Extensions.Logging.Generators.resources.dll" />
-    <Analyzer Include="D:\Projects\SnakyColors\Assets\Packages\System.Text.Json.9.0.10\analyzers\dotnet\roslyn4.0\cs\zh-Hans\System.Text.Json.SourceGeneration.resources.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.2.7f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.2.7f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.2.7f2\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
@@ -630,12 +602,24 @@
       <HintPath>C:\Program Files\Unity\Hub\Editor\6000.2.7f2\Editor\Data\PlaybackEngines\iOSSupport\UnityEditor.iOS.Extensions.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.AspNetCore.Http.Connections.Client">
-      <HintPath>Assets\Packages\Microsoft.AspNetCore.Http.Connections.Client.9.0.10\lib\netstandard2.1\Microsoft.AspNetCore.Http.Connections.Client.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
+      <HintPath>Assets\Packages\Microsoft.Extensions.Configuration.Abstractions.3.1.32\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.AspNetCore.SignalR.Client">
-      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Client.9.0.10\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Client.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <HintPath>Assets\Packages\Microsoft.Extensions.DependencyInjection.Abstractions.3.1.32\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration">
+      <HintPath>Assets\Packages\Microsoft.Extensions.Configuration.3.1.32\lib\netstandard2.0\Microsoft.Extensions.Configuration.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
+      <HintPath>Assets\Packages\Microsoft.Extensions.Logging.Abstractions.3.1.32\lib\netstandard2.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.Binder">
+      <HintPath>Assets\Packages\Microsoft.Extensions.Configuration.Binder.3.1.32\lib\netstandard2.0\Microsoft.Extensions.Configuration.Binder.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Collections.LowLevel.ILSupport">
@@ -646,24 +630,20 @@
       <HintPath>Library\PackageCache\com.unity.ext.nunit@031a54704bff\net40\unity-custom\nunit.framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.AspNetCore.SignalR.Protocols.Json">
-      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Protocols.Json.9.0.10\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Protocols.Json.dll</HintPath>
+    <Reference Include="Microsoft.AspNetCore.Http.Connections.Client">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.Http.Connections.Client.3.1.32\lib\netstandard2.1\Microsoft.AspNetCore.Http.Connections.Client.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces">
-      <HintPath>Assets\Packages\Microsoft.Bcl.AsyncInterfaces.9.0.10\lib\netstandard2.1\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.AspNetCore.SignalR.Common">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Common.3.1.32\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives">
-      <HintPath>Assets\Packages\Microsoft.Extensions.Primitives.9.0.10\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
+    <Reference Include="System.Text.Encodings.Web">
+      <HintPath>Assets\Packages\System.Text.Encodings.Web.9.0.10\lib\netstandard2.0\System.Text.Encodings.Web.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.Plastic.Antlr3.Runtime">
       <HintPath>Library\PackageCache\com.unity.collab-proxy@ab839cc7d2ad\Lib\Editor\Unity.Plastic.Antlr3.Runtime.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.IO.Pipelines">
-      <HintPath>Assets\Packages\System.IO.Pipelines.9.0.10\lib\netstandard2.0\System.IO.Pipelines.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DOTweenEditor">
@@ -674,76 +654,72 @@
       <HintPath>Library\PackageCache\com.unity.collab-proxy@ab839cc7d2ad\Lib\Editor\Unity.Plastic.Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.AspNetCore.SignalR.Protocols.Json">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Protocols.Json.3.1.32\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Protocols.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MessagePack">
+      <HintPath>Assets\Packages\MessagePack.1.9.11\lib\netstandard2.0\MessagePack.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="log4netPlastic">
       <HintPath>Library\PackageCache\com.unity.collab-proxy@ab839cc7d2ad\Lib\Editor\log4netPlastic.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Diagnostics.DiagnosticSource">
-      <HintPath>Assets\Packages\System.Diagnostics.DiagnosticSource.9.0.10\lib\netstandard2.0\System.Diagnostics.DiagnosticSource.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.Http.Connections.Common">
-      <HintPath>Assets\Packages\Microsoft.AspNetCore.Http.Connections.Common.9.0.10\lib\netstandard2.0\Microsoft.AspNetCore.Http.Connections.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="unityplastic">
       <HintPath>Library\PackageCache\com.unity.collab-proxy@ab839cc7d2ad\Lib\Editor\unityplastic.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson.3.1.32\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.IO.Hashing">
       <HintPath>Library\PackageCache\com.unity.collections@d49facba0036\Unity.Collections.Tests\System.IO.Hashing\System.IO.Hashing.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.AspNetCore.Connections.Abstractions">
-      <HintPath>Assets\Packages\Microsoft.AspNetCore.Connections.Abstractions.9.0.10\lib\netstandard2.1\Microsoft.AspNetCore.Connections.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.AspNetCore.SignalR.Client.Core">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Client.Core.3.1.32\lib\netstandard2.1\Microsoft.AspNetCore.SignalR.Client.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection">
+      <HintPath>Assets\Packages\Microsoft.Extensions.DependencyInjection.3.1.32\lib\netstandard2.1\Microsoft.Extensions.DependencyInjection.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="DOTween">
       <HintPath>Assets\Plugins\Demigiant\DOTween\DOTween.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Text.Encodings.Web">
-      <HintPath>Assets\Packages\System.Text.Encodings.Web.9.0.10\lib\netstandard2.0\System.Text.Encodings.Web.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@74deb55db2a0\Runtime\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Features">
-      <HintPath>Assets\Packages\Microsoft.Extensions.Features.9.0.10\lib\netstandard2.0\Microsoft.Extensions.Features.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Net.ServerSentEvents">
-      <HintPath>Assets\Packages\System.Net.ServerSentEvents.9.0.10\lib\netstandard2.0\System.Net.ServerSentEvents.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection">
-      <HintPath>Assets\Packages\Microsoft.Extensions.DependencyInjection.9.0.10\lib\netstandard2.1\Microsoft.Extensions.DependencyInjection.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Options">
-      <HintPath>Assets\Packages\Microsoft.Extensions.Options.9.0.10\lib\netstandard2.1\Microsoft.Extensions.Options.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Logging">
-      <HintPath>Assets\Packages\Microsoft.Extensions.Logging.9.0.10\lib\netstandard2.1\Microsoft.Extensions.Logging.dll</HintPath>
+    <Reference Include="Microsoft.AspNetCore.Connections.Abstractions">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.Connections.Abstractions.3.1.32\lib\netstandard2.1\Microsoft.AspNetCore.Connections.Abstractions.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>Library\PackageCache\com.unity.collections@d49facba0036\Unity.Collections.Tests\System.Runtime.CompilerServices.Unsafe\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
-      <HintPath>Assets\Packages\Microsoft.Extensions.DependencyInjection.Abstractions.9.0.10\lib\netstandard2.1\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces">
+      <HintPath>Assets\Packages\Microsoft.Bcl.AsyncInterfaces.9.0.10\lib\netstandard2.1\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Http.Connections.Common">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.Http.Connections.Common.3.1.32\lib\netstandard2.0\Microsoft.AspNetCore.Http.Connections.Common.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Primitives">
+      <HintPath>Assets\Packages\Microsoft.Extensions.Primitives.3.1.32\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="NuGetForUnity.PluginAPI">
       <HintPath>Assets\NuGet\Editor\NuGetForUnity.PluginAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Text.Json">
-      <HintPath>Assets\Packages\System.Text.Json.9.0.10\lib\netstandard2.0\System.Text.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@74deb55db2a0\Runtime\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Logging">
+      <HintPath>Assets\Packages\Microsoft.Extensions.Logging.3.1.32\lib\netstandard2.0\Microsoft.Extensions.Logging.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="AiEditorToolsSdk">
@@ -754,32 +730,40 @@
       <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@d78732e851eb\Mono.Cecil.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
-      <HintPath>Assets\Packages\Microsoft.Extensions.Logging.Abstractions.9.0.10\lib\netstandard2.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Threading.Channels">
-      <HintPath>Assets\Packages\System.Threading.Channels.9.0.10\lib\netstandard2.1\System.Threading.Channels.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Options">
+      <HintPath>Assets\Packages\Microsoft.Extensions.Options.3.1.32\lib\netstandard2.0\Microsoft.Extensions.Options.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="NugetForUnity">
       <HintPath>Assets\NuGet\Editor\NugetForUnity.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.AspNetCore.SignalR.Client.Core">
-      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Client.Core.9.0.10\lib\netstandard2.1\Microsoft.AspNetCore.SignalR.Client.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.Bcl.TimeProvider">
-      <HintPath>Assets\Packages\Microsoft.Bcl.TimeProvider.9.0.10\lib\netstandard2.0\Microsoft.Bcl.TimeProvider.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.SignalR.Common">
-      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Common.9.0.10\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Common.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.ComponentModel.Annotations">
-      <HintPath>Assets\Packages\System.ComponentModel.Annotations.5.0.0\lib\netstandard2.1\System.ComponentModel.Annotations.dll</HintPath>
+      <HintPath>Assets\Packages\System.ComponentModel.Annotations.4.7.0\lib\netstandard2.1\System.ComponentModel.Annotations.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.SignalR.Client">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Client.3.1.32\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Client.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Threading.Channels">
+      <HintPath>Assets\Packages\System.Threading.Channels.4.7.1\lib\netstandard2.0\System.Threading.Channels.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.IO.Pipelines">
+      <HintPath>Assets\Packages\System.IO.Pipelines.9.0.10\lib\netstandard2.0\System.IO.Pipelines.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.SignalR.Protocols.MessagePack.3.1.23\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Protocols.MessagePack.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Text.Json">
+      <HintPath>Assets\Packages\System.Text.Json.4.7.2\lib\netstandard2.0\System.Text.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.AspNetCore.Http.Features">
+      <HintPath>Assets\Packages\Microsoft.AspNetCore.Http.Features.3.1.32\lib\netstandard2.0\Microsoft.AspNetCore.Http.Features.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEditor.iOS.Extensions.Xcode">
@@ -1663,10 +1647,6 @@
     <ProjectReference Include="Assembly-CSharp.csproj">
       <Project>{E97F6EAD-C8C0-B92C-36AE-47A670C32310}</Project>
       <Name>Assembly-CSharp</Name>
-    </ProjectReference>
-    <ProjectReference Include="Procedural-Creatures.csproj">
-      <Project>{0A696E17-7E8C-F08F-ADF3-41EABABF4A0B}</Project>
-      <Name>Procedural-Creatures</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SnakyColors // Or your 'SVassets' namespace
+namespace SnakyColors
 {
     [CreateAssetMenu(fileName = "SkinDatabase", menuName = "Game Data/Skin Database")]
     public class SkinDatabase : ScriptableObject

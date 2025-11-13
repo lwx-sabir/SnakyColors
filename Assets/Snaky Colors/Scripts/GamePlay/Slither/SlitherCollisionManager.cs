@@ -42,7 +42,7 @@ namespace SnakyColors
                     _reportedFoodCooldown[item.Id] = now + ReportCooldownSeconds;
                 }
 
-                Debug.Log($"COLLISION: Food hit (id={item.Id}). Reporting to server and playing VFX.");
+           //     Debug.Log($"COLLISION: Food hit (id={item.Id}). Reporting to server and playing VFX.");
                 // Tell the server we ate this
                 NetworkClient.Instance.ReportFoodEaten(item.Id);
 

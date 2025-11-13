@@ -1,9 +1,9 @@
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace SnakyColors
-{
-    // Dead-simple timestamped interpolation with tiny extrapolation window.
+{ 
     public class RemoteSnake : MonoBehaviour
     {
         private struct Snapshot
@@ -14,10 +14,11 @@ namespace SnakyColors
             public float speed;
         }
 
-        [SerializeField] private float interpolationDelay = 0.15f; // 150ms buffer to hide jitter
-        [SerializeField] private float maxExtrapolate = 0.15f;      // seconds to predict when late
-        [SerializeField] private float dirLerp = 0.4f;              // orient smoothing
-        [SerializeField] private float easeRate = 10f;              // position easing rate (per second)
+        [SerializeField] private float interpolationDelay = 0.1f; // buffer to hide jitter
+        [SerializeField] private float maxExtrapolate = 0.02f;      // seconds to predict when late
+        [SerializeField] private float dirLerp = 0.2f;              // orient smoothing
+        [SerializeField] private float easeRate = 7f;              // position easing rate (per second)
+
 
         private readonly List<Snapshot> _snaps = new List<Snapshot>(16);
         private SegmentedCreator _snake;
@@ -81,7 +82,12 @@ namespace SnakyColors
             {
                 if (!serverSpeed.HasValue) spd = 0f;
             }
-
+            if (_snaps.Count > 0)
+            {
+                var last = _snaps[_snaps.Count - 1];
+                pos = Vector2.Lerp(last.pos, pos, 0.85f);   // soften noisy packets
+            }
+            _snaps.Add(new Snapshot { t = serverTime, pos = pos, dir = dir, speed = spd });
             // append, keep ~1s
             _snaps.Add(new Snapshot { t = serverTime, pos = pos, dir = dir, speed = spd });
             float minKeep = serverTime - 1.0f;
@@ -137,7 +143,7 @@ namespace SnakyColors
                 Vector2 p = last.pos + last.dir * last.speed * dt;
                 newPos = new Vector3(p.x, p.y, 0f);
                 newUp = Vector3.Lerp(transform.up, new Vector3(last.dir.x, last.dir.y, 0f), Mathf.Clamp01(dirLerp));
-            }
+            } 
 
             transform.position = Vector3.Lerp(transform.position, newPos, Mathf.Clamp01(Time.deltaTime * easeRate));
             transform.up = newUp;

@@ -1,56 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Text.Json;
-using Khela.Game.Services.Redis;
+using Khela.Game.Dtos;
 using Khela.Game.Models;
 using Khela.Game.Models.Configs;
-using Khela.Game.Dtos;
+using Khela.Game.Models.States;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
+
+// ==============================================
+// GameEngine.cs
+// Author: Reza Sabir (CasualLabInteractive)
+// Version: 1.0.1 (Production Stable)
+// Description:
+// Thread-safe authoritative server core controlling world ticks,
+// snake movements, collisions, food interactions, and event dispatch.
+// ==============================================
+
 
 namespace Khela.Game.Services
 {
-
-    /**
-* -----------------------------------------------------------------------------
-*  File: GameEngine.cs
-*  Project: Khela.Game (Authoritative Multiplayer Server)
-*  Author: Reza Sabir (CasualLab Interactive)
-*  Description:
-*      The GameEngine is the central authoritative tick loop responsible for
-*      driving world updates, player state synchronization, food management, and
-*      gameplay events across all active worlds.
-* 
-*      - Each world operates independently, running parallel ticks.
-*      - All player movements, deaths, and food interactions are validated
-*        server-side to prevent cheating and maintain deterministic gameplay.
-*      - Event dispatching (OnWorldTickCompleted, OnFoodEaten, PlayerDied)
-*        is fully async-safe, concurrent, and exception-tolerant.
-*      - The engine maintains a fixed tick rate defined by WorldConfig.TickRate,
-*        using Redis as the real-time authoritative state backend.
-* 
-*  Key Features:
-*      • Fully async-safe with distributed Redis locks per player/world.
-*      • Parallelized tick processing for multiple worlds.
-*      • Deterministic physics & score logic for anti-cheat enforcement.
-*      • Decoupled event model for Broadcast / AI / Analytics modules.
-* 
-*  Notes:
-*      - The engine does not directly handle network transport; it relies on
-*        SignalR or other services to propagate delta updates to connected clients.
-*      - All gameplay state is persisted in Redis for durability and scalability.
-* 
-*  License: Proprietary © SiliconBangla LLC. All rights reserved.
-* -----------------------------------------------------------------------------
-*/
+    /// <summary>
+    /// In-memory authoritative game loop.
+    /// - Uses GameState.Instance as the single source of truth.
+    /// - No Redis calls in runtime; persistence handled elsewhere.
+    /// - Validates movement, food, deaths, and emits world snapshots.
+    /// </summary>
     public class GameEngine : BackgroundService
     {
-        private readonly IRedisService _redis;
         private readonly ILogger<GameEngine> _logger;
         private readonly FoodService _foodService;
 
@@ -60,282 +36,242 @@ namespace Khela.Game.Services
         public event Func<string, DateTime, Task>? OnWorldTickCompleted;
 
         private readonly int _tickRate;
-        private readonly WorldConfig _defaultConfig;
         private readonly TimeSpan _tickInterval;
-
-        private const string SNAKE_KEY_PREFIX = "snake:";
-        private const string WORLD_KEY_PREFIX = "world:";
-        private const string FOOD_KEY_PREFIX = "food:";        // legacy
-        private const string FOODHASH_PREFIX = "foodhash:";    // per-world HASH: field=id, value=Food JSON 
+        private readonly WorldConfig _defaultConfig = new();
 
         public GameEngine(
-            IRedisService redis,
-            ILogger<GameEngine> logger,
             FoodService foodService,
-            WorldManagerService worldManager // kept for DI symmetry
-        )
+            ILogger<GameEngine> logger)
         {
-            _redis = redis;
-            _logger = logger;
             _foodService = foodService;
+            _logger = logger;
 
-            _defaultConfig = new WorldConfig();
-            _tickRate = _defaultConfig.TickRate;
+            _tickRate = _defaultConfig.TickRate > 0 ? _defaultConfig.TickRate : 20;
             _tickInterval = TimeSpan.FromMilliseconds(1000.0 / _tickRate);
         }
 
         // ---------------------------------------------------------------------
-        // PLAYER STATE UPDATE (authoritative)
+        // PLAYER STATE UPDATE (from client)
         // ---------------------------------------------------------------------
 
-        public async Task OnPlayerStateUpdate(string playerId, List<SerializableVector2> bodySegments, bool isBoosting)
+        public Task OnPlayerStateUpdate(string playerId, List<SerializableVector2> bodySegments, bool isBoosting)
         {
             if (string.IsNullOrEmpty(playerId) || bodySegments == null || bodySegments.Count == 0)
-                return;
+                return Task.CompletedTask;
 
-            string playerKey = SNAKE_KEY_PREFIX + playerId;
-            string lockKey = $"lock:{playerKey}";
-            string lockToken = Guid.NewGuid().ToString();
-            var db = _redis.GetDatabase();
+            var gs = GameState.Instance;
 
-            if (!await db.LockTakeAsync(lockKey, lockToken, TimeSpan.FromSeconds(1)))
-                return;
+            if (!gs.TryGetPlayer(playerId, out var snake) || !snake.IsAlive)
+                return Task.CompletedTask;
 
-            try
+            // Update body & boosting
+            snake.BodySegments = bodySegments;
+            snake.IsBoosting = isBoosting;
+
+            // Authoritative speed logic
+            if (isBoosting)
             {
-                var snake = await _redis.GetAsync<PlayerState>(playerKey);
-                if (snake == null || !snake.IsAlive)
-                    return;
-
-                snake.BodySegments = bodySegments;
-                snake.IsBoosting = isBoosting;
-
-                // Server-authoritative speed
-                if (isBoosting)
-                {
-                    snake.CurrentSpeed = snake.BoostSpeed;
-                }
-                else
-                {
-                    snake.CurrentSpeed = snake.BaseSpeed > 0f
-                        ? snake.BaseSpeed
-                        : snake.CurrentSpeed;
-                }
-
-                await _redis.SetAsync(playerKey, snake);
+                snake.CurrentSpeed = snake.BoostSpeed;
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Error in OnPlayerStateUpdate for {PlayerId}", playerId);
+                snake.CurrentSpeed = snake.BaseSpeed > 0f
+                    ? snake.BaseSpeed
+                    : (snake.CurrentSpeed > 0 ? snake.CurrentSpeed : snake.BaseSpeed);
             }
-            finally
-            {
-                await db.LockReleaseAsync(lockKey, lockToken);
-            }
+
+            gs.AddOrUpdatePlayer(snake);
+            return Task.CompletedTask;
         }
 
         // ---------------------------------------------------------------------
-        // FOOD EAT HANDLING
+        // FOOD EAT HANDLING (authoritative)
         // ---------------------------------------------------------------------
 
-        public async Task OnPlayerAteFood(string playerId, int foodId)
+        public Task OnPlayerAteFood(string playerId, int foodId)
         {
             if (string.IsNullOrEmpty(playerId))
-                return;
+                return Task.CompletedTask;
 
-            string playerKey = SNAKE_KEY_PREFIX + playerId;
-            string lockKey = $"lock:{playerKey}";
-            string lockToken = Guid.NewGuid().ToString();
-            var db = _redis.GetDatabase();
+            var gs = GameState.Instance;
 
-            if (!await db.LockTakeAsync(lockKey, lockToken, TimeSpan.FromSeconds(1)))
-                return;
+            if (!gs.TryGetPlayer(playerId, out var snake) || !snake.IsAlive)
+                return Task.CompletedTask;
 
-            try
+            if (snake.CurrentWorldId == null ||
+                !gs.TryGetWorld(snake.CurrentWorldId, out var world) ||
+                world.CurrentStatus != GameStatus.Running)
+                return Task.CompletedTask;
+
+            if (!gs.TryGetFood(foodId, out var food))
+                return Task.CompletedTask;
+
+            if (!snake.IsAI)
             {
-                var snake = await _redis.GetAsync<PlayerState>(playerKey);
-                if (snake == null || !snake.IsAlive)
-                    return;
+                var debug = 0;
+            }
 
-                Food? food = null;
+            // Lag-tolerant distance check
+            var head = snake.HeadPosition;
+            float dx = food.Position.X - head.X;
+            float dy = food.Position.Y - head.Y;
+            float eatRadius = snake.IsAI ? 0.9f : 1.5f;
 
-                // Prefer HASH-based food
-                if (!string.IsNullOrEmpty(snake.CurrentWorldId))
-                {
-                    var worldHashKey = FOODHASH_PREFIX + snake.CurrentWorldId;
-                    var hv = await db.HashGetAsync(worldHashKey, foodId.ToString());
-                    if (hv.HasValue)
-                    {
-                        try { food = JsonSerializer.Deserialize<Food>(hv!); } catch { }
-                    }
-                }
+            if (dx * dx + dy * dy > eatRadius * eatRadius)
+                return Task.CompletedTask;
 
-                // Fallback to legacy key
-                if (food == null)
-                {
-                    food = await _redis.GetAsync<Food>(FOOD_KEY_PREFIX + foodId);
-                }
+            // Apply gain
+            snake.Score += 10;
+            gs.AddOrUpdatePlayer(snake);
 
-                if (food == null)
-                    return;
+            // Remove food from world (in-memory)
+            _foodService.RemoveFoodAsync(world, foodId); // fire-and-forget is fine here
 
-                // Validate distance (lag-tolerant)
-                var head = snake.HeadPosition;
-                float dx = food.Position.X - head.X;
-                float dy = food.Position.Y - head.Y;
+            // Notify listeners
+            _ = RaiseFoodEaten(playerId, foodId, world.WorldId);
 
-                float eatRadius = snake.IsAI ? 0.9f : 1.5f;
-                if (dx * dx + dy * dy > eatRadius * eatRadius)
-                    return;
-
-                // Apply gain
-                snake.Score += 10;
-                await _redis.SetAsync(playerKey, snake);
-
-                // Remove food via FoodService (keeps HASH + cache consistent)
-                if (!string.IsNullOrEmpty(snake.CurrentWorldId))
-                {
-                    var world = await _redis.GetAsync<WorldState>(WORLD_KEY_PREFIX + snake.CurrentWorldId);
-                    if (world != null)
-                    {
-                        await _foodService.RemoveFoodAsync(world, foodId);
-                    }
-                }
-
-                // Notify listeners (async-safe)
-                await RaiseFoodEaten(playerId, foodId, snake.CurrentWorldId);
-
+            if (!snake.IsAI)
+            {
                 _logger.LogInformation("OnPlayerAteFood player={PlayerId} food={FoodId} score={Score}",
-                    playerId, foodId, snake.Score);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in OnPlayerAteFood for {PlayerId}", playerId);
-            }
-            finally
-            {
-                await db.LockReleaseAsync(lockKey, lockToken);
-            }
+               playerId, foodId, snake.Score);
+            } 
+
+            return Task.CompletedTask;
         }
 
         // ---------------------------------------------------------------------
-        // PLAYER DEATH
+        // PLAYER DEATH (authoritative)
         // ---------------------------------------------------------------------
 
-        public async Task OnPlayerDied(string deadPlayerId, string? killerPlayerId)
+        public Task OnPlayerDied(string deadPlayerId, string? killerPlayerId)
         {
             if (string.IsNullOrEmpty(deadPlayerId))
-                return;
+                return Task.CompletedTask;
 
-            string playerKey = SNAKE_KEY_PREFIX + deadPlayerId;
-            string lockKey = $"lock:{playerKey}";
-            string lockToken = Guid.NewGuid().ToString();
-            var db = _redis.GetDatabase();
+            var gs = GameState.Instance;
 
-            if (!await db.LockTakeAsync(lockKey, lockToken, TimeSpan.FromSeconds(3)))
-                return;
+            if (!gs.TryGetPlayer(deadPlayerId, out var deadSnake))
+                return Task.CompletedTask;
 
-            try
+            if (!deadSnake.IsAlive)
+                return Task.CompletedTask;
+
+            deadSnake.IsAlive = false;
+            gs.AddOrUpdatePlayer(deadSnake);
+
+            PlayerState? killerSnake = null;
+            if (!string.IsNullOrEmpty(killerPlayerId) &&
+                gs.TryGetPlayer(killerPlayerId, out var killer))
             {
-                var deadSnake = await _redis.GetAsync<PlayerState>(playerKey);
-                if (deadSnake == null || !deadSnake.IsAlive)
-                    return; // already dead or missing
-
-                deadSnake.IsAlive = false;
-                await _redis.SetAsync(playerKey, deadSnake);
-
-                PlayerState? killerSnake = null;
-                if (!string.IsNullOrEmpty(killerPlayerId))
-                {
-                    killerSnake = await _redis.GetAsync<PlayerState>(SNAKE_KEY_PREFIX + killerPlayerId);
-                }
-
-                await RaisePlayerDied(deadSnake, killerSnake);
-
-                _logger.LogInformation("PlayerDied victim={Victim} killer={Killer}",
-                    deadPlayerId, killerPlayerId ?? "none");
+                killerSnake = killer;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in OnPlayerDied for {PlayerId}", deadPlayerId);
-            }
-            finally
-            {
-                await db.LockReleaseAsync(lockKey, lockToken);
-            }
+
+            _ = RaisePlayerDied(deadSnake, killerSnake);
+
+            _logger.LogInformation("PlayerDied victim={Victim} killer={Killer}",
+                deadPlayerId, killerPlayerId ?? "none");
+
+            return Task.CompletedTask;
         }
 
         // ---------------------------------------------------------------------
-        // MAIN GAME LOOP
+        // MAIN GAME LOOP (per-world tick)
         // ---------------------------------------------------------------------
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // small jitter so we don't align perfectly with other services
-            try { await Task.Delay(Random.Shared.Next(10, 25), stoppingToken); } catch { }
+            try { await Task.Delay(Random.Shared.Next(10, 50), stoppingToken); } catch { }
 
             _logger.LogInformation("GameEngine started at {TickRate} ticks/sec", _tickRate);
 
+            var stopwatch = Stopwatch.StartNew();
+            var nextTick = stopwatch.Elapsed;
+            long tickCount = 0;
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                var tickStart = DateTime.UtcNow;
+                var now = stopwatch.Elapsed;
 
-                try
+                if (now >= nextTick)
                 {
-                    var worldKeys = await _redis.GetKeysByPatternAsync(WORLD_KEY_PREFIX + "*");
-                    if (worldKeys != null && worldKeys.Any())
+                    try
                     {
-                        var tasks = worldKeys.Select(k => ProcessWorldTick(k, stoppingToken));
-                        await Task.WhenAll(tasks);
+                        var tickStart = stopwatch.Elapsed;
+
+                        var worlds = GameState.Instance.Worlds.Values.ToArray();
+                        foreach (var world in worlds)
+                        {
+                            await ProcessWorldTick(world, stoppingToken);
+                        }
+
+                        var tickElapsed = stopwatch.Elapsed - tickStart;
+                        //_logger.LogInformation("Tick {Tick} took {Ms:F2} ms",tickCount, tickElapsed.TotalMilliseconds);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error in main tick loop");
+                    }
+
+                    tickCount++;
+                    nextTick += _tickInterval;
+
+                    // Skip ahead if we're behind
+                    while (stopwatch.Elapsed - nextTick > _tickInterval)
+                        nextTick += _tickInterval;
+                }
+
+                if (tickCount % 100 == 0 && tickCount > 0)
+                {
+                    var elapsed = stopwatch.Elapsed.TotalSeconds;
+                    if (elapsed > 0)
+                    {
+                        var effRate = tickCount / elapsed;
+                        _logger.LogInformation("Ticks={Tick} Elapsed={Sec:F1}s Rate={Rate:F2}Hz",
+                            tickCount, elapsed, effRate);
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in main tick loop");
-                }
 
-                var elapsed = DateTime.UtcNow - tickStart;
-                var delay = _tickInterval - elapsed;
-                if (delay > TimeSpan.Zero)
-                {
-                    try { await Task.Delay(delay, stoppingToken); }
-                    catch (TaskCanceledException) { }
-                }
+                var sleep = nextTick - stopwatch.Elapsed;
+                if (sleep > TimeSpan.Zero)
+                    await Task.Delay(sleep, stoppingToken);
+                else
+                    await Task.Yield();
             }
+
+            _logger.LogInformation("GameEngine stopped.");
         }
 
-        private async Task ProcessWorldTick(string worldKey, CancellationToken token)
+        private async Task ProcessWorldTick(WorldState world, CancellationToken token)
         {
             if (token.IsCancellationRequested)
                 return;
 
-            var world = await _redis.GetAsync<WorldState>(worldKey);
-            if (world == null || world.Config == null || world.CurrentState != GameState.Running)
+            if (world.CurrentStatus != GameStatus.Running)
                 return;
 
-            // Ensure sane config
-            if (world.Config.TargetAISnakeCount < 0)
-            {
+            // Ensure config sane
+            if (world.Config == null || world.Config.WorldSize <= 0)
                 world.Config = _defaultConfig;
-            }
 
-            // Let FoodService manage HASH-based spawning & cache
+            // Food management (in-memory)
             await _foodService.ManageFoodSpawningAsync(world);
 
-            // Advance world tick
+            // Advance tick
             world.Tick++;
             world.LastUpdated = DateTime.UtcNow;
-            await _redis.SetAsync(worldKey, world);
 
-            // Notify listeners (broadcast service, etc.)
+            // Build/refresh snapshot for clients
+            GameState.Instance.BuildWorldSnapshot(world.WorldId);
+
+            // Notify listeners (broadcaster can push to clients)
             await RaiseWorldTickCompleted(world.WorldId, world.LastUpdated);
         }
 
         // ---------------------------------------------------------------------
-        // Event helpers (no async void, no swallowed exceptions)
+        // EVENT HELPERS
         // ---------------------------------------------------------------------
 
-        private Task RaiseFoodEaten(string playerId, int foodId, string worldId)
+        private Task RaiseFoodEaten(string playerId, int foodId, string? worldId)
         {
             var handler = OnFoodEaten;
             if (handler == null) return Task.CompletedTask;
@@ -345,7 +281,7 @@ namespace Khela.Game.Services
 
             return Task.WhenAll(delegates.Select(d =>
             {
-                try { return d(playerId, foodId, worldId); }
+                try { return d(playerId, foodId, worldId ?? string.Empty); }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "OnFoodEaten handler failed");

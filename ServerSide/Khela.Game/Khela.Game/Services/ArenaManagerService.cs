@@ -1,34 +1,33 @@
-﻿using Khela.Game.Models;
-using Khela.Game.Models.Configs;
-using Khela.Game.Services.Redis;
+﻿using Khela.Game.Models.Configs;
+using Khela.Game.Models.States;
 
 namespace Khela.Game.Services
 {
+    /// <summary>
+    /// Dynamically adjusts arena (world) size and target food count based on player population.
+    /// Runs every few seconds and updates in-memory GameState.
+    /// </summary>
     public class ArenaManagerService : BackgroundService
     {
         private readonly ILogger<ArenaManagerService> _logger;
-        private readonly IRedisService _redis;
         private readonly WorldConfig _defaultConfig;
-
-        private const string WORLD_KEY_PREFIX = "world:";
 
         // Runs every 3 seconds to adjust arenas
         private readonly TimeSpan _arenaTickInterval = TimeSpan.FromSeconds(3);
 
         // Dynamic sizing parameters
-        private const float MIN_WORLD_SIZE = 150f;
+        private const float MIN_WORLD_SIZE = 200f;
         private const float SIZE_PER_PLAYER = 15f;
 
-        public ArenaManagerService(ILogger<ArenaManagerService> logger, IRedisService redis)
+        public ArenaManagerService(ILogger<ArenaManagerService> logger)
         {
             _logger = logger;
-            _redis = redis;
             _defaultConfig = new WorldConfig();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Arena Manager Service started.");
+            _logger.LogInformation("Arena Manager Service started (in-memory mode).");
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -36,15 +35,15 @@ namespace Khela.Game.Services
 
                 try
                 {
-                    var worldKeys = await _redis.GetKeysByPatternAsync(WORLD_KEY_PREFIX + "*");
+                    var worlds = GameState.Instance.Worlds.Values.ToArray();
 
-                    if (worldKeys != null && worldKeys.Any())
-                    { 
-                        var tasks = new List<Task>(worldKeys.Count());
-                        foreach (var worldKey in worldKeys)
-                        { 
-                            tasks.Add(UpdateWorldDynamics(worldKey, stoppingToken));
-                        } 
+                    if (worlds.Length > 0)
+                    {
+                        var tasks = new List<Task>(worlds.Length);
+                        foreach (var world in worlds)
+                        {
+                            tasks.Add(UpdateWorldDynamics(world, stoppingToken));
+                        }
                         await Task.WhenAll(tasks);
                     }
                 }
@@ -58,14 +57,8 @@ namespace Khela.Game.Services
                 var delay = _arenaTickInterval - elapsed;
                 if (delay > TimeSpan.Zero)
                 {
-                    try
-                    {
-                        await Task.Delay(delay, stoppingToken);
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        // ignore on shutdown
-                    }
+                    try { await Task.Delay(delay, stoppingToken); }
+                    catch (TaskCanceledException) { /* ignore on shutdown */ }
                 }
             }
         }
@@ -73,73 +66,49 @@ namespace Khela.Game.Services
         /// <summary>
         /// Safely updates dynamic properties (world size, food target) for a single world.
         /// </summary>
-        private async Task UpdateWorldDynamics(string worldKey, CancellationToken token)
+        private Task UpdateWorldDynamics(WorldState world, CancellationToken token)
         {
             if (token.IsCancellationRequested)
-                return;
+                return Task.CompletedTask;
 
-            string lockKey = $"lock:{worldKey}";
-            string lockToken = Guid.NewGuid().ToString();
-            var db = _redis.GetDatabase();
+            if (world == null || world.CurrentStatus != GameStatus.Running)
+                return Task.CompletedTask;
 
-            // Same semantics as your original: try lock, skip if busy.
-            if (!await db.LockTakeAsync(lockKey, lockToken, TimeSpan.FromSeconds(1)))
-                return;
+            int humanCount = world.SnakeIds.Count;
+            int aiCount = world.AISnakeIds.Count;
+            int totalPlayers = humanCount + aiCount;
 
-            try
+            float newWorldSize = CalculateWorldSize(totalPlayers);
+            int newTargetFood = CalculateFoodCount(newWorldSize);
+
+            bool changed = false;
+
+            if (Math.Abs(world.Config.WorldSize - newWorldSize) > 0.01f)
             {
-                var world = await _redis.GetAsync<WorldState>(worldKey);
-                if (world == null || world.CurrentState != GameState.Running)
-                    return;
-
-                int humanCount = world.SnakeIds.Count;
-                int aiCount = world.AISnakeIds.Count;
-                int totalPlayers = humanCount + aiCount;
-
-                float newWorldSize = CalculateWorldSize(totalPlayers);
-                int newTargetFood = CalculateFoodCount(newWorldSize);
-
-                bool changed = false;
-
-                if (Math.Abs(world.Config.WorldSize - newWorldSize) > 0.01f)
-                {
-                    world.Config.WorldSize = newWorldSize;
-                    changed = true;
-                }
-
-                if (world.Config.TargetFoodCount != newTargetFood)
-                {
-                    world.Config.TargetFoodCount = newTargetFood;
-                    changed = true;
-                }
-
-                if (changed)
-                {
-                    await _redis.SetAsync(worldKey, world);
-
-                    _logger.LogDebug(
-                        "ArenaTick world={WorldId} players={Total} size={Size} food={Food}",
-                        world.WorldId,
-                        totalPlayers,
-                        world.Config.WorldSize,
-                        world.Config.TargetFoodCount);
-                }
+                world.Config.WorldSize = newWorldSize;
+                changed = true;
             }
-            catch (Exception ex)
+
+            if (world.Config.TargetFoodCount != newTargetFood)
             {
-                _logger.LogError(ex, "Error updating world dynamics for {WorldKey}", worldKey);
+                world.Config.TargetFoodCount = 100;//newTargetFood;
+                changed = true;
             }
-            finally
+
+            if (changed)
             {
-                try
-                {
-                    await db.LockReleaseAsync(lockKey, lockToken);
-                }
-                catch
-                {
-                    // If lock already expired or stolen, ignore.
-                }
+                world.LastUpdated = DateTime.UtcNow;
+                GameState.Instance.AddOrUpdateWorld(world);
+
+                _logger.LogDebug(
+                    "ArenaTick world={WorldId} players={Total} size={Size:F1} food={Food}",
+                    world.WorldId,
+                    totalPlayers,
+                    world.Config.WorldSize,
+                    world.Config.TargetFoodCount);
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>

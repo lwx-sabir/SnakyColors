@@ -1,9 +1,18 @@
-﻿using Khela.Game.Services;
+﻿// ==============================================
+// SnakeHub.cs
+// Author: Reza Sabir (CasualLabInteractive)
+// Version: 1.0.1 (Production Stable)
+// Description:
+// SignalR authoritative relay for player-world interaction.
+// - Handles connection lifecycle
+// - Joins, state updates, deaths, food reports
+// - Forwards all logic to GameEngine (authoritative server)
+// ==============================================
+
+using Khela.Game.Services;
 using Microsoft.AspNetCore.SignalR;
-using System.Numerics;
-using Khela.Game.Services.Redis; // For IRedisService
 using Khela.Game.Models;
-using Microsoft.AspNetCore.SignalR.Protocol; // For SerializableVector2
+using Khela.Game.Models.States; 
 
 namespace Khela.Game.Managers.SRHubs
 {
@@ -11,21 +20,23 @@ namespace Khela.Game.Managers.SRHubs
     {
         private readonly WorldManagerService _worldManager;
         private readonly GameEngine _gameEngine;
-        private readonly IRedisService _redis;
 
-        private const string CONNECTION_KEY_PREFIX = "connection:";
-
-        public SnakeHub(WorldManagerService worldManager, GameEngine gameEngine, IRedisService redis)
+        public SnakeHub(WorldManagerService worldManager, GameEngine gameEngine)
         {
             _worldManager = worldManager;
             _gameEngine = gameEngine;
-            _redis = redis;
         }
 
+        // =====================================================
+        // === Join Main World ===
+        // =====================================================
         public async Task JoinMainWorld(string playerId, string skinId)
-        {  
-            if (string.IsNullOrEmpty(playerId)) return;
+        {
+            if (string.IsNullOrEmpty(playerId))
+                return;
+
             string connectionId = Context.ConnectionId;
+
             var world = await _worldManager.GetOrCreateMainWorldAsync();
             if (world == null)
             {
@@ -34,18 +45,19 @@ namespace Khela.Game.Managers.SRHubs
             }
 
             var player = await _worldManager.AddPlayerToWorldAsync(connectionId, world.WorldId, playerId, skinId);
-             
             if (player == null)
             {
                 await Clients.Caller.SendAsync("JoinFailed", "Player already in world or error.");
                 return;
-            } 
+            }
 
             await Groups.AddToGroupAsync(connectionId, world.WorldId);
-             
             await Clients.Caller.SendAsync("OnJoinSuccess", player);
         }
 
+        // =====================================================
+        // === Disconnect Cleanup ===
+        // =====================================================
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var (player, world) = await _worldManager.RemovePlayerFromWorldAsync(Context.ConnectionId);
@@ -58,29 +70,49 @@ namespace Khela.Game.Managers.SRHubs
 
             await base.OnDisconnectedAsync(exception);
         }
-         
+
+        // =====================================================
+        // === Client → Server: Player State Update ===
+        // =====================================================
         public async Task UpdateState(List<SerializableVector2> bodySegments, bool isBoosting)
         {
-            string playerId = await _redis.GetStringAsync(CONNECTION_KEY_PREFIX + Context.ConnectionId);
-            if (string.IsNullOrEmpty(playerId)) return;
+            var gs = GameState.Instance;
+
+            if (!gs.Connections.TryGetValue(Context.ConnectionId, out var playerId) ||
+                string.IsNullOrEmpty(playerId))
+                return;
 
             await _gameEngine.OnPlayerStateUpdate(playerId, bodySegments, isBoosting);
         }
-         
+
+        // =====================================================
+        // === Client → Server: Food Eaten ===
+        // =====================================================
         public async Task ReportFoodEaten(int foodId, string playerId)
-        { 
-            if (string.IsNullOrEmpty(playerId)) return; 
+        {
+            if (string.IsNullOrEmpty(playerId))
+                return;
+
             await _gameEngine.OnPlayerAteFood(playerId, foodId);
         }
-         
-        public async Task ReportPlayerDied(string killerId) // killerId can be null (for boundaries)
+
+        // =====================================================
+        // === Client → Server: Player Died ===
+        // =====================================================
+        public async Task ReportPlayerDied(string killerId)
         {
-            string playerId = await _redis.GetStringAsync(CONNECTION_KEY_PREFIX + Context.ConnectionId);
-            if (string.IsNullOrEmpty(playerId)) return;
+            var gs = GameState.Instance;
+
+            if (!gs.Connections.TryGetValue(Context.ConnectionId, out var playerId) ||
+                string.IsNullOrEmpty(playerId))
+                return;
 
             await _gameEngine.OnPlayerDied(playerId, killerId);
         }
 
+        // =====================================================
+        // === Connection Health Check ===
+        // =====================================================
         public async Task Ping()
         {
             await Clients.Caller.SendAsync("Pong");

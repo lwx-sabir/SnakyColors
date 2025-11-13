@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using UnityEngine.Scripting;
 
 namespace SnakyColors
 {
@@ -7,6 +8,7 @@ namespace SnakyColors
     /// A simple, JSON-serializable struct to replace System.Numerics.Vector2
     /// for state storage in Redis.
     /// </summary>
+    [Preserve]
     [Serializable]
     public struct SerializableVector2
     {

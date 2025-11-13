@@ -16,23 +16,7 @@ namespace Khela.Game.Dtos
         public float MaxTurningAngle { get; set; }
 
         public int TargetLength { get; set; }
-    }
-
-    //public class SnakeStateDto
-    //{
-    //    public string PlayerId { get; set; }
-    //    public float HeadX { get; set; }
-    //    public float HeadY { get; set; }
-    //    public float Score { get; set; }
-    //    public string SkinID { get; set; }
-    //    public int Length { get; set; }
-    //    public int Mass { get; set; }
-    //    public float CurrentSpeed { get; set; }
-    //    public bool IsAI { get; set; }
-    //    public SerializableVector2 HeadPosition { get; set; }
-    //    public float MaxTurningAngle { get; set; }
-    //    public int TargetLength { get; set; }
-    //}
+    } 
 
     public class FoodStateDto
     {
@@ -52,7 +36,8 @@ namespace Khela.Game.Dtos
 
         public float WorldSize { get; set; }
         public int Tick { get; set; }
-        public int TickRate { get; set; }
+        public int TickRate { get; set; } 
+        public double ServerTimeSec { get; set; } 
         public System.DateTime ServerUtc { get; set; }
     }
 }

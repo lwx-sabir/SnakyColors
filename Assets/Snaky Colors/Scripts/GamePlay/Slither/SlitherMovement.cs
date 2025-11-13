@@ -156,14 +156,13 @@ namespace SnakyColors
                 ? new Vector2(localSnake.RibPositions[^1].x, localSnake.RibPositions[^1].y)
                 : Vector2.zero;
 
-            bool boostChanged = (isBoosting != lastSentBoost);
-            if (hasSentOnce && !boostChanged && Vector2.Distance(currentHead, lastSentHeadPos) < minSendDistance)
-            {
-                return;
-            }
+            //bool boostChanged = (isBoosting != lastSentBoost);
+            //if (hasSentOnce && !boostChanged && Vector2.Distance(currentHead, lastSentHeadPos) < minSendDistance)
+            //{
+            //    return;
+            //}
 
-            var bodySegments = new List<SerializableVector2>();
-            // Convert Unity Vector3s into SerializableVector2
+            var bodySegments = new List<SerializableVector2>(); 
             foreach (var pos in localSnake.RibPositions)
             {
                 bodySegments.Add(new SerializableVector2(pos.x, pos.y));

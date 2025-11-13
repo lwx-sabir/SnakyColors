@@ -5,7 +5,6 @@ using UnityEngine;
 namespace SnakyColors
 {
     [AddComponentMenu("Procedural Creatures/Rigged Animator")]
-    [Icon("Assets/Procedural Creatures/Core/Editor/UI/Icons/rig animator.png")]
     [ExecuteInEditMode]
     public class RigAnimator : MonoBehaviour
     {

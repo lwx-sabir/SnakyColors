@@ -391,7 +391,7 @@ namespace SnakyColors
 
         void OnDrawGizmosSelected()
         {
-            if (playerTransform == null) return;
+            if (playerTransform == null || data == null) return;
 
             Gizmos.color = Color.cyan;
 

@@ -99,9 +99,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// --- SignalR + MessagePack ---
-builder.Services.AddSignalR() 
-    .AddMessagePackProtocol(); // enable MessagePack support
+// --- SignalR ---
+builder.Services.AddSignalR()
+    .AddNewtonsoftJsonProtocol(options =>
+    {
+        options.PayloadSerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+        options.PayloadSerializerSettings.Formatting = Newtonsoft.Json.Formatting.None;
+    });
 
 // --- Redis ---
 var redisString = !builder.Environment.IsDevelopment()
@@ -126,6 +130,7 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<GameEn
 builder.Services.AddHostedService(provider => provider.GetRequiredService<GameBroadcastService>());
 builder.Services.AddHostedService(provider => provider.GetRequiredService<AIService>());
 builder.Services.AddHostedService(provider => provider.GetRequiredService<ArenaManagerService>());
+builder.Services.AddHostedService<GameStateSyncService>();
 
 builder.Services.AddResponseCompression(opts =>
 {

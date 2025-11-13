@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text.Json.Serialization;
+using UnityEngine.Scripting;
 
 namespace SnakyColors
 {
+    [Preserve]
+    [Serializable]
     public class SnakeKinematicsDto
     {
         public string PlayerId { get; set; }
@@ -21,22 +24,8 @@ namespace SnakyColors
         public int TargetLength { get; set; }
     }
 
-    //public class PlayerState
-    //{
-    //    public string PlayerId { get; set; }
-    //    public float HeadX { get; set; }
-    //    public float HeadY { get; set; }
-    //    public float Score { get; set; }
-    //    public string SkinID { get; set; }
-    //    public int Length { get; set; }
-    //    public int Mass { get; set; }
-    //    public float CurrentSpeed { get; set; }
-    //    public bool IsAI { get; set; }
-    //    public SerializableVector2 HeadPosition { get; set; }
-    //    public float MaxTurningAngle { get; set; }
-    //    public int TargetLength { get; set; }
-    //}
-
+    [Preserve]
+    [Serializable]
     public class FoodStateDto
     {
         public int Id { get; set; }
@@ -46,8 +35,10 @@ namespace SnakyColors
         public float PosY { get; set; }
 
         public string ItemKey { get; set; }
-    }  
+    }
 
+    [Preserve]
+    [Serializable]
     public class WorldUpdateDto
     {
         public SnakeKinematicsDto[] Snakes { get; set; }
@@ -56,9 +47,12 @@ namespace SnakyColors
         public float WorldSize { get; set; }
         public int Tick { get; set; }
         public int TickRate { get; set; }
+        public double ServerTimeSec { get; set; }
         public DateTime ServerUtc { get; set; }
     }
 
+    [Preserve]
+    [Serializable]
     public class PlayerStateDto
     { 
         public string PlayerId { get; set; }

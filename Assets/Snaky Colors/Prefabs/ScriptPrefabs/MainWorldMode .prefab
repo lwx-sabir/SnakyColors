@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.MainWorldMode
   defaultSkinId: cobra
-  playerIdOverride: local_player
+  playerIdOverride: 
 --- !u!1 &2812976777824483735
 GameObject:
   m_ObjectHideFlags: 0
@@ -92,7 +92,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17c8fc34c4c284e45ad62d172a6608db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.NetworkClient
-  hubUrl: https://localhost:44312/snakehub
+  hubUrl: https://www.botpata.com/snakehub
   snakeBasePrefab: {fileID: 6360206223930948518, guid: afa9355640c619c48916b6d59280e2ea, type: 3}
   enemyBasePrefab: {fileID: 6360206223930948518, guid: d0cb6770bd7bfad489177d02e9259c6b, type: 3}
   skinDatabase: {fileID: 11400000, guid: 594ff53b565ede44d8fdbc268ac1c91f, type: 2}

@@ -30,7 +30,9 @@ namespace SnakyColors
 
         public override async void StartMode()
         {
+            OnScreenDebug.Log("client started: ");
             if (client == null) Initialize();
+            OnScreenDebug.Log("client init: ");
             string pid = string.IsNullOrWhiteSpace(playerIdOverride) ? Guid.NewGuid().ToString() : playerIdOverride;
             await client.ConnectAsync(pid, defaultSkinId);
         }
