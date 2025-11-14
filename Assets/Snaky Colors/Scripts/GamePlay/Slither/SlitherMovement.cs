@@ -14,13 +14,8 @@ namespace SnakyColors
         [SerializeField] private float targetDistance = 5f;
 
         // Network throttle
-        private float nextStateSendTime = 0f;
-        [SerializeField] private float stateSendRate = 0.05f; // 20 Hz
-        [SerializeField] private float minSendDistance = 0.08f; // Only send if head moved this much or boosting changed
-
-        private Vector2 lastSentHeadPos = Vector2.zero;
-        private bool lastSentBoost = false;
-        private bool hasSentOnce = false;
+        private float nextStateSendTime = 0.001f;
+        [SerializeField] private float stateSendRate = 0.05f; // 20 Hz 
 
         private Transform snakeTarget;
 
@@ -150,30 +145,17 @@ namespace SnakyColors
         // Converts our local visual state into serializable data and sends it.
         void SendStateToServer()
         {
-            if (NetworkClient.Instance == null || NetworkClient.Instance.localPlayerState == null) return;
-            // Throttle by movement delta to reduce payload
-            Vector2 currentHead = (localSnake != null && localSnake.RibPositions.Count > 0)
-                ? new Vector2(localSnake.RibPositions[^1].x, localSnake.RibPositions[^1].y)
-                : Vector2.zero;
-
-            //bool boostChanged = (isBoosting != lastSentBoost);
-            //if (hasSentOnce && !boostChanged && Vector2.Distance(currentHead, lastSentHeadPos) < minSendDistance)
-            //{
-            //    return;
-            //}
-
-            var bodySegments = new List<SerializableVector2>(); 
-            foreach (var pos in localSnake.RibPositions)
+            if (NetworkClient.Instance == null || NetworkClient.Instance.localPlayerState == null) return; 
+             
+            var bodySegments = new List<SerializableVector2>();
+            for (int i = localSnake.RibPositions.Count - 1; i >= 0; i--)
             {
+                var pos = localSnake.RibPositions[i];
                 bodySegments.Add(new SerializableVector2(pos.x, pos.y));
             }
 
             // Server is authoritative for speed; send only segments + boosting
-            NetworkClient.Instance.SendState(bodySegments, isBoosting);
-
-            lastSentHeadPos = currentHead;
-            lastSentBoost = isBoosting;
-            hasSentOnce = true;
+            NetworkClient.Instance.SendState(bodySegments, isBoosting); 
         }
     }
 }

@@ -21,23 +21,36 @@ namespace Khela.Game.Models.States
         public float BoostSpeed { get; set; } = 10f;
         public float MaxTurningAngle { get; set; } = 1000f;
         public float PerSegmentDist { get; set; } = 0.5f;
-         
-        public List<SerializableVector2> BodySegments { get; set; } = new List<SerializableVector2>();
-         
+
+        public List<SerializableVector2> BodySegments { get; set; } = new();
+
+        // HEAD = index 0
+        [JsonIgnore]
+        public Vector2 HeadPosition
+        {
+            get => BodySegments.Count > 0 ? BodySegments[0] : Vector2.Zero;
+            set
+            {
+                if (BodySegments.Count == 0)
+                    BodySegments.Add(value);
+                else
+                    BodySegments[0] = value;
+            }
+        }
+
+        // TAIL = last index
+        [JsonIgnore]
+        public Vector2 TailPosition =>
+            BodySegments.Count > 0 ? BodySegments[^1] : Vector2.Zero;
 
         [JsonIgnore]
-        public Vector2 HeadPosition => BodySegments.Count > 0 ? BodySegments[^1] : Vector2.Zero;
-        [JsonIgnore]
-        public Vector2 TailPosition => BodySegments.Count > 0 ? BodySegments[0] : Vector2.Zero;
-        [JsonIgnore]
-        public int TargetLength => 20 + (int)(Score / 10f);
+        public int TargetLength => 15 + (int)(Score / 10f);
 
         public PlayerState() { }
 
         public PlayerState(string connectionId, Vector2 startPosition)
         {
-            ConnectionId = connectionId; 
-            // Add a single head segment at the start
+            ConnectionId = connectionId;
             BodySegments.Add(startPosition);
         }
     }

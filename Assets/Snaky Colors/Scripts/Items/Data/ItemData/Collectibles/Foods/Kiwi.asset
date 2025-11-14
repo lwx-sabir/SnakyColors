@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9276b6eae820cc74c825b6d2a1e86689, type: 3}
-  m_Name: RedApple
+  m_Name: Kiwi
   m_EditorClassIdentifier: Assembly-CSharp::SnakyColors.ItemData
-  itemName: RedApple
-  prefab: {fileID: 8372736932161314260, guid: 4602c7a09b1ef6c40aeab63ed3b701ae, type: 3}
+  itemName: Kiwi
+  prefab: {fileID: 8372736932161314260, guid: 6e9b7a4aa572ac74b95c4badbd7307aa, type: 3}
   category: 0
   collectibleType: 0
   powerupEffect: 0
-  value: 10
-  scoreText: 10
+  value: 15
+  scoreText: 15
   secondaryValue: 0
   duration: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 22ed387c551d1fd40801ce0f158c17ea, type: 3}
   collectSound: {fileID: 8300000, guid: 15567e7ddaef04bb9a6366ad84515027, type: 3}
-  itemColor: {r: 0.82745105, g: 0.18823531, b: 0.14117648, a: 1}
-  poolSize: 10
+  itemColor: {r: 0.18039216, g: 0.5176471, b: 0.16470589, a: 1}
+  poolSize: 15
   sameItemCannotOverlap: 0
   sameItemMinRadius: 0.5
   autoDespawnAfterDuration: 0

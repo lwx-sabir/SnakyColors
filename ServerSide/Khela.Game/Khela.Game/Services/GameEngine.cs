@@ -64,21 +64,15 @@ namespace Khela.Game.Services
             if (!gs.TryGetPlayer(playerId, out var snake) || !snake.IsAlive)
                 return Task.CompletedTask;
 
-            // Update body & boosting
+            // CLIENT SENDS ABSOLUTE WORLD POSITIONS → authoritative head is rib[0] 
+            var head = bodySegments[0];
+            snake.HeadPosition = new System.Numerics.Vector2(head.X, head.Y);
             snake.BodySegments = bodySegments;
+
             snake.IsBoosting = isBoosting;
 
-            // Authoritative speed logic
-            if (isBoosting)
-            {
-                snake.CurrentSpeed = snake.BoostSpeed;
-            }
-            else
-            {
-                snake.CurrentSpeed = snake.BaseSpeed > 0f
-                    ? snake.BaseSpeed
-                    : (snake.CurrentSpeed > 0 ? snake.CurrentSpeed : snake.BaseSpeed);
-            }
+            // Authoritative speed
+            snake.CurrentSpeed = isBoosting ? snake.BoostSpeed : snake.BaseSpeed;
 
             gs.AddOrUpdatePlayer(snake);
             return Task.CompletedTask;
@@ -115,7 +109,7 @@ namespace Khela.Game.Services
             var head = snake.HeadPosition;
             float dx = food.Position.X - head.X;
             float dy = food.Position.Y - head.Y;
-            float eatRadius = snake.IsAI ? 0.9f : 1.5f;
+            float eatRadius = snake.IsAI ? 0.7f : 1.5f;
 
             if (dx * dx + dy * dy > eatRadius * eatRadius)
                 return Task.CompletedTask;
@@ -314,18 +308,25 @@ namespace Khela.Game.Services
             var handler = OnWorldTickCompleted;
             if (handler == null) return Task.CompletedTask;
 
-            var delegates = handler.GetInvocationList()
-                .Cast<Func<string, DateTime, Task>>();
-
-            return Task.WhenAll(delegates.Select(d =>
+            foreach (var d in handler.GetInvocationList()
+                                     .Cast<Func<string, DateTime, Task>>())
             {
-                try { return d(worldId, utcNow); }
-                catch (Exception ex)
+                // Fire-and-forget; don't block the tick loop
+                _ = Task.Run(async () =>
                 {
-                    _logger.LogError(ex, "OnWorldTickCompleted handler failed");
-                    return Task.CompletedTask;
-                }
-            }));
+                    try
+                    {
+                        await d(worldId, utcNow);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "OnWorldTickCompleted handler failed");
+                    }
+                });
+            }
+
+            return Task.CompletedTask;
         }
+
     }
 }

@@ -117,8 +117,8 @@ namespace Khela.Game.Services
                 if (!isAi)
                     gs.Connections[connectionId] = playerId;
 
-                _logger.LogInformation("PlayerJoined {PlayerId} {WorldId} IsAI={IsAI}",
-                    playerId, worldId, isAi);
+                //_logger.LogInformation("PlayerJoined {PlayerId} {WorldId} IsAI={IsAI}",
+                //    playerId, worldId, isAi);
 
                 return newSnake;
             }

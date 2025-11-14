@@ -41,15 +41,20 @@ namespace SnakyColors
     [Serializable]
     public class WorldUpdateDto
     {
-        public SnakeKinematicsDto[] Snakes { get; set; }
-        public FoodStateDto[] Food { get; set; }
-
-        public float WorldSize { get; set; }
-        public int Tick { get; set; }
-        public int TickRate { get; set; }
+        public SnakeKinematicsDto[] Snakes { get; set; }  
+        public float WorldSize { get; set; } 
         public double ServerTimeSec { get; set; }
         public DateTime ServerUtc { get; set; }
     }
+
+    [Preserve]
+    [Serializable]
+    public class FoodDeltaDto
+    {
+        public List<FoodStateDto> Added { get; set; } = new();
+        public List<int> Removed { get; set; } = new();
+    }
+
 
     [Preserve]
     [Serializable]

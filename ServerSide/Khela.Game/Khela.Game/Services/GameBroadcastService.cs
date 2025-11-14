@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.SignalR;
 using Khela.Game.Dtos;
 using Khela.Game.Models.States;
 using System.Collections.Concurrent;
+using System.Text;
+using System.Text.Json;
 
 namespace Khela.Game.Services
 {
@@ -18,6 +20,9 @@ namespace Khela.Game.Services
 
         private readonly ConcurrentDictionary<string, WorldUpdateDto> _lastSentState = new();
         private readonly ConcurrentDictionary<string, DateTime> _lastBroadcastPerWorld = new();
+
+        private static readonly HashSet<string> _seenSnakes = new HashSet<string>(128);
+        private static readonly HashSet<int> _seenFood = new HashSet<int>(512);
 
         private readonly TimeSpan _broadcastInterval = TimeSpan.FromMilliseconds(50); // 20Hz
 
@@ -73,35 +78,50 @@ namespace Khela.Game.Services
                 return;
 
             // Cached snapshot from GameState
-            var snapshot = GameState.Instance.BuildWorldSnapshot(worldId, true);
-            if (snapshot == null)
+            var worldState = GameState.Instance.CachedWorldSnapshots[worldId];
+            var deltaFood = GameState.Instance.BuildFoodDelta(worldId);
+             
+            if (worldState == null)
                 return;
 
             // Diff check
-            if (world.Tick % 10 == 0 && _lastSentState.TryGetValue(worldId, out var prev))
-            {
-                bool snakesChanged = snapshot.Snakes.Any(s =>
-                    prev.Snakes.All(p => p.PlayerId != s.PlayerId ||
-                                         p.HeadPosition.X != s.HeadPosition.X ||
-                                         p.HeadPosition.Y != s.HeadPosition.Y));
+            //if (world.Tick % 10 == 0 && _lastSentState.TryGetValue(worldId, out var prev))
+            //{
+            //    bool snakesChanged = worldState.Snakes.Any(s =>
+            //        prev.Snakes.All(p => p.PlayerId != s.PlayerId ||
+            //                             p.HeadPosition.X != s.HeadPosition.X ||
+            //                             p.HeadPosition.Y != s.HeadPosition.Y));
 
-                bool foodChanged = snapshot.Food.Any(f =>
-                    prev.Food.All(p => p.Id != f.Id ||
-                                       p.PosX != f.PosX ||
-                                       p.PosY != f.PosY));
+            //    bool foodChanged = worldState.Food.Any(f =>
+            //        prev.Food.All(p => p.Id != f.Id ||
+            //                           p.PosX != f.PosX ||
+            //                           p.PosY != f.PosY));
 
-                if (!snakesChanged && !foodChanged)
-                    return;
-            }
+            //    if (!snakesChanged && !foodChanged)
+            //        return;
+            //}
 
             try
             {
-                snapshot.ServerTimeSec = world.Tick / (double)world.Config.TickRate;
+                worldState.ServerTimeSec = world.Tick / (double)world.Config.TickRate;
 
-                snapshot.ServerTimeSec = world.Tick * (1f / world.Config.TickRate);
+                // =============================
+                //   Measure snapshot size
+                // =============================
+                //var json = JsonSerializer.Serialize(new { deltaFood , worldState});
+                //var byteCount = Encoding.UTF8.GetByteCount(json);
+                //var kb = byteCount / 1024.0;
+
+                //_logger.LogInformation(
+                //    $"[Broadcast] world={worldId} snapshot size = {kb:F2} KB ({byteCount} bytes), " +
+                //    $"snakes={worldState.Snakes.Length}");
+
+                // =============================
+
                 await _hubContext.Clients.Group(worldId)
-                    .SendAsync("WorldUpdate", snapshot);
-                _lastSentState[worldId] = snapshot;
+                    .SendAsync("WorldUpdate", worldState, deltaFood);
+
+                _lastSentState[worldId] = worldState;
             }
             catch (Exception ex)
             {
@@ -109,8 +129,9 @@ namespace Khela.Game.Services
             }
 
             var ms = (DateTime.UtcNow - start).TotalMilliseconds;
-            _logger.LogTrace($"Broadcast world={world.WorldId} took {ms:F1}ms (snakes={snapshot.Snakes.Length}, food={snapshot.Food.Length})");
+            _logger.LogTrace($"Broadcast world={world.WorldId} took {ms:F1}ms (snakes={worldState.Snakes.Length}, food={deltaFood.Added.Count})");
         }
+
 
         // ---------------------------------------------------------------------
         // EVENT: FOOD EATEN

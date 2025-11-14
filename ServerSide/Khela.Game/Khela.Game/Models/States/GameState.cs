@@ -19,6 +19,8 @@ namespace Khela.Game.Models.States
         private readonly ConcurrentDictionary<string, SemaphoreSlim> _worldLocks = new();
         public ConcurrentDictionary<string, WorldUpdateDto> CachedWorldSnapshots { get; } = new();
 
+        private readonly Dictionary<string, HashSet<int>> LastFoodSet = new();
+
         // =====================================================
         // BASIC ACCESS
         // =====================================================
@@ -41,67 +43,44 @@ namespace Khela.Game.Models.States
         // SNAPSHOT BUILDERS
         // =====================================================
 
-        public WorldUpdateDto BuildWorldSnapshot(string worldId, bool isPlayingWorld = false)
+        public WorldUpdateDto BuildWorldSnapshot(string worldId)
         {
             if (!Worlds.TryGetValue(worldId, out var world))
                 return null;
 
-            var allSnakeIds = world.SnakeIds.Keys
-                                .Concat(world.AISnakeIds.Keys)
-                                .Distinct();
+            var snakes = new List<SnakeKinematicsDto>(
+                world.SnakeIds.Count + world.AISnakeIds.Count);
 
-            var snakes = allSnakeIds
-                .Where(pid => Players.TryGetValue(pid, out _))
-                .Select(pid =>
+            foreach (var pid in world.SnakeIds.Keys)
+                TryAddSnake(pid, snakes);
+
+            foreach (var pid in world.AISnakeIds.Keys)
+                TryAddSnake(pid, snakes);
+
+            var food = new List<FoodStateDto>(world.FoodIds.Count);
+            foreach (var fid in world.FoodIds.Keys)
+            {
+                if (!Foods.TryGetValue(fid, out var f)) continue;
+
+                food.Add(new FoodStateDto
                 {
-                    var p = Players[pid];
-                     
-                    if (isPlayingWorld && (!p.IsAlive || p.BodySegments == null || p.BodySegments.Count == 0))
-                        return null;
-
-                    return new SnakeKinematicsDto
-                    {
-                        PlayerId = p.PlayerId,
-                        SkinID = p.SkinID,
-                        IsAI = p.IsAI,
-                        Mass = p.Mass,
-                        HeadPosition = p.HeadPosition,
-                        BaseSpeed = p.BaseSpeed,
-                        CurrentSpeed = p.CurrentSpeed,
-                        MaxTurningAngle = p.MaxTurningAngle,
-                        TargetLength = p.TargetLength
-                    };
-                })
-                .Where(s => s != null)
-                .ToList();
-
-            var food = world.FoodIds?
-                .Where(fid => Foods.TryGetValue(fid.Key, out _))
-                .Select(fid =>
-                {
-                    var f = Foods[fid.Key];
-                    return new FoodStateDto
-                    {
-                        Id = f.Id,
-                        PosX = f.Position.X,
-                        PosY = f.Position.Y,
-                        ItemKey = f.ItemKey
-                    };
-                }).ToList() ?? new();
+                    Id = f.Id,
+                    PosX = f.Position.X,
+                    PosY = f.Position.Y,
+                    ItemKey = f.ItemKey
+                });
+            }
 
             var dto = new WorldUpdateDto
             {
-                Snakes = [.. snakes],
-                Food = [.. food],
-                WorldSize = world.Config?.WorldSize ?? 100,
-                Tick = world.Tick,
-                TickRate = world.Config?.TickRate ?? 20,
+                Snakes = [.. snakes], 
+                WorldSize = world.Config.WorldSize,
                 ServerUtc = DateTime.UtcNow
             };
 
             CachedWorldSnapshots[worldId] = dto;
             return dto;
-        }
+        } 
 
 
         // =====================================================
@@ -288,6 +267,91 @@ namespace Khela.Game.Models.States
             }
 
             return removed;
+        }
+
+        private void TryAddSnake(string pid, List<SnakeKinematicsDto> list)
+        {
+            if (!Players.TryGetValue(pid, out var p))
+                return;
+
+            if (!p.IsAlive)
+                return;
+
+            if (p.BodySegments == null || p.BodySegments.Count == 0)
+                return;
+
+            list.Add(new SnakeKinematicsDto
+            {
+                PlayerId = p.PlayerId,
+                SkinID = p.SkinID,
+                IsAI = p.IsAI,
+                Mass = p.Mass,
+                HeadPosition = p.HeadPosition,
+                BaseSpeed = p.BaseSpeed,
+                CurrentSpeed = p.CurrentSpeed,
+                MaxTurningAngle = p.MaxTurningAngle,
+                TargetLength = p.TargetLength
+            });
+        }
+
+        public FoodDeltaDto BuildFoodDelta(string worldId)
+        {
+            var world = Worlds[worldId];
+
+            var currentIds = world.FoodIds.Keys.ToHashSet();
+
+            if (!LastFoodSet.TryGetValue(worldId, out var lastSet))
+            {
+                // First time: treat all as added
+                LastFoodSet[worldId] = currentIds;
+                return new FoodDeltaDto
+                {
+                    Added = currentIds.Select(id =>
+                    {
+                        var f = Foods[id];
+                        return new FoodStateDto
+                        {
+                            Id = f.Id,
+                            PosX = f.Position.X,
+                            PosY = f.Position.Y,
+                            ItemKey = f.ItemKey
+                        };
+                    }).ToList()
+                };
+            }
+
+            var added = new List<FoodStateDto>();
+            var removed = new List<int>();
+
+            // detect added
+            foreach (var id in currentIds)
+            {
+                if (!lastSet.Contains(id))
+                {
+                    var f = Foods[id];
+                    added.Add(new FoodStateDto
+                    {
+                        Id = f.Id,
+                        PosX = f.Position.X,
+                        PosY = f.Position.Y,
+                        ItemKey = f.ItemKey
+                    });
+                }
+            }
+
+            // detect removals
+            foreach (var id in lastSet)
+                if (!currentIds.Contains(id))
+                    removed.Add(id);
+
+            // update cache
+            LastFoodSet[worldId] = currentIds;
+
+            return new FoodDeltaDto
+            {
+                Added = added,
+                Removed = removed
+            };
         }
 
     }

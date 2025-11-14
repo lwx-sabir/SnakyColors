@@ -17,15 +17,13 @@ MonoBehaviour:
   category: 0
   collectibleType: 0
   powerupEffect: 0
-  value: 15
-  scoreText: 15
+  value: 20
+  scoreText: 20
   secondaryValue: 0
   duration: 0
   icon: {fileID: 0}
   collectSound: {fileID: 8300000, guid: 15567e7ddaef04bb9a6366ad84515027, type: 3}
   itemColor: {r: 0.427451, g: 0.78823537, b: 0.20392159, a: 1}
-  spawnProbability: 0.464
-  isUniquePerScreen: 0
   poolSize: 10
   sameItemCannotOverlap: 0
   sameItemMinRadius: 0.5

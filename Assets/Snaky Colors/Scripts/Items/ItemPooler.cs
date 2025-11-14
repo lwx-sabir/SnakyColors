@@ -9,7 +9,7 @@ namespace SnakyColors
 
         [Header("Master Pool Configuration")]
         [Tooltip("Assign ALL ItemData assets that can *ever* be pooled, from spawners or enemy drops.")]
-        [SerializeField] private List<ItemData> allPoolableItems;
+        [SerializeField] private ItemDatabase itemDatabase;
 
         private Dictionary<GameObject, List<GameObject>> poolDictionary;
         private Dictionary<GameObject, ItemData> prefabToData; // Optional: for reverse lookup if needed
@@ -38,9 +38,9 @@ namespace SnakyColors
             poolDictionary = new Dictionary<GameObject, List<GameObject>>();
             prefabToData = new Dictionary<GameObject, ItemData>();
 
-            if (allPoolableItems == null) return;
+            if (itemDatabase == null) return;
 
-            foreach (var data in allPoolableItems)
+            foreach (var data in itemDatabase.allItems)
             {
                 if (data == null || data.prefab == null)
                 {

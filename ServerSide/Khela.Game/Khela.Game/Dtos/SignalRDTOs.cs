@@ -29,14 +29,17 @@ namespace Khela.Game.Dtos
         public string ItemKey { get; set; }
     }
 
+    public class FoodDeltaDto
+    {
+        public List<FoodStateDto> Added { get; set; } = new();
+        public List<int> Removed { get; set; } = new();
+    }
+
+
     public class WorldUpdateDto
     {
-        public SnakeKinematicsDto[] Snakes { get; set; }
-        public FoodStateDto[] Food { get; set; }
-
-        public float WorldSize { get; set; }
-        public int Tick { get; set; }
-        public int TickRate { get; set; } 
+        public SnakeKinematicsDto[] Snakes { get; set; }  
+        public float WorldSize { get; set; } 
         public double ServerTimeSec { get; set; } 
         public System.DateTime ServerUtc { get; set; }
     }

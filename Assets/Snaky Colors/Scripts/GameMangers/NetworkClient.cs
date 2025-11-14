@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
+using UnityEngine.Playables;
 
 // --- The Main Client ---
 public class NetworkClient : MonoBehaviour
@@ -52,6 +53,7 @@ public class NetworkClient : MonoBehaviour
     private ConcurrentQueue<PlayerDiedEvent> playerDiedQueue = new ConcurrentQueue<PlayerDiedEvent>();
     private ConcurrentQueue<string> playerLeftQueue = new ConcurrentQueue<string>();
     private ConcurrentQueue<PlayerStateDto> joinSuccessQueue = new ConcurrentQueue<PlayerStateDto>();
+    private ConcurrentQueue<FoodDeltaDto> foodDeltaQueue = new();
 
     // --- Event Structs ---
     private readonly struct FoodEatenEvent
@@ -68,8 +70,7 @@ public class NetworkClient : MonoBehaviour
     }
 
     // --- Server Clock Sync ---
-    private bool serverClockInit = false;
-    private float serverTickToSec = 0.05f; // default (20 Hz)
+    private bool serverClockInit = false; 
     private float serverTimeOffset = 0f;    // serverSeconds - Time.time
     private System.DateTime serverStartUtc;
     private float clientStartTimeSec = 0f;
@@ -113,7 +114,14 @@ public class NetworkClient : MonoBehaviour
         if (hubConnection == null) return;
         OnScreenDebug.Log("handle registering");
         hubConnection.On("Pong", () => { Debug.Log("PONG RECEIVED! Connection is working."); });
-        hubConnection.On<WorldUpdateDto>("WorldUpdate", (worldState) => { worldUpdates.Enqueue(worldState); });
+
+        hubConnection.On<WorldUpdateDto, FoodDeltaDto>("WorldUpdate",
+        (state, foodDelta) =>
+        {
+            worldUpdates.Enqueue(state);
+            foodDeltaQueue.Enqueue(foodDelta);
+        });
+
         hubConnection.On<PlayerStateDto>("OnJoinSuccess", (playerState) => { joinSuccessQueue.Enqueue(playerState); });
         hubConnection.On<int, string>("OnFoodEaten", (foodId, playerId) => { foodEatenQueue.Enqueue(new FoodEatenEvent(foodId, playerId)); });
         hubConnection.On<string, string>("OnPlayerDied", (deadPlayerId, message) => { playerDiedQueue.Enqueue(new PlayerDiedEvent(deadPlayerId, message)); });
@@ -239,7 +247,11 @@ public class NetworkClient : MonoBehaviour
         while (playerLeftQueue.TryDequeue(out string playerId))
         {
             HandlePlayerLeft(playerId);
-        } 
+        }
+        while (foodDeltaQueue.TryDequeue(out var delta))
+        {
+            ApplyFoodDelta(delta);
+        }
     } 
 
     private void HandleJoinSuccess(PlayerStateDto playerState)
@@ -250,55 +262,65 @@ public class NetworkClient : MonoBehaviour
         if (localPlayerSnake == null)
         {
             this.localPlayerState = playerState;
-            SpawnSnake(playerState, isLocalPlayer: true);
+            SpawnSnake(playerState);
         }
     }
 
-    private void ProcessWorldUpdate(WorldUpdateDto worldState)
-    {
-        OnScreenDebug.Log("Update: " + worldState?.Snakes?.Count() + " " + worldState?.Food?.Count());
-        if (worldState == null || string.IsNullOrEmpty(myPlayerId)) return; 
-        CurrentWorldSize = worldState.WorldSize;
+    private static readonly HashSet<string> _seenSnakes = new HashSet<string>(128); 
 
-        // Initialize server clock once (absolute server seconds)
-        if (!serverClockInit)
+    private void ProcessWorldUpdate(WorldUpdateDto state)
+    {
+        if (state == null || string.IsNullOrEmpty(myPlayerId))
+            return;
+
+        CurrentWorldSize = state.WorldSize;
+
+        // --- SERVER CLOCK SYNC (smooth every update, not only first) ---
+
         {
-            // Use the actual server tick rate for timing calculations
-            float serverSec = (float)worldState.ServerTimeSec;                 // send this from server!
+            float serverSec = (float)state.ServerTimeSec;
             float localSec = Time.time;
             float rawOffset = serverSec - localSec;
-            const float alpha = 0.05f;                                   // 5% smoothing
-            serverTimeOffset = serverClockInit ? Mathf.Lerp(serverTimeOffset, rawOffset, alpha)
-                                               : rawOffset;
-            serverClockInit = true;
-            Debug.Log($"[ClockSync] ServerTimeSec: {worldState.ServerTimeSec}, Offset: {serverTimeOffset:F3}s");
+
+            if (!serverClockInit)
+            { 
+                serverTimeOffset = rawOffset;
+                serverClockInit = true;
+            }
+            else
+            { 
+                const float alpha = 0.03f;
+                serverTimeOffset = Mathf.Lerp(serverTimeOffset, rawOffset, alpha);
+            }
         }
-        OnScreenDebug.Log("Update: " + worldState.Snakes?.Count()+" "+worldState.Food.Count());
+         
+        _seenSnakes.Clear();  
 
-        HashSet<string> seenSnakes = new HashSet<string>();
-        foreach (var kin in worldState.Snakes)
+        // ---------------------------------------------------------
+        // PROCESS SNAKES (exact same behavior, but no LINQ)
+        // ---------------------------------------------------------
+
+        var snakesArray = state.Snakes;
+        int snakeCount = snakesArray.Length;
+
+        for (int i = 0; i < snakeCount; i++)
         {
+            var kin = snakesArray[i];
             if (kin == null) continue;
-            seenSnakes.Add(kin.PlayerId);
+            string id = kin.PlayerId;
+            _seenSnakes.Add(id);
 
-            // --- LOCAL PLAYER ---
-            if (kin.PlayerId == myPlayerId)
+            if (id == myPlayerId)
             {
+                // LOCAL snake reconciliation (same)
                 if (localPlayerSnake != null)
                 {
-                    // --- RECONCILIATION ---
-                    // Server is the authority on our target length
                     if (localPlayerSnake.ribCount != kin.TargetLength)
                     {
                         localPlayerSnake.ribCount = kin.TargetLength;
-                        // Force a refresh only when the target length changes so growth is visible immediately
                         localPlayerSnake.RefreshSprites();
-                        Debug.Log($"LOCAL STATE: targetLen={kin.TargetLength}");
                     }
-                    // Keep local visual scale in sync with Mass
                     ApplyScaleFromMass(localPlayerSnake, kin.Mass);
-
-                    // Keep local speeds/turn settings in sync
                     if (localPlayerState != null)
                     {
                         if (kin.CurrentSpeed > 0.01f) localPlayerState.CurrentSpeed = kin.CurrentSpeed;
@@ -307,93 +329,66 @@ public class NetworkClient : MonoBehaviour
                         localPlayerState.Mass = kin.Mass;
                     }
                 }
+                continue;
             }
-            // --- OTHER PLAYER or AI ---
-            else if (otherSnakes.TryGetValue(kin.PlayerId, out SegmentedCreator snake))
+
+            // REMOTE / AI SNAKE
+            if (!otherSnakes.TryGetValue(id, out var snake))
             {
-                // Simple timestamped interpolation; never simulate remotes locally
-                if (!snake.TryGetComponent<RemoteSnake>(out var remote))
-                    remote = snake.gameObject.AddComponent<RemoteSnake>();
-
-                remote.ConfigureServerClock(serverTickToSec, serverTimeOffset);
-
-                remote.SetTargetLength(kin.TargetLength);
-
-                if (snake.moveToTarget != null) snake.moveToTarget.enableMoving = false;
-
-                Vector2 headPos = new Vector2(kin.HeadPosition.X, kin.HeadPosition.Y);
-                //float serverTime = (float)(worldState.ServerUtc - System.DateTime.UnixEpoch).TotalSeconds;
-                float serverSeconds = (float)worldState.ServerTimeSec;
-                remote.OnServerUpdate(new Vector2(kin.HeadPosition.X, kin.HeadPosition.Y),
-                      serverSeconds,
-                      kin.CurrentSpeed > 0.01f ? kin.CurrentSpeed
-                                               : (kin.BaseSpeed > 0f ? kin.BaseSpeed : 0f));
-                //float effectiveSpeed = kin.CurrentSpeed > 0.01f ? kin.CurrentSpeed : kin.BaseSpeed;
-                //remote.OnServerUpdate(headPos, serverTime, effectiveSpeed);
-                ApplyScaleFromMass(snake, kin.Mass);
-            }
-            else
-            { 
                 SpawnRemoteSnake(kin);
+                continue;
             }
-        }
 
-        // --- Process Food (Spawning) ---
-        HashSet<int> seenFood = new HashSet<int>();
-        foreach (var foodDto in worldState.Food)
-        {
-            if (foodDto == null) continue;
-            seenFood.Add(foodDto.Id);
-
-            if (!activeFood.ContainsKey(foodDto.Id))
+            if (!snake.TryGetComponent<RemoteSnake>(out var remote))
             {
-                ItemData itemToSpawn = itemDatabase.GetItemByKey(foodDto.ItemKey);
-                if (itemToSpawn == null) continue;
-
-                GameObject newFoodObj = ItemPooler.Instance.GetPooledObject(itemToSpawn);
-                if (newFoodObj != null)
-                {
-                    newFoodObj.transform.position = new Vector3(foodDto.PosX, foodDto.PosY, 0);
-                    newFoodObj.SetActive(true);
-
-                    if (newFoodObj.TryGetComponent<GeneratedItem>(out var genItem))
-                    {
-                        if (localPlayerSnake != null)
-                            genItem.SetData(itemToSpawn, localPlayerSnake.transform);
-                        genItem.Id = foodDto.Id;
-                    }
-                    activeFood.Add(foodDto.Id, newFoodObj);
-                }
+                remote = snake.gameObject.AddComponent<RemoteSnake>(); 
             }
-        }
+            
+            float syncedTime = Time.time + serverTimeOffset;
+            float speed = (kin.CurrentSpeed > 0.01f ? kin.CurrentSpeed :
+                          (kin.BaseSpeed > 0f ? kin.BaseSpeed : 0f));
 
-        DespawnUnseenSnakes(seenSnakes);
-        DespawnUnseenFood(seenFood);
+            remote.OnServerUpdate(
+                new Vector2(kin.HeadPosition.X, kin.HeadPosition.Y),
+                syncedTime,
+                speed
+            );
+            remote.ServerOffset = serverTimeOffset;
+
+            remote.SetTargetLength(kin.TargetLength); 
+            ApplyScaleFromMass(snake, kin.Mass);
+        } 
+
+        // ---------------------------------------------------------
+        // DESPAWN REMOVED SNAKES (no LINQ)
+        // ---------------------------------------------------------
+
+        foreach (var kv in otherSnakes.ToArray())
+        {
+            if (!_seenSnakes.Contains(kv.Key))
+                DespawnSnake(kv.Key);
+        } 
     }
+     
 
     /// <summary>
     /// Spawns any snake (local, remote, or AI)
     /// </summary>
-    private void SpawnSnake(PlayerStateDto playerState, bool isLocalPlayer)
-    {  
-        GameObject prefabToSpawn = isLocalPlayer ? snakeBasePrefab : enemyBasePrefab;
-        if (prefabToSpawn == null)
+    private void SpawnSnake(PlayerStateDto playerState)
+    {   
+        if (snakeBasePrefab == null)
         {
-            Debug.LogError($"Prefab for {(isLocalPlayer ? "snakeBasePrefab" : "enemyBasePrefab")} is not assigned!");
+            Debug.LogError($"Prefab for {"snakeBasePrefab"} is not assigned!");
             return;
         } 
 
         Vector3 startPos = new Vector3(playerState.HeadPosition.X, playerState.HeadPosition.Y, 0);
-        GameObject newSnakeObj = Instantiate(prefabToSpawn, startPos, Quaternion.identity);
-        if (!isLocalPlayer) 
-        {
-            newSnakeObj.tag = "EnemySnake";
-        }
+        GameObject newSnakeObj = Instantiate(snakeBasePrefab, startPos, Quaternion.identity);
 
         SegmentedCreator newSnake = newSnakeObj.GetComponent<SegmentedCreator>();
         if (newSnake == null)
         {
-            Debug.LogError($"CRITICAL: Prefab '{prefabToSpawn.name}' is missing 'SegmentedCreator'!", prefabToSpawn);
+            Debug.LogError($"CRITICAL: Prefab '{snakeBasePrefab.name}' is missing 'SegmentedCreator'!", snakeBasePrefab);
             Destroy(newSnakeObj);
             return;
         }
@@ -414,54 +409,32 @@ public class NetworkClient : MonoBehaviour
         target.position = startPos;
         newSnake.moveToTarget.Target = target;
 
-        if (isLocalPlayer)
-        { 
-            localPlayerSnake = newSnake;
-            newSnakeObj.AddComponent<SlitherMovement>();
+        localPlayerSnake = newSnake;
+        newSnakeObj.AddComponent<SlitherMovement>();
 
-            SlitherCameraFollow camFollow = FindObjectOfType<SlitherCameraFollow>();
-            if (camFollow != null)
-            {
-                camFollow.SetPlayer(newSnakeObj.transform);
-            }
-
-            var collisionManager = newSnakeObj.AddComponent<SlitherCollisionManager>();
-            collisionManager.SetPlayerId(myPlayerId);
-
-            if (newSnakeObj.GetComponent<Collider2D>() == null)
-            {
-                var col = newSnakeObj.AddComponent<CircleCollider2D>();
-                col.isTrigger = true;
-                col.radius = 0.5f;
-            }
-            // Ensure trigger callbacks fire: one object in the pair must have a Rigidbody2D
-            var rb2d = newSnakeObj.GetComponent<Rigidbody2D>();
-            if (rb2d == null)
-            {
-                rb2d = newSnakeObj.AddComponent<Rigidbody2D>();
-                rb2d.bodyType = RigidbodyType2D.Kinematic;
-                rb2d.gravityScale = 0f;
-                rb2d.constraints = RigidbodyConstraints2D.FreezeRotation;
-            }
+        SlitherCameraFollow camFollow = FindObjectOfType<SlitherCameraFollow>();
+        if (camFollow != null)
+        {
+            camFollow.SetPlayer(newSnakeObj.transform);
         }
-        else
-        {  
-            var localMove = newSnakeObj.GetComponent<SlitherMovement>();
-            if (localMove != null) Destroy(localMove);
 
-            otherSnakes.Add(playerState.PlayerId, newSnake);
-            // Do not move AI locally; server drives via snapshots via RemoteSnake interpolator
-            newSnake.moveToTarget.enableMoving = false;
-            var remote = newSnakeObj.GetComponent<RemoteSnake>();
-            if (remote == null)
-            {
-                remote = newSnakeObj.AddComponent<RemoteSnake>();
-                remote.ConfigureServerClock(serverTickToSec, serverTimeOffset);
-            }
-            
-            remote.SetTargetLength(playerState.TargetLength);
-            float serverSecondsSeed = (float)(System.DateTime.UtcNow - System.DateTime.UnixEpoch).TotalSeconds;
-            remote.OnServerUpdate(new Vector2(startPos.x, startPos.y), serverSecondsSeed, playerState.CurrentSpeed > 0.01f ? playerState.CurrentSpeed : (playerState.BaseSpeed > 0f ? playerState.BaseSpeed : 0f));
+        var collisionManager = newSnakeObj.AddComponent<SlitherCollisionManager>();
+        collisionManager.SetPlayerId(myPlayerId);
+
+        if (newSnakeObj.GetComponent<Collider2D>() == null)
+        {
+            var col = newSnakeObj.AddComponent<CircleCollider2D>();
+            col.isTrigger = true;
+            col.radius = 0.5f;
+        }
+        // Ensure trigger callbacks fire: one object in the pair must have a Rigidbody2D
+        var rb2d = newSnakeObj.GetComponent<Rigidbody2D>();
+        if (rb2d == null)
+        {
+            rb2d = newSnakeObj.AddComponent<Rigidbody2D>();
+            rb2d.bodyType = RigidbodyType2D.Kinematic;
+            rb2d.gravityScale = 0f;
+            rb2d.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
     }
 
@@ -500,19 +473,16 @@ public class NetworkClient : MonoBehaviour
         newSnake.moveToTarget.moveThroughTarget = false;
         newSnake.moveToTarget.enableWobble = false;
 
-       // Transform target = new GameObject($"{kin.PlayerId}_Target").transform;
-       // target.position = startPos;
-      //  newSnake.moveToTarget.Target = target;
-
         otherSnakes.Add(kin.PlayerId, newSnake);
 
         // Remote interpolation component
         var remote = newSnakeObj.GetComponent<RemoteSnake>();
         if (remote == null) remote = newSnakeObj.AddComponent<RemoteSnake>();
-        remote.ConfigureServerClock(serverTickToSec, serverTimeOffset);
-        float serverSecondsNow = (float)(System.DateTime.UtcNow - System.DateTime.UnixEpoch).TotalSeconds;
+       
+        float syncedTime = Time.time + serverTimeOffset;
         remote.SetTargetLength(kin.TargetLength);
-        remote.OnServerUpdate(new Vector2(startPos.x, startPos.y), serverSecondsNow, kin.CurrentSpeed > 0.01f ? kin.CurrentSpeed : (kin.BaseSpeed > 0f ? kin.BaseSpeed : 0f));
+        remote.OnServerUpdate(new Vector2(startPos.x, startPos.y), syncedTime, kin.CurrentSpeed > 0.01f ? kin.CurrentSpeed : (kin.BaseSpeed > 0f ? kin.BaseSpeed : 0f));
+        remote.ServerOffset = serverTimeOffset;
     }
 
     // Mass ? uniform visual scale to normalize sprite size differences
@@ -549,7 +519,48 @@ public class NetworkClient : MonoBehaviour
         float uniformScale = desiredThickness / spriteThickness;
         snake.transform.localScale = new Vector3(uniformScale, uniformScale, uniformScale);
     }
-    
+
+    private void ApplyFoodDelta(FoodDeltaDto delta)
+    { 
+        // --- Add new food ---
+        foreach (var f in delta.Added)
+        {
+            if (!activeFood.TryGetValue(f.Id, out var obj))
+            {
+                var item = itemDatabase.GetItemByKey(f.ItemKey);
+                if (item == null) continue;
+
+                obj = ItemPooler.Instance.GetPooledObject(item);
+                obj.transform.position = new Vector3(f.PosX, f.PosY, 0);
+                obj.SetActive(true);
+
+                if (obj.TryGetComponent<GeneratedItem>(out var gen))
+                {
+                    if (localPlayerSnake != null)
+                        gen.SetData(item, localPlayerSnake.transform);
+                    gen.Id = f.Id;
+                }
+
+                activeFood[f.Id] = obj;
+            }
+        }
+
+        // --- Remove dead foods ---
+        foreach (var id in delta.Removed)
+        {
+            if (activeFood.TryGetValue(id, out var obj))
+            {
+                if (obj.TryGetComponent<GeneratedItem>(out var gen))
+                    gen.ReturnToPool();
+                else
+                    obj.SetActive(false);
+
+                activeFood.Remove(id);
+            }
+        }
+        OnScreenDebug.Log("Successfully joined: " + activeFood.Count);
+    }
+
 
     private void HandlePlayerDeath(string deadPlayerId, string message)
     {

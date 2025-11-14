@@ -1,5 +1,4 @@
-﻿using NUnit.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace SnakyColors
@@ -14,26 +13,27 @@ namespace SnakyColors
             public float speed;
         }
 
-        [SerializeField] private float interpolationDelay = 0.1f; // buffer to hide jitter
-        [SerializeField] private float maxExtrapolate = 0.02f;      // seconds to predict when late
-        [SerializeField] private float dirLerp = 0.2f;              // orient smoothing
-        [SerializeField] private float easeRate = 7f;              // position easing rate (per second)
-
+        [SerializeField] private float interpolationDelay = 0.06f; // buffer to hide jitter
+        [SerializeField] private float maxExtrapolate = 0.03f;      // seconds to predict when late
+        [SerializeField] private float dirLerp = 0.15f;              // orient smoothing
+        [SerializeField] private float easeRate = 10f;              // position easing rate (per second) 
 
         private readonly List<Snapshot> _snaps = new List<Snapshot>(16);
         private SegmentedCreator _snake;
         [SerializeField] private bool debugTiming = false;
-        private float _nextDbg;
-        private bool _clockConfigured;
-        private float _tickToSec = 0.05f; // default 20 Hz
-        private float _serverOffsetSec = 0f;
+        private float _nextDbg; 
+        private float _serverOffsetSec = 0f; 
+        public float ServerOffset
+        {
+            set { _serverOffsetSec = value; }
+        }
 
         private void Awake()
         {
             _snake = GetComponent<SegmentedCreator>();
             if (_snake != null && _snake.moveToTarget != null)
             {
-                _snake.moveToTarget.enableMoving = false; // never simulate remotes locally
+                _snake.moveToTarget.enableMoving = false;
             }
         }
 
@@ -41,21 +41,17 @@ namespace SnakyColors
         {
             if (_snake == null) return;
             _snake.SetRibCountNoClear(Mathf.Max(2, len));
-        }
-
-        // Feed by NetworkClient on each server update.
-        public void ConfigureServerClock(float tickToSec, float serverOffsetSec)
-        {
-            _tickToSec = Mathf.Max(0.0001f, tickToSec);
-            _serverOffsetSec = serverOffsetSec;
-            _clockConfigured = true;
-            if (debugTiming) Debug.Log($"[REMOTE] Clock configured: tickToSec={_tickToSec:F3} offset={_serverOffsetSec:F3}");
-        }
+        } 
 
         // Feed by NetworkClient on each server update (server seconds)
         public void OnServerUpdate(Vector2 headPos, float serverSeconds, float? serverSpeed = null)
         {
             float serverTime = serverSeconds;
+            if (_snaps.Count > 0 && serverTime <= _snaps[_snaps.Count - 1].t)
+            {
+                serverTime = _snaps[_snaps.Count - 1].t + 0.0001f;
+            }
+
             Vector2 pos = headPos;
 
             // derive dir/speed from last sample if not provided
@@ -85,25 +81,19 @@ namespace SnakyColors
             if (_snaps.Count > 0)
             {
                 var last = _snaps[_snaps.Count - 1];
-                pos = Vector2.Lerp(last.pos, pos, 0.85f);   // soften noisy packets
+                float blend = Mathf.Lerp(0.55f, 0.75f, Mathf.InverseLerp(0f, 6f, spd));
+                pos = Vector2.Lerp(last.pos, pos, blend);
+                //pos = Vector2.Lerp(last.pos, pos, 0.7f);   // soften noisy packets
             }
-            _snaps.Add(new Snapshot { t = serverTime, pos = pos, dir = dir, speed = spd });
-            // append, keep ~1s
             _snaps.Add(new Snapshot { t = serverTime, pos = pos, dir = dir, speed = spd });
             float minKeep = serverTime - 1.0f;
             while (_snaps.Count > 2 && _snaps[0].t < minKeep) _snaps.RemoveAt(0);
-        }
-
-        // Convenience overload for tick-based input
-        public void OnServerUpdate(Vector2 headPos, int serverTick, float? serverSpeed = null)
-        {
-            OnServerUpdate(headPos, serverTick * _tickToSec, serverSpeed);
-        }
+        } 
 
         private void Update()
         {
             if (_snaps.Count == 0) return;
-            float renderTime = (_clockConfigured ? (Time.time + _serverOffsetSec) : Time.time) - interpolationDelay;
+            float renderTime = (Time.time + _serverOffsetSec) - interpolationDelay;
             if (debugTiming && Time.time >= _nextDbg)
             {
                 float latest = _snaps[_snaps.Count - 1].t;
@@ -113,7 +103,7 @@ namespace SnakyColors
 
             // ensure we have at least 2 snapshots bracketing renderTime, else handle edges
             // drop older ones while the second snapshot is still <= render time
-            while (_snaps.Count >= 2 && _snaps[1].t <= renderTime)
+            while (_snaps.Count >= 3 && _snaps[1].t < renderTime)
                 _snaps.RemoveAt(0);
 
             Vector3 newPos;

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Numerics;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Khela.Game.Services
 {
@@ -45,40 +46,81 @@ namespace Khela.Game.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await Task.Delay(5000, stoppingToken); // Let other systems boot
-            _logger.LogInformation("AI Service started (20Hz).");
+            try { await Task.Delay(Random.Shared.Next(10, 40), stoppingToken); } catch { }
 
-            try { await Task.Delay(Random.Shared.Next(10, 25), stoppingToken); } catch { }
+            _logger.LogInformation("AIService started at {Hz}Hz", 1.0 / _aiTickInterval.TotalSeconds);
+
+            var stopwatch = Stopwatch.StartNew();
+            var nextTick = stopwatch.Elapsed;
+            long tickCount = 0;
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                var tickStart = DateTime.UtcNow;
+                var now = stopwatch.Elapsed;
 
-                try
+                // Run tick precisely when expected
+                if (now >= nextTick)
                 {
-                    var worlds = GameState.Instance.Worlds.Values.ToArray();
-                    foreach (var world in worlds)
+                    var tickStart = stopwatch.Elapsed;
+
+                    try
                     {
-                        try
+                        // Snapshot worlds once per tick (safe)
+                        var worlds = GameState.Instance.Worlds.Values.ToArray();
+
+                        foreach (var world in worlds)
                         {
-                            await ManageAIForWorld(world, stoppingToken);
+                            try
+                            {
+                                await ManageAIForWorld(world, stoppingToken);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "AI error in world {WorldId}", world.WorldId);
+                            }
                         }
-                        catch (Exception ex)
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "AI main tick loop failure");
+                    }
+
+                    tickCount++;
+                    nextTick += _aiTickInterval;     // schedule the next tick
+
+                    // Catch-up logic — but safe and non-spiraling
+                    while (stopwatch.Elapsed - nextTick > _aiTickInterval)
+                        nextTick += _aiTickInterval;
+
+                    // OPTIONAL: Tick performance monitoring every 100 cycles
+                    if (tickCount % 100 == 0)
+                    {
+                        var elapsedSec = stopwatch.Elapsed.TotalSeconds;
+                        if (elapsedSec > 0)
                         {
-                            _logger.LogError(ex, "AI world loop error for {WorldId}", world.WorldId);
+                            var eff = tickCount / elapsedSec;
+                            _logger.LogInformation("AI: {Ticks} ticks in {Sec:F1}s → {Rate:F2}Hz",
+                                tickCount, elapsedSec, eff);
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "AI main loop error.");
-                }
 
-                var elapsed = DateTime.UtcNow - tickStart;
-                var delay = _aiTickInterval - elapsed;
-                if (delay > TimeSpan.Zero)
-                    await Task.Delay(delay, stoppingToken);
+                // Compute remaining time before next tick
+                var sleep = nextTick - stopwatch.Elapsed;
+
+                if (sleep > TimeSpan.Zero)
+                {
+                    // AI sleeps lightly — DOES NOT flood CPU
+                    await Task.Delay(sleep, stoppingToken);
+                }
+                else
+                {
+                    // Behind schedule, yield control but don't spam
+                    await Task.Yield();
+                }
             }
+
+            _logger.LogInformation("AIService stopped.");
         }
 
         // =====================================================
@@ -106,8 +148,8 @@ namespace Khela.Game.Services
 
             if (aiNeeded > 0)
             {
-                _logger.LogInformation("World {WorldId} needs {Needed} AI snakes. Spawning...",
-                    world.WorldId, aiNeeded);
+                //_logger.LogInformation("World {WorldId} needs {Needed} AI snakes. Spawning...",
+                //    world.WorldId, aiNeeded);
 
                 for (int i = 0; i < aiNeeded; i++)
                 {
@@ -170,14 +212,13 @@ namespace Khela.Game.Services
                     segments.Add(new SerializableVector2(0, 0));
                 }
 
-                Vector2 head = segments[^1];
+                Vector2 head = segments[0];
                 Vector2 prevDir = Vector2.Zero;
 
                 if (segments.Count >= 2)
                 {
-                    var tail2 = segments[^1] - segments[^2];
-                    if (tail2.LengthSquared() > 0.0001f)
-                        prevDir = Vector2.Normalize(tail2);
+                    var hd2 = segments[0] - segments[1]; 
+                    prevDir = hd2.LengthSquared() > 0.0001f ? NormalizeSafe(hd2) : Vector2.Zero;
                 }
 
                 // --- Target food selection (same logic) ---
@@ -187,18 +228,33 @@ namespace Khela.Game.Services
                     nearest = foods.FirstOrDefault(f => f.Id == targetId);
 
                 if (nearest == null)
-                {
-                    var nearby = foods
-                        .OrderBy(f => Vector2.DistanceSquared(head, f.Position))
-                        .Take(8)
-                        .ToList();
+                { 
+                    FoodState[] top = new FoodState[8];
+                    float[] best = new float[8];
 
-                    if (nearby.Count > 0)
+                    for (int i = 0; i < 8; i++)
+                        best[i] = float.MaxValue;
+
+                    foreach (var f in foods)
                     {
-                        int pick = Math.Abs(StableHash(aiId) + world.Tick) % nearby.Count;
-                        nearest = nearby[pick];
-                        _targetFood[aiId] = nearest.Id;
+                        float d2 = Vector2.DistanceSquared(head, f.Position);
+
+                        // Check if it's better than the worst (slot 7)
+                        if (d2 < best[7])
+                        {
+                            // Insert sorted
+                            int j = 7;
+                            while (j > 0 && d2 < best[j - 1])
+                            {
+                                best[j] = best[j - 1];
+                                top[j] = top[j - 1];
+                                j--;
+                            }
+                            best[j] = d2;
+                            top[j] = f;
+                        }
                     }
+                    nearest = top.FirstOrDefault(f => f != null);
                 }
 
                 Vector2 desired = Vector2.Zero;
@@ -275,11 +331,11 @@ namespace Khela.Game.Services
                 }
 
                 // --- Update body (same growth & trim logic) ---
-                segments.Add(new SerializableVector2(newHead));
+                segments.Insert(0, new SerializableVector2(newHead));
 
                 int targetLen = snake.TargetLength;
                 while (segments.Count > targetLen && segments.Count > 1)
-                    segments.RemoveAt(0);
+                    segments.RemoveAt(segments.Count - 1);
 
                 snake.BodySegments = segments;
                 snake.CurrentSpeed = speed;
