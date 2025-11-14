@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using Khela.Game.Dtos;
 
 namespace Khela.Game.Models.States
@@ -38,6 +39,66 @@ namespace Khela.Game.Models.States
         public void RemoveWorld(string id) => Worlds.TryRemove(id, out _);
         public void RemovePlayer(string id) => Players.TryRemove(id, out _);
         public void RemoveFood(int id) => Foods.TryRemove(id, out _);
+
+        /// <summary>
+        /// Gets a list of all PlayerState objects (both human and AI)
+        /// currently active in the specified world.
+        /// </summary>
+        /// <param name="worldId">The ID of the world to query.</param>
+        /// <returns>A List of all PlayerState objects, or an empty list if the world is not found.</returns>
+        public List<PlayerState> GetAllPlayersByWorld(string worldId)
+        {
+            if (!Worlds.TryGetValue(worldId, out var world))
+            {
+                return new List<PlayerState>();
+            }
+
+            // Combine the player and AI snake IDs from the world
+            var allPlayerIds = world.SnakeIds.Keys.Concat(world.AISnakeIds.Keys);
+
+            var players = new List<PlayerState>();
+            foreach (var pid in allPlayerIds)
+            {
+                // Look up the full PlayerState from the global dictionary
+                if (Players.TryGetValue(pid, out var player))
+                {
+                    players.Add(player);
+                }
+            }
+
+            return players;
+        }
+
+        /// <summary>
+        /// Gets a list of human-controlled PlayerState objects (excluding AI)
+        /// currently active in the specified world.
+        /// </summary>
+        /// <param name="worldId">The ID of the world to query.</param>
+        /// <returns>A List of human PlayerState objects, or an empty list if the world is not found.</returns>
+        public List<PlayerState> GetPlayersByWorld(string worldId)
+        {
+            if (!Worlds.TryGetValue(worldId, out var world))
+            {
+                return new List<PlayerState>();
+            }
+
+            var players = new List<PlayerState>();
+            // Iterate only over the SnakeIds, which contains human players
+            foreach (var pid in world.SnakeIds.Keys)
+            {
+                // Look up the full PlayerState from the global dictionary
+                if (Players.TryGetValue(pid, out var player))
+                {
+                    // Double-check IsAI flag just in case, though the list implies it.
+                    if (!player.IsAI)
+                    {
+                        players.Add(player);
+                    }
+                }
+            }
+
+            return players;
+        }
 
         // =====================================================
         // SNAPSHOT BUILDERS
@@ -352,6 +413,29 @@ namespace Khela.Game.Models.States
                 Added = added,
                 Removed = removed
             };
+        }
+
+        public FoodStateDto[] BuildFullFoodSnapshot(string worldId)
+        {
+            if (!Worlds.TryGetValue(worldId, out var world) || world.FoodIds == null || world.FoodIds.IsEmpty)
+                return Array.Empty<FoodStateDto>();
+
+            var list = new List<FoodStateDto>(world.FoodIds.Count);
+            foreach (var fid in world.FoodIds.Keys)
+            {
+                if (!Foods.TryGetValue(fid, out var food))
+                    continue;
+
+                list.Add(new FoodStateDto
+                {
+                    Id = food.Id,
+                    PosX = food.Position.X,
+                    PosY = food.Position.Y,
+                    ItemKey = food.ItemKey
+                });
+            }
+
+            return list.ToArray();
         }
 
     }

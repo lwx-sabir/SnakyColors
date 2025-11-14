@@ -22,7 +22,7 @@ namespace Khela.Game.Services
         // Dynamic sizing parameters
         private const float MIN_WORLD_SIZE = 150f;
         private const float SIZE_PER_PLAYER = 15f;
-        private const int FOOD_PER_PLAYER = 25;
+        private const int FOOD_PER_PLAYER = 35;
 
         public ArenaManagerService(ILogger<ArenaManagerService> logger)
         {

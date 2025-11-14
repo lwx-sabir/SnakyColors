@@ -42,33 +42,17 @@ namespace SnakyColors
                     _reportedFoodCooldown[item.Id] = now + ReportCooldownSeconds;
                 }
 
-           //     Debug.Log($"COLLISION: Food hit (id={item.Id}). Reporting to server and playing VFX.");
-                // Tell the server we ate this
-                NetworkClient.Instance.ReportFoodEaten(item.Id);
-
-                // Let the item handle all VFX/SFX + pooling for slither
+           //     Debug.Log($"COLLISION: Food hit (id={item.Id}). Playing VFX + pooling (server authoritative).");
+                // Play VFX/SFX locally and return to pool; server will validate and broadcast.
                 item.CollectForSlither(this.transform);
                 return;
             }
 
-            // --- 2. Check for Enemy Snake Body ---
-            // (This assumes other snakes have a collider on their body segments)
-            if (other.CompareTag("EnemySnake")) // You'll need to tag your prefabs
+            // --- 2. Player collisions and boundaries are authoritative on server --- 
+            // We intentionally do nothing here for EnemySnake or Boundary collisions.
+            if (other.CompareTag("EnemySnake") || other.CompareTag("Boundary"))
             {
-                // We hit another snake!
-                // Unknown killer for now; avoid misattribution
-                Debug.Log("COLLISION: EnemySnakeBody. Reporting death (killerId=null).");
-                NetworkClient.Instance.ReportPlayerDied(null);
-                HandleLocalDeath();
-            }
-
-            // --- 3. Check for Boundary ---
-            if (other.CompareTag("Boundary"))
-            {
-                // We hit a wall.
-                Debug.Log("COLLISION: Boundary. Reporting death (boundary).");
-                NetworkClient.Instance.ReportPlayerDied(null); // null = hit a wall
-                HandleLocalDeath();
+                return;
             }
         }
 

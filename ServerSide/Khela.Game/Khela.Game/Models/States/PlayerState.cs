@@ -22,29 +22,40 @@ namespace Khela.Game.Models.States
         public float MaxTurningAngle { get; set; } = 1000f;
         public float PerSegmentDist { get; set; } = 0.5f;
 
-        public List<SerializableVector2> BodySegments { get; set; } = new();
-
-        // HEAD = index 0
-        [JsonIgnore]
-        public Vector2 HeadPosition
-        {
-            get => BodySegments.Count > 0 ? BodySegments[0] : Vector2.Zero;
-            set
-            {
-                if (BodySegments.Count == 0)
-                    BodySegments.Add(value);
-                else
-                    BodySegments[0] = value;
-            }
-        }
-
-        // TAIL = last index
-        [JsonIgnore]
-        public Vector2 TailPosition =>
-            BodySegments.Count > 0 ? BodySegments[^1] : Vector2.Zero;
+        public List<SerializableVector2> BodySegments { get; set; } = new List<SerializableVector2>();
 
         [JsonIgnore]
-        public int TargetLength => 15 + (int)(Score / 10f);
+        public Vector2 HeadPosition => BodySegments.Count > 0
+            ? new Vector2(BodySegments[^1].X, BodySegments[^1].Y)
+            : Vector2.Zero;
+
+        [JsonIgnore]
+        public Vector2 TailPosition => BodySegments.Count > 0
+            ? new Vector2(BodySegments[0].X, BodySegments[0].Y)
+            : Vector2.Zero;
+
+        [JsonIgnore]
+        public int TargetLength => 20 + (int)(Score / 10f);
+
+        // === NEW: server-side runtime state ===
+
+        /// <summary>
+        /// Latest input direction from client (unit vector or zero).
+        /// </summary>
+        [JsonIgnore]
+        public Vector2 PendingInputDir { get; set; } = Vector2.Zero;
+
+        /// <summary>
+        /// Current forward direction used by the simulator.
+        /// </summary>
+        [JsonIgnore]
+        public Vector2 ForwardDir { get; set; } = Vector2.UnitY;
+
+        /// <summary>
+        /// Internal wobble phase (for future server-side wobble).
+        /// </summary>
+        [JsonIgnore]
+        public float WobblePhase { get; set; } = 0f;
 
         public PlayerState() { }
 

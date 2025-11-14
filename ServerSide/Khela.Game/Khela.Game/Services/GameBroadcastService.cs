@@ -82,24 +82,7 @@ namespace Khela.Game.Services
             var deltaFood = GameState.Instance.BuildFoodDelta(worldId);
              
             if (worldState == null)
-                return;
-
-            // Diff check
-            //if (world.Tick % 10 == 0 && _lastSentState.TryGetValue(worldId, out var prev))
-            //{
-            //    bool snakesChanged = worldState.Snakes.Any(s =>
-            //        prev.Snakes.All(p => p.PlayerId != s.PlayerId ||
-            //                             p.HeadPosition.X != s.HeadPosition.X ||
-            //                             p.HeadPosition.Y != s.HeadPosition.Y));
-
-            //    bool foodChanged = worldState.Food.Any(f =>
-            //        prev.Food.All(p => p.Id != f.Id ||
-            //                           p.PosX != f.PosX ||
-            //                           p.PosY != f.PosY));
-
-            //    if (!snakesChanged && !foodChanged)
-            //        return;
-            //}
+                return; 
 
             try
             {
@@ -108,18 +91,37 @@ namespace Khela.Game.Services
                 // =============================
                 //   Measure snapshot size
                 // =============================
-                //var json = JsonSerializer.Serialize(new { deltaFood , worldState});
-                //var byteCount = Encoding.UTF8.GetByteCount(json);
-                //var kb = byteCount / 1024.0;
 
-                //_logger.LogInformation(
-                //    $"[Broadcast] world={worldId} snapshot size = {kb:F2} KB ({byteCount} bytes), " +
-                //    $"snakes={worldState.Snakes.Length}");
+                if(world.Tick % 100 == 0)
+                {
+                    var json = JsonSerializer.Serialize(new { deltaFood, worldState });
+                    var byteCount = Encoding.UTF8.GetByteCount(json);
+                    var kb = byteCount / 1024.0;
 
+                    _logger.LogInformation(
+                        $"[Broadcast] world={worldId} snapshot size = {kb:F2} KB ({byteCount} bytes), " +
+                        $"snakes={worldState.Snakes.Length}");
+                }  
                 // =============================
 
+                // Send immutable copies to avoid any concurrent modification during serialization
+                var wireDelta = new
+                {
+                    Added = (deltaFood?.Added != null) ? deltaFood.Added.ToArray() : Array.Empty<FoodStateDto>(),
+                    Removed = (deltaFood?.Removed != null) ? deltaFood.Removed.ToArray() : Array.Empty<int>()
+                };
+
+                // worldState.Snakes is already an array; it's safe to reuse
+                var wireState = new WorldUpdateDto
+                {
+                    Snakes = worldState.Snakes,
+                    WorldSize = worldState.WorldSize,
+                    ServerTimeSec = worldState.ServerTimeSec,
+                    ServerUtc = worldState.ServerUtc
+                };
+
                 await _hubContext.Clients.Group(worldId)
-                    .SendAsync("WorldUpdate", worldState, deltaFood);
+                    .SendAsync("WorldUpdate", wireState, wireDelta);
 
                 _lastSentState[worldId] = worldState;
             }

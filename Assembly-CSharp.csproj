@@ -145,6 +145,7 @@
     <Compile Include="Assets\Snaky Colors\Scripts\Slither\Core\Runtime\modules\Skin.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\Constants\SaveKey.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GameMangers\SoundManager.cs" />
+    <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\LocalPredictedSnake.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Players\PlayerMovement.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\Joystick.cs" />
     <Compile Include="Assets\Snaky Colors\Scripts\GamePlay\Slither\RemoteSnake.cs" />

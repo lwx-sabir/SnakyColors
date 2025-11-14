@@ -1,18 +1,13 @@
 ﻿// ==============================================
-// SnakeHub.cs
+// SnakeHub.cs (Hardened Version)
 // Author: Reza Sabir (CasualLabInteractive)
-// Version: 1.0.1 (Production Stable)
-// Description:
-// SignalR authoritative relay for player-world interaction.
-// - Handles connection lifecycle
-// - Joins, state updates, deaths, food reports
-// - Forwards all logic to GameEngine (authoritative server)
+// Version: 1.0.2 (Hardened)
 // ==============================================
 
 using Khela.Game.Services;
 using Microsoft.AspNetCore.SignalR;
 using Khela.Game.Models;
-using Khela.Game.Models.States; 
+using Khela.Game.Models.States;
 
 namespace Khela.Game.Managers.SRHubs
 {
@@ -28,9 +23,9 @@ namespace Khela.Game.Managers.SRHubs
         }
 
         // =====================================================
-        // === Join Main World ===
+        // === Join Main World (only time client sends ID) ===
         // =====================================================
-        public async Task JoinMainWorld(string playerId, string skinId)
+        public async Task JoinMainWorld(string playerId, string skinId, float segmentSpacing)
         {
             if (string.IsNullOrEmpty(playerId))
                 return;
@@ -44,7 +39,15 @@ namespace Khela.Game.Managers.SRHubs
                 return;
             }
 
-            var player = await _worldManager.AddPlayerToWorldAsync(connectionId, world.WorldId, playerId, skinId);
+            // playerId only trusted DURING JOIN
+            var player = await _worldManager.AddPlayerToWorldAsync(
+                connectionId,
+                world.WorldId,
+                playerId,
+                segmentSpacing,
+                skinId
+            );
+
             if (player == null)
             {
                 await Clients.Caller.SendAsync("JoinFailed", "Player already in world or error.");
@@ -52,7 +55,7 @@ namespace Khela.Game.Managers.SRHubs
             }
 
             await Groups.AddToGroupAsync(connectionId, world.WorldId);
-            await Clients.Caller.SendAsync("OnJoinSuccess", player);
+            await Clients.Caller.SendAsync("OnJoinSuccess", player); 
         }
 
         // =====================================================
@@ -64,7 +67,6 @@ namespace Khela.Game.Managers.SRHubs
 
             if (player != null && world != null)
             {
-                // --- FIX: Broadcast PlayerId, not ConnectionId ---
                 await Clients.Group(world.WorldId).SendAsync("OnPlayerLeft", player.PlayerId);
             }
 
@@ -72,9 +74,24 @@ namespace Khela.Game.Managers.SRHubs
         }
 
         // =====================================================
-        // === Client → Server: Player State Update ===
+        // === Client → Server: Player State Update (HARDENED) ===
         // =====================================================
-        public async Task UpdateState(List<SerializableVector2> bodySegments, bool isBoosting)
+        public async Task UpdateState(SerializableVector2 inputDir, bool isBoosting)
+        {
+            var gs = GameState.Instance;
+
+            // Strict: never trust client to pass playerId
+            if (!gs.Connections.TryGetValue(Context.ConnectionId, out var playerId) ||
+                string.IsNullOrEmpty(playerId))
+                return;
+
+            await _gameEngine.OnPlayerStateUpdate(playerId, inputDir, isBoosting);
+        }
+
+        // =====================================================
+        // === Client → Server: Food Eaten (HARDENED) ===
+        // =====================================================
+        public async Task ReportFoodEaten(int foodId)
         {
             var gs = GameState.Instance;
 
@@ -82,22 +99,11 @@ namespace Khela.Game.Managers.SRHubs
                 string.IsNullOrEmpty(playerId))
                 return;
 
-            await _gameEngine.OnPlayerStateUpdate(playerId, bodySegments, isBoosting);
-        }
-
-        // =====================================================
-        // === Client → Server: Food Eaten ===
-        // =====================================================
-        public async Task ReportFoodEaten(int foodId, string playerId)
-        {
-            if (string.IsNullOrEmpty(playerId))
-                return;
-
             await _gameEngine.OnPlayerAteFood(playerId, foodId);
         }
 
         // =====================================================
-        // === Client → Server: Player Died ===
+        // === Client → Server: Player Died (HARDENED) ===
         // =====================================================
         public async Task ReportPlayerDied(string killerId)
         {

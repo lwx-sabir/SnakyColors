@@ -35,58 +35,58 @@ namespace SnakyColors
             }
         }
 
-        public override VisualElement CreateInspectorGUI()
-        {
-            rootUI = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Snaky Colors/Scripts/Slither/Core/Editor/UI/2DCreaturesUI.uxml").Instantiate();
-            rootUI.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/Snaky Colors/Scripts/Slither/Core/Editor/UI/UIStyling.uss"));
+        //public override VisualElement CreateInspectorGUI()
+        //{
+        //    rootUI = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Snaky Colors/Scripts/Slither/Core/Editor/UI/2DCreaturesUI.uxml").Instantiate();
+        //    rootUI.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/Snaky Colors/Scripts/Slither/Core/Editor/UI/UIStyling.uss"));
 
 
-            SetupPagesForHeaderSelection();
+        //    SetupPagesForHeaderSelection();
 
-            SetupPageTopToggles();
+        //    SetupPageTopToggles();
 
-            // skin scriptable Object Field
-            VisualElement spriteSetupPage = rootUI.Q<VisualElement>("SpriteContent");
-            VisualElement patternSetupPage = rootUI.Q<VisualElement>("patternPage");
-            rootUI.Q<ObjectField>("soObjectField").RegisterValueChangedCallback(evt =>
-            {
-                if (evt.newValue is ScriptableObject soInstance)
-                {
-                    SetupBindingsForSkinItems();
+        //    // skin scriptable Object Field
+        //    VisualElement spriteSetupPage = rootUI.Q<VisualElement>("SpriteContent");
+        //    VisualElement patternSetupPage = rootUI.Q<VisualElement>("patternPage");
+        //    rootUI.Q<ObjectField>("soObjectField").RegisterValueChangedCallback(evt =>
+        //    {
+        //        if (evt.newValue is ScriptableObject soInstance)
+        //        {
+        //            SetupBindingsForSkinItems();
 
-                    OnMainNavClicked(segmentedCreator.mainNavIndex);
-                }
-                else
-                {
-                    spriteSetupPage.style.display = DisplayStyle.None;
-                    patternSetupPage.style.display = DisplayStyle.None;
-                }
-            });
+        //            OnMainNavClicked(segmentedCreator.mainNavIndex);
+        //        }
+        //        else
+        //        {
+        //            spriteSetupPage.style.display = DisplayStyle.None;
+        //            patternSetupPage.style.display = DisplayStyle.None;
+        //        }
+        //    });
 
-            AddSOButton(); // add button for scriptable object (Skin)
-
-
-            SetupPagesForPatternSelection();
-
-            SetupCustomPrefabPage();
+        //    AddSOButton(); // add button for scriptable object (Skin)
 
 
-            RefreshCreatureForTweaks();
+        //    SetupPagesForPatternSelection();
+
+        //    SetupCustomPrefabPage();
 
 
-            // item inside movement page
-            var movementPage = rootUI.Q<TemplateContainer>("MovementPage");
-
-            VisualElement wobblePage = movementPage.Q<VisualElement>("WobbleProp");
-            movementPage.Q<Toggle>("moveThruTarget").RegisterValueChangedCallback((evt) => wobblePage.SetEnabled(!evt.newValue));
+        //    RefreshCreatureForTweaks();
 
 
-            // render sorting slider callback
-            rootUI.Q<SliderInt>("RibCountSlider").RegisterValueChangedCallback((evt) => UpdateRenderSortingSliderRange());
+        //    // item inside movement page
+        //    var movementPage = rootUI.Q<TemplateContainer>("MovementPage");
+
+        //    VisualElement wobblePage = movementPage.Q<VisualElement>("WobbleProp");
+        //    movementPage.Q<Toggle>("moveThruTarget").RegisterValueChangedCallback((evt) => wobblePage.SetEnabled(!evt.newValue));
 
 
-            return rootUI;
-        }
+        //    // render sorting slider callback
+        //    rootUI.Q<SliderInt>("RibCountSlider").RegisterValueChangedCallback((evt) => UpdateRenderSortingSliderRange());
+
+
+        //    return rootUI;
+        //}
 
 
         // setting render sorting slider

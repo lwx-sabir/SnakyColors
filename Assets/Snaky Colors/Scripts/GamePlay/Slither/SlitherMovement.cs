@@ -81,54 +81,17 @@ namespace SnakyColors
         }
 
         void LateUpdate()
-        {
-            // Send state AFTER the snake has moved (SegmentedCreator updates in LateUpdate)
+        { 
             if (Time.time >= nextStateSendTime && NetworkClient.Instance != null && NetworkClient.Instance.localPlayerState != null)
             {
                 SendStateToServer();
                 nextStateSendTime = Time.time + stateSendRate;
             }
         }
-
-        // Client-side steering + target lead placement.
-        // Head motion is handled only by SegmentedCreator -> MoveToTarget in LateUpdate.
+         
         void RunLocalMovement()
         {
-            if (snakeTarget == null || localSnake == null || localSnake.moveToTarget == null)
-                return;
-
-            // Orient the target from input; MoveToTarget will rotate the head with its own turn cap
-            Vector3 desired = new Vector3(currentInputDirection.x, currentInputDirection.y, 0f);
-            if (desired.sqrMagnitude > 0.0001f)
-                snakeTarget.up = desired.normalized;
-
-            // Speed for the head mover
-            float baseSpeed = (playerState != null)
-                ? (isBoosting ? playerState.BoostSpeed : playerState.CurrentSpeed)
-                : (localSnake.moveToTarget.movingSpeed > 0f ? localSnake.moveToTarget.movingSpeed : 3f);
-
-            localSnake.moveToTarget.movingSpeed = baseSpeed;
-
-            // Scale turn rate with speed so turning radius stays ~constant when boosting.
-            // Prefer server-provided BaseSpeed as reference; fall back to last non-boost speed snapshot.
-            if (playerState != null)
-            {
-                if (!isBoosting)
-                {
-                    baseNonBoostSpeedRef = Mathf.Max(0.001f, playerState.CurrentSpeed);
-                }
-
-                float refSpeed = (playerState.BaseSpeed > 0f)
-                    ? playerState.BaseSpeed
-                    : (baseNonBoostSpeedRef > 0f ? baseNonBoostSpeedRef : Mathf.Max(0.001f, playerState.CurrentSpeed));
-
-                float baseMaxAngle = playerState.MaxTurningAngle; // deg/sec at non-boost speed
-                float effectiveAngle = baseMaxAngle * (baseSpeed / refSpeed);
-                localSnake.moveToTarget.maxTurningAngle = effectiveAngle; // deg/sec
-            }
-
-            // Keep the target a fixed lead ahead of the head (prevents runaway/circling)
-            snakeTarget.position = snakeHead.position + snakeTarget.up * targetDistance;
+            NetworkClient.Instance.PendingInput = currentInputDirection; 
         }
 
         Vector2 GetKeyboardInput()
@@ -142,20 +105,13 @@ namespace SnakyColors
             return v;
         }
 
-        // Converts our local visual state into serializable data and sends it.
+        // Converts our local visual state into serializable data and sends it. 
         void SendStateToServer()
         {
-            if (NetworkClient.Instance == null || NetworkClient.Instance.localPlayerState == null) return; 
-             
-            var bodySegments = new List<SerializableVector2>();
-            for (int i = localSnake.RibPositions.Count - 1; i >= 0; i--)
-            {
-                var pos = localSnake.RibPositions[i];
-                bodySegments.Add(new SerializableVector2(pos.x, pos.y));
-            }
-
-            // Server is authoritative for speed; send only segments + boosting
-            NetworkClient.Instance.SendState(bodySegments, isBoosting); 
-        }
+            if (NetworkClient.Instance == null || NetworkClient.Instance.localPlayerState == null)
+                return;
+              
+            NetworkClient.Instance.SendState(new SerializableVector2(currentInputDirection.x, currentInputDirection.y), isBoosting);
+        } 
     }
 }

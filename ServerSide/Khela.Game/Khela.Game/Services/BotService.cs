@@ -23,16 +23,21 @@ namespace Khela.Game.Services
         private const float FOOD_ATTRACT_WEIGHT = 1.0f;
         private const float INWARD_WEIGHT = 0.35f;
         private const float PREV_DIR_WEIGHT = 0.3f;
-        private const int SEGMENT_SAMPLE_STRIDE = 5;
-
-        private const float EAT_RADIUS = 0.75f;
-        private const float COLLISION_RADIUS = 0.75f;
+        
+        // === Avoidance tuning ===
+        private const float DANGER_AVOID_WEIGHT = 1.1f; // repulsion weight
+        private const float MAX_AVOID_DIST = 2.0f;      // meters
+        private const float MIN_AVOID_DIST = 0.6f;      // clamp singularity
+        private const int MAX_AVOID_SAMPLES = 8;        // limit checks per AI
          
         // Persistent per-AI target food
         private readonly ConcurrentDictionary<string, int> _targetFood = new();
 
-        // Persistent per-AI movement memory (for the unused random test helper / can be reused)
-        private readonly ConcurrentDictionary<string, (Vector2 dir, int ticksLeft)> _aiMoveMemory = new();
+        // Persistent per-AI movement memory (unused) — removed for GC hygiene
+        // private readonly ConcurrentDictionary<string, (Vector2 dir, int ticksLeft)> _aiMoveMemory = new();
+
+        // Soft food claim map to reduce dogpiling (foodId -> (aiId, d2, ts))
+        private readonly ConcurrentDictionary<int, (string owner, float d2, long ts)> _foodClaims = new();
 
         public AIService(
             ILogger<AIService> logger,
@@ -157,7 +162,7 @@ namespace Khela.Game.Services
                     string aiConnId = $"ai-conn-{Guid.NewGuid():N}";
 
                     // Uses in-memory WorldManager; it already adds to AISnakeIds
-                    await _worldManager.AddPlayerToWorldAsync(aiConnId, world.WorldId, aiPlayerId, "greenskin", isAi: true);
+                    await _worldManager.AddPlayerToWorldAsync(aiConnId, world.WorldId, aiPlayerId, 1f, "greenskin", isAi: true);
                 }
 
                 // Refresh AI list after spawn
@@ -168,7 +173,16 @@ namespace Khela.Game.Services
             }
 
             if (world.AISnakeIds.Count > 0 && aiSnakes.Count > 0)
+            {
+                // GC stale claims (foods removed globally) without building a hash set
+                foreach (var fid in _foodClaims.Keys)
+                {
+                    if (!gs.Foods.ContainsKey(fid))
+                        _foodClaims.TryRemove(fid, out _);
+                }
+
                 MoveAIs(world, aiSnakes);
+            }
 
             return;
         }
@@ -182,24 +196,32 @@ namespace Khela.Game.Services
             var gs = GameState.Instance;
             float worldHalf = world.Config.WorldSize / 2f;
             float dt = (float)_aiTickInterval.TotalSeconds;
-            float colR2 = COLLISION_RADIUS * COLLISION_RADIUS;
 
-            // --- Food snapshot ---
-            var foods = world.FoodIds.Keys
-                .Select(id => gs.TryGetFood(id, out var f) ? f : null)
-                .Where(f => f != null)
-                .ToList();
+            // --- Food snapshot (allocation‑light) ---
+            var foods = new List<FoodState>(world.FoodIds.Count);
+            foreach (var fid in world.FoodIds.Keys)
+            {
+                if (gs.TryGetFood(fid, out var f) && f != null)
+                    foods.Add(f);
+            }
 
             if (foods.Count == 0)
                 return;
 
-            // --- Cached snake map for collisions ---
-            var allSnakesMap = world.SnakeIds.Keys
-                .Concat(world.AISnakeIds.Keys)
-                .Distinct()
-                .Select(id => new { Id = id, Snake = gs.TryGetPlayer(id, out var s) ? s : null })
-                .Where(x => x.Snake != null && x.Snake.IsAlive)
-                .ToDictionary(x => x.Id, x => x.Snake);
+            // Heads snapshot for avoidance (allocation‑light)
+            var headCount = world.SnakeIds.Count + world.AISnakeIds.Count;
+            var tmpHeads = new List<(string id, Vector2 pos)>(headCount);
+            foreach (var id in world.SnakeIds.Keys)
+            {
+                if (gs.TryGetPlayer(id, out var s) && s != null && s.IsAlive)
+                    tmpHeads.Add((s.PlayerId, (Vector2)s.HeadPosition));
+            }
+            foreach (var id in world.AISnakeIds.Keys)
+            {
+                if (gs.TryGetPlayer(id, out var s) && s != null && s.IsAlive)
+                    tmpHeads.Add((s.PlayerId, (Vector2)s.HeadPosition));
+            }
+            var allHeads = tmpHeads.ToArray();
 
             foreach (var snake in aiSnakes)
             {
@@ -212,20 +234,34 @@ namespace Khela.Game.Services
                     segments.Add(new SerializableVector2(0, 0));
                 }
 
-                Vector2 head = segments[0];
-                Vector2 prevDir = Vector2.Zero;
+                int last = segments.Count - 1;
 
+                // HEAD = last element
+                Vector2 head = segments[last];
+
+                // PREVIOUS HEAD = second last
+                Vector2 prevDir = Vector2.Zero;
                 if (segments.Count >= 2)
                 {
-                    var hd2 = segments[0] - segments[1]; 
-                    prevDir = hd2.LengthSquared() > 0.0001f ? NormalizeSafe(hd2) : Vector2.Zero;
+                    var from = segments[last - 1];
+                    var to = segments[last];
+                    var d = to - from;
+                    prevDir = d.LengthSquared() > 0.0001f ? NormalizeSafe(d) : Vector2.Zero;
                 }
 
-                // --- Target food selection (same logic) ---
+                // --- Target food selection with soft claims ---
                 FoodState? nearest = null;
+                float nearestD2 = float.MaxValue;
 
                 if (_targetFood.TryGetValue(aiId, out var targetId))
-                    nearest = foods.FirstOrDefault(f => f.Id == targetId);
+                {
+                    var cur = foods.FirstOrDefault(f => f.Id == targetId);
+                    if (cur != null)
+                    {
+                        nearest = cur;
+                        nearestD2 = Vector2.DistanceSquared(head, cur.Position);
+                    }
+                }
 
                 if (nearest == null)
                 { 
@@ -254,7 +290,23 @@ namespace Khela.Game.Services
                             top[j] = f;
                         }
                     }
-                    nearest = top.FirstOrDefault(f => f != null);
+
+                    for (int i = 0; i < 8; i++)
+                    {
+                        var cand = top[i];
+                        if (cand == null) continue;
+                        float d2 = best[i];
+                        if (TryClaimFood(cand.Id, aiId, d2))
+                        {
+                            nearest = cand; nearestD2 = d2; break;
+                        }
+                    }
+
+                    if (nearest == null)
+                    {
+                        nearest = top.FirstOrDefault(f => f != null);
+                        if (nearest != null) nearestD2 = Vector2.DistanceSquared(head, nearest.Position);
+                    }
                 }
 
                 Vector2 desired = Vector2.Zero;
@@ -268,6 +320,28 @@ namespace Khela.Game.Services
                 float distEdgeY = worldHalf - MathF.Abs(head.Y);
                 if (distEdgeX < margin || distEdgeY < margin)
                     desired += NormalizeSafe(new Vector2(-head.X, -head.Y)) * INWARD_WEIGHT;
+
+                // Repulsion from nearby heads (danger avoidance)
+                Vector2 avoid = Vector2.Zero;
+                float maxR2 = MAX_AVOID_DIST * MAX_AVOID_DIST;
+                int samples = 0;
+                for (int i = 0; i < allHeads.Length && samples < MAX_AVOID_SAMPLES; i++)
+                {
+                    var (oid, hpos) = allHeads[i];
+                    if (oid == aiId) continue;
+                    float dx = hpos.X - head.X;
+                    float dy = hpos.Y - head.Y;
+                    float d2 = dx * dx + dy * dy;
+                    if (d2 <= maxR2)
+                    {
+                        float d = MathF.Sqrt(MathF.Max(d2, MIN_AVOID_DIST * MIN_AVOID_DIST));
+                        float inv = 1.0f / d;
+                        avoid += new Vector2(-dx * inv, -dy * inv);
+                        samples++;
+                    }
+                }
+                if (avoid.LengthSquared() > 0.0001f)
+                    desired += NormalizeSafe(avoid) * DANGER_AVOID_WEIGHT;
 
                 // Keep momentum
                 if (prevDir.LengthSquared() > 0.0001f)
@@ -288,54 +362,13 @@ namespace Khela.Game.Services
 
                 Vector2 newHead = head + moveDir * speed * dt;
 
-                // --- Boundary kill (same behavior) ---
-                if (MathF.Abs(newHead.X) >= worldHalf || MathF.Abs(newHead.Y) >= worldHalf)
-                {
-                    _ = _gameEngine.OnPlayerDied(aiId, null);
-                    continue;
-                }
-                 
-                bool collided = false;
-                string? killerId = null;
-
-                foreach (var kv in allSnakesMap)
-                {
-                    var other = kv.Value;
-                    if (other.PlayerId == aiId || !other.IsAlive)
-                        continue;
-
-                    var segs = other.BodySegments;
-                    if (segs == null || segs.Count == 0)
-                        continue;
-
-                    for (int i = 0; i < segs.Count; i += SEGMENT_SAMPLE_STRIDE)
-                    {
-                        float dx = segs[i].X - newHead.X;
-                        float dy = segs[i].Y - newHead.Y;
-                        if (dx * dx + dy * dy <= colR2)
-                        {
-                            collided = true;
-                            killerId = other.PlayerId;
-                            break;
-                        }
-                    }
-
-                    if (collided)
-                        break;
-                }
-
-                if (collided)
-                {
-                    _ = _gameEngine.OnPlayerDied(aiId, killerId);
-                    continue;
-                }
-
-                // --- Update body (same growth & trim logic) ---
-                segments.Insert(0, new SerializableVector2(newHead));
-
                 int targetLen = snake.TargetLength;
+                // ADD NEW HEAD AT END
+                segments.Add(new SerializableVector2(newHead));
+
+                // TRIM FROM FRONT (oldest)
                 while (segments.Count > targetLen && segments.Count > 1)
-                    segments.RemoveAt(segments.Count - 1);
+                    segments.RemoveAt(0);
 
                 snake.BodySegments = segments;
                 snake.CurrentSpeed = speed;
@@ -343,16 +376,7 @@ namespace Khela.Game.Services
                  
                 gs.AddOrUpdatePlayer(snake);
                  
-                if (nearest != null)
-                {
-                    float ex = nearest.Position.X - newHead.X;
-                    float ey = nearest.Position.Y - newHead.Y;
-                    if (ex * ex + ey * ey <= EAT_RADIUS * EAT_RADIUS)
-                    {
-                        _ = _gameEngine.OnPlayerAteFood(aiId, nearest.Id);
-                        _targetFood.TryRemove(aiId, out _);
-                    }
-                }
+                // Food eats/collisions are resolved centrally in GameEngine.
             }
         }
 
@@ -382,15 +406,23 @@ namespace Khela.Game.Services
             );
         }
 
-        private static int StableHash(string s)
+        // StableHash removed (unused)
+
+        private bool TryClaimFood(int foodId, string aiId, float d2)
         {
-            unchecked
+            var now = DateTime.UtcNow.Ticks;
+            if (_foodClaims.TryAdd(foodId, (aiId, d2, now)))
+                return true;
+
+            if (_foodClaims.TryGetValue(foodId, out var existing))
             {
-                int h = 23;
-                foreach (char c in s)
-                    h = h * 31 + c;
-                return h;
+                // If significantly closer, take over
+                if (d2 < existing.d2 * 0.7f)
+                {
+                    return _foodClaims.TryUpdate(foodId, (aiId, d2, now), existing);
+                }
             }
+            return false;
         }
     }
 }

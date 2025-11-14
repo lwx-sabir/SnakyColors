@@ -32,6 +32,7 @@ namespace Khela.Game.Services
             string connectionId,
             string worldId,
             string playerId,
+            float segmentSpacing,
             string? skinId,
             bool isAi = false)
         {
@@ -88,7 +89,7 @@ namespace Khela.Game.Services
 
                 // --- New player creation (unchanged math) ---
                 float worldHalf = world.Config.WorldSize / 2f;
-                float padding = 50f;
+                float padding = 20f;
 
                 Vector2 startPos = new(
                     (Random.Shared.NextSingle() * (world.Config.WorldSize - 2 * padding)) - (worldHalf - padding),
@@ -101,7 +102,8 @@ namespace Khela.Game.Services
                     CurrentWorldId = worldId,
                     SkinID = skinId ?? "DefaultSkin",
                     IsAI = isAi,
-                    PlayerName = isAi ? "AI" : "Player"
+                    PlayerName = isAi ? "AI" : "Player",
+                    PerSegmentDist = segmentSpacing
                 };
 
                 // Track in world indexes
