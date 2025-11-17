@@ -126,7 +126,7 @@ namespace SnakyColors
                     var itemComponent = obj.GetComponent<GeneratedItem>();
                     if (itemComponent != null)
                     {
-                        itemComponent.spawner = this;
+                        //itemComponent.spawner = this;
                         itemComponent.SetData(entry.item, player);
                     } 
                 }

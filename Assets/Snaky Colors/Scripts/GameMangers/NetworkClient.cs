@@ -443,10 +443,7 @@ public class NetworkClient : MonoBehaviour
         remote.OnServerUpdate(new Vector2(startPos.x, startPos.y), serverTimeSec, playerState.CurrentSpeed > 0.01f
             ? playerState.CurrentSpeed : (playerState.BaseSpeed > 0f
             ? playerState.BaseSpeed : 0f));
-        remote.ServerOffset = serverTimeOffset;
-
-        var collisionManager = newSnakeObj.AddComponent<SlitherCollisionManager>();
-        collisionManager.SetPlayerId(myPlayerId);
+        remote.ServerOffset = serverTimeOffset; 
 
         if (newSnakeObj.GetComponent<Collider2D>() == null)
         {
@@ -589,7 +586,7 @@ public class NetworkClient : MonoBehaviour
                 activeFood.Remove(id);
             }
         }
-        // Avoid per-tick UI log spam; can be re-enabled for diagnostics
+
         // OnScreenDebug.Log("active food: " + activeFood.Count);
     }
 
@@ -644,33 +641,30 @@ public class NetworkClient : MonoBehaviour
         if (!activeFood.TryGetValue(foodEvent.FoodId, out GameObject foodObj)) return;
         activeFood.Remove(foodEvent.FoodId);
         if (foodObj == null) return;
-
-        // If already handled locally (deactivated), do nothing
+         
         if (!foodObj.activeInHierarchy) return;
 
         if (foodObj.TryGetComponent<GeneratedItem>(out var genItem))
-        {
-            // If this client was the eater, we already played local VFX; just despawn safely
+        { 
             if (foodEvent.PlayerId == myPlayerId)
             {
-                genItem.ReturnToPool();
-                return;
-            }
-
-            // Remote eater: play VFX into that snake's head
-            Transform collectorHead = null;
-            if (otherSnakes.TryGetValue(foodEvent.PlayerId, out var otherSnake))
-                collectorHead = otherSnake.transform;
-
-            if (collectorHead != null)
-            {
-                //  Debug.Log($"NET: OnFoodEaten food={foodEvent.FoodId} by={foodEvent.PlayerId} head=remote");
-                genItem.PlayRemoteCollect(collectorHead);
+                genItem.PlayRemoteCollect(localPlayerSnake.transform, true);
             }
             else
             {
-                genItem.ReturnToPool();
-            }
+                Transform collectorHead = null;
+                if (otherSnakes.TryGetValue(foodEvent.PlayerId, out var otherSnake))
+                    collectorHead = otherSnake.transform;
+
+                if (collectorHead != null)
+                {
+                    genItem.PlayRemoteCollect(collectorHead, false);
+                }
+                else
+                {
+                    genItem.ReturnToPool();
+                }
+            } 
         }
         else
         {
