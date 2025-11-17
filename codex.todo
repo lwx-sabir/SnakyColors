@@ -28,9 +28,10 @@ Completed (recent)
 - Client no longer reports death or food; only VFX/SFX and pooling.
 - AIService no longer performs its own collision/food checks; GameEngine centralizes collisions and food eats for ALL snakes.
 - AIService movement smarter: soft food claims to reduce dogpiling and lightweight head‑avoidance repulsion to reduce blind collisions.
-- Removed high‑frequency OnScreenDebug logs from NetworkClient to prevent UI‑thread slowdowns.
+- Removed high-frequency OnScreenDebug logs from NetworkClient to prevent UI-thread slowdowns.
 - Added `SyncFoods` handshake so late joiners receive the full food snapshot; client coalesces world/food updates per frame and reuses pooled items safely.
 - Gentle food spawning: pending queue with capped per-frame processing plus 1.5s grow animation for newly spawned/respawned foods to avoid visual pop.
+- Client-side prediction: SlitherMovement now drives MoveToTarget locally while LocalPredictedSnake applies server corrections smoothly.
 
 High‑Priority Action Items
 1) Server: snapshot body segments when building collision grid

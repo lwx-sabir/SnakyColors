@@ -159,7 +159,7 @@ namespace Khela.Game.Services
             const int MAX_FOOD_LIMIT = 3000;
             if (final > MAX_FOOD_LIMIT) final = MAX_FOOD_LIMIT;
 
-            return final;
+            return 100;
         }
         public void ProcessFoodDecay(WorldState world, long serverTime)
         {

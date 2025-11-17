@@ -1,6 +1,7 @@
-﻿using Khela.Game.Models;
+using Khela.Game.Models;
 using Khela.Game.Models.Configs;
 using Khela.Game.Models.States;
+using Khela.Game.Services.Simulators;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
@@ -33,7 +34,7 @@ namespace Khela.Game.Services
         // Persistent per-AI target food
         private readonly ConcurrentDictionary<string, int> _targetFood = new();
 
-        // Persistent per-AI movement memory (unused) — removed for GC hygiene
+        // Persistent per-AI movement memory (unused) � removed for GC hygiene
         // private readonly ConcurrentDictionary<string, (Vector2 dir, int ticksLeft)> _aiMoveMemory = new();
 
         // Soft food claim map to reduce dogpiling (foodId -> (aiId, d2, ts))
@@ -93,7 +94,7 @@ namespace Khela.Game.Services
                     tickCount++;
                     nextTick += _aiTickInterval;     // schedule the next tick
 
-                    // Catch-up logic — but safe and non-spiraling
+                    // Catch-up logic � but safe and non-spiraling
                     while (stopwatch.Elapsed - nextTick > _aiTickInterval)
                         nextTick += _aiTickInterval;
 
@@ -104,7 +105,7 @@ namespace Khela.Game.Services
                         if (elapsedSec > 0)
                         {
                             var eff = tickCount / elapsedSec;
-                            _logger.LogInformation("AI: {Ticks} ticks in {Sec:F1}s → {Rate:F2}Hz",
+                            _logger.LogInformation("AI: {Ticks} ticks in {Sec:F1}s ? {Rate:F2}Hz",
                                 tickCount, elapsedSec, eff);
                         }
                     }
@@ -115,7 +116,7 @@ namespace Khela.Game.Services
 
                 if (sleep > TimeSpan.Zero)
                 {
-                    // AI sleeps lightly — DOES NOT flood CPU
+                    // AI sleeps lightly � DOES NOT flood CPU
                     await Task.Delay(sleep, stoppingToken);
                 }
                 else
@@ -197,7 +198,7 @@ namespace Khela.Game.Services
             float worldHalf = world.Config.WorldSize / 2f;
             float dt = (float)_aiTickInterval.TotalSeconds;
 
-            // --- Food snapshot (allocation‑light) ---
+            // --- Food snapshot (allocation-light) ---
             var foods = new List<FoodState>(world.FoodIds.Count);
             foreach (var fid in world.FoodIds.Keys)
             {
@@ -208,7 +209,7 @@ namespace Khela.Game.Services
             if (foods.Count == 0)
                 return;
 
-            // Heads snapshot for avoidance (allocation‑light)
+            // Heads snapshot for avoidance (allocation-light)
             var headCount = world.SnakeIds.Count + world.AISnakeIds.Count;
             var tmpHeads = new List<(string id, Vector2 pos)>(headCount);
             foreach (var id in world.SnakeIds.Keys)
@@ -227,7 +228,13 @@ namespace Khela.Game.Services
             {
                 string aiId = snake.PlayerId;
 
-                var segments = snake.BodySegments ?? new List<SerializableVector2>();
+                var segments = snake.BodySegments;
+                if (segments == null)
+                {
+                    segments = new List<SerializableVector2>();
+                    snake.BodySegments = segments;
+                }
+
                 if (segments.Count == 0)
                 {
                     // Ensure at least one segment exists
@@ -251,17 +258,15 @@ namespace Khela.Game.Services
 
                 // --- Target food selection with soft claims ---
                 FoodState? nearest = null;
-                float nearestD2 = float.MaxValue;
 
                 if (_targetFood.TryGetValue(aiId, out var targetId))
                 {
                     var cur = foods.FirstOrDefault(f => f.Id == targetId);
-                    if (cur != null)
-                    {
-                        nearest = cur;
-                        nearestD2 = Vector2.DistanceSquared(head, cur.Position);
+                        if (cur != null)
+                        {
+                            nearest = cur;
+                        }
                     }
-                }
 
                 if (nearest == null)
                 { 
@@ -298,14 +303,14 @@ namespace Khela.Game.Services
                         float d2 = best[i];
                         if (TryClaimFood(cand.Id, aiId, d2))
                         {
-                            nearest = cand; nearestD2 = d2; break;
+                            nearest = cand;
+                            break;
                         }
                     }
 
                     if (nearest == null)
                     {
                         nearest = top.FirstOrDefault(f => f != null);
-                        if (nearest != null) nearestD2 = Vector2.DistanceSquared(head, nearest.Position);
                     }
                 }
 
@@ -349,30 +354,9 @@ namespace Khela.Game.Services
 
                 desired = NormalizeSafe(desired);
 
-                float speed = snake.IsBoosting
-                    ? snake.BoostSpeed
-                    : (snake.BaseSpeed > 0 ? snake.BaseSpeed : snake.CurrentSpeed);
-
-                float turnDeg = snake.MaxTurningAngle > 0 ? snake.MaxTurningAngle : 360f;
-                float maxRad = turnDeg * (MathF.PI / 180f) * dt;
-
-                Vector2 moveDir = prevDir.LengthSquared() > 0.0001f
-                    ? RotateTowards(prevDir, desired, maxRad)
-                    : desired;
-
-                Vector2 newHead = head + moveDir * speed * dt;
-
-                int targetLen = snake.TargetLength;
-                // ADD NEW HEAD AT END
-                segments.Add(new SerializableVector2(newHead));
-
-                // TRIM FROM FRONT (oldest)
-                while (segments.Count > targetLen && segments.Count > 1)
-                    segments.RemoveAt(0);
-
-                snake.BodySegments = segments;
-                snake.CurrentSpeed = speed;
+                snake.PendingInputDir = desired;
                 snake.IsBoosting = false;
+                SnakeSimulation.StepPlayerSnake(snake, dt);
                  
                 gs.AddOrUpdatePlayer(snake);
                  
@@ -386,27 +370,6 @@ namespace Khela.Game.Services
 
         private static Vector2 NormalizeSafe(Vector2 v)
             => v.LengthSquared() < 0.0001f ? Vector2.Zero : Vector2.Normalize(v);
-
-        private static Vector2 RotateTowards(Vector2 from, Vector2 to, float maxRadians)
-        {
-            var f = NormalizeSafe(from);
-            var t = NormalizeSafe(to);
-
-            if (f.LengthSquared() < 0.0001f)
-                return t;
-
-            float angle = MathF.Atan2(f.X * t.Y - f.Y * t.X, f.X * t.X + f.Y * t.Y);
-            float clamped = Math.Clamp(angle, -maxRadians, maxRadians);
-            float cos = MathF.Cos(clamped);
-            float sin = MathF.Sin(clamped);
-
-            return new Vector2(
-                f.X * cos - f.Y * sin,
-                f.X * sin + f.Y * cos
-            );
-        }
-
-        // StableHash removed (unused)
 
         private bool TryClaimFood(int foodId, string aiId, float d2)
         {

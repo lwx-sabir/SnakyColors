@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+using System;
+using System.Numerics;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
 
@@ -15,12 +16,12 @@ namespace Khela.Game.Models.States
         public bool IsBoosting { get; set; } = false;
         public bool IsAI { get; set; }
         public float Score { get; set; } = 0;
-        public int Mass { get; set; } = 35;
-        public float BaseSpeed { get; set; } = 7f;
-        public float CurrentSpeed { get; set; } = 7f;
-        public float BoostSpeed { get; set; } = 10f;
-        public float MaxTurningAngle { get; set; } = 1000f;
-        public float PerSegmentDist { get; set; } = 0.5f;
+        public int Mass { get; set; } = 12;
+        public float BaseSpeed { get; set; } = 7.1f;
+        public float CurrentSpeed { get; set; } = 7.1f;
+        public float BoostSpeed { get; set; } = 12f;
+        public float MaxTurningAngle { get; set; } = 380f;
+        public float PerSegmentDist { get; set; } = 0.5f; 
 
         public List<SerializableVector2> BodySegments { get; set; } = new List<SerializableVector2>();
 
@@ -35,9 +36,10 @@ namespace Khela.Game.Models.States
             : Vector2.Zero;
 
         [JsonIgnore]
-        public int TargetLength => 20 + (int)(Score / 10f);
+        public float ScorePerSegment { get; set; } = 10f;
 
-        // === NEW: server-side runtime state ===
+        [JsonIgnore]
+        public int TargetLength => 20 + (int)(Score / MathF.Max(1f, ScorePerSegment)); 
 
         /// <summary>
         /// Latest input direction from client (unit vector or zero).

@@ -8,6 +8,7 @@ using Khela.Game.Services;
 using Microsoft.AspNetCore.SignalR;
 using Khela.Game.Models;
 using Khela.Game.Models.States;
+using Khela.Game.Dtos;
 
 namespace Khela.Game.Managers.SRHubs
 {
@@ -55,7 +56,8 @@ namespace Khela.Game.Managers.SRHubs
             }
 
             await Groups.AddToGroupAsync(connectionId, world.WorldId);
-            await Clients.Caller.SendAsync("OnJoinSuccess", player); 
+            var safePlayer = MapToDto(player);
+            await Clients.Caller.SendAsync("OnJoinSuccess", safePlayer); 
         }
 
         // =====================================================
@@ -122,6 +124,36 @@ namespace Khela.Game.Managers.SRHubs
         public async Task Ping()
         {
             await Clients.Caller.SendAsync("Pong");
+        }
+
+        private static PlayerStateDto MapToDto(PlayerState player)
+        {
+            if (player == null)
+                return null;
+
+            var dto = new PlayerStateDto
+            {
+                PlayerId = player.PlayerId,
+                ConnectionId = player.ConnectionId,
+                PlayerName = player.PlayerName,
+                CurrentWorldId = player.CurrentWorldId,
+                SkinID = player.SkinID,
+                IsAlive = player.IsAlive,
+                IsBoosting = player.IsBoosting,
+                IsAI = player.IsAI,
+                Score = player.Score,
+                Mass = player.Mass,
+                BaseSpeed = player.BaseSpeed,
+                CurrentSpeed = player.CurrentSpeed,
+                BoostSpeed = player.BoostSpeed,
+                MaxTurningAngle = player.MaxTurningAngle,
+                PerSegmentDist = player.PerSegmentDist,
+                BodySegments = player.BodySegments != null && player.BodySegments.Count > 0
+                    ? player.BodySegments.ToArray()
+                    : System.Array.Empty<SerializableVector2>()
+            };
+
+            return dto;
         }
     }
 }

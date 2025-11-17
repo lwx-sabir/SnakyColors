@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Numerics;
 using Khela.Game.Dtos;
 using Khela.Game.Models;
@@ -8,7 +8,6 @@ using Khela.Game.Services.Simulators;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 
 // ==============================================
 // GameEngine.cs
@@ -41,14 +40,8 @@ namespace Khela.Game.Services
         private readonly int _tickRate;
         private readonly TimeSpan _tickInterval;
         private readonly WorldConfig _defaultConfig = new();
-
-        // === Collision tuning (authoritative) ===
-        private const float COLLISION_RADIUS = 0.75f;          // head vs body radius
-        private const float HEAD_HEAD_RADIUS = 0.60f;          // head vs head radius
-        private const int SEGMENT_SAMPLE_STRIDE = 4;           // sample every Nth segment for grid
-        private const float GRID_CELL_SCALE = 1.25f;           // cell size multiplier over radius
-        private const float FOOD_EAT_RADIUS = 0.70f;           // matches OnPlayerAteFood check
-
+        private readonly CollisionManager _collisionManager = new();
+          
         public GameEngine(
             FoodService foodService,
             ILogger<GameEngine> logger)
@@ -122,14 +115,12 @@ namespace Khela.Game.Services
             var head = snake.HeadPosition;
             float dx = food.Position.X - head.X;
             float dy = food.Position.Y - head.Y;
-            float eatRadius = snake.IsAI ? 0.7f : 0.7f;
+            float eatRadius = _collisionManager.GetFoodEatRadius(snake) + _collisionManager.FoodItemRadius;
 
             if (dx * dx + dy * dy > eatRadius * eatRadius)
                 return Task.CompletedTask;
 
-            // Apply gain
-            snake.Score += 10;
-            gs.AddOrUpdatePlayer(snake);
+            _foodService.ApplyFoodReward(snake, food);
 
             // Remove food from world (in-memory)
             _foodService.RemoveFoodAsync(world, foodId); // fire-and-forget is fine here
@@ -275,26 +266,16 @@ namespace Khela.Game.Services
                 }
             }
 
-            // Authoritative collisions (players vs world and vs all snakes)
+            // Authoritative collisions & food collection
             try
             {
                 var allSnakes = gs.GetAllPlayersByWorld(world.WorldId);
                 ResolveCollisions(world, allSnakes);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Collision resolution failed for world {WorldId}", world.WorldId);
-            }
-
-            // Authoritative food collection for all players (no client collision dependency)
-            try
-            {
-                var allSnakes = gs.GetAllPlayersByWorld(world.WorldId);
                 ResolveFoodEats(world, allSnakes);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Food resolution failed for world {WorldId}", world.WorldId);
+                _logger.LogError(ex, "Collision/food resolution failed for world {WorldId}", world.WorldId);
             }
 
             // Food management (in-memory)
@@ -381,309 +362,32 @@ namespace Khela.Game.Services
         // ===============================
         // === Collision Grid Helpers ===
         // ===============================
-        private readonly struct CellKey : IEquatable<CellKey>
-        {
-            public readonly int X;
-            public readonly int Y;
-            public CellKey(int x, int y) { X = x; Y = y; }
-            public bool Equals(CellKey other) => X == other.X && Y == other.Y;
-            public override bool Equals(object? obj) => obj is CellKey ck && Equals(ck);
-            public override int GetHashCode() => HashCode.Combine(X, Y);
-        }
-
-        private struct Candidate
-        {
-            public string OwnerId;
-            public Vector2 Pos;
-            public byte Flags; // bit0: isHead
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool IsHead() => (Flags & 0x1) != 0;
-        }
-
-        private sealed class Grid
-        {
-            public readonly float CellSize;
-            private readonly Dictionary<CellKey, List<Candidate>> _cells = new(1024);
-
-            public Grid(float cellSize) { CellSize = cellSize; }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private CellKey KeyFor(in Vector2 p)
-            {
-                int cx = (int)MathF.Floor(p.X / CellSize);
-                int cy = (int)MathF.Floor(p.Y / CellSize);
-                return new CellKey(cx, cy);
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Add(in Candidate c)
-            {
-                var key = KeyFor(c.Pos);
-                if (!_cells.TryGetValue(key, out var list))
-                {
-                    list = new List<Candidate>(8);
-                    _cells[key] = list;
-                }
-                list.Add(c);
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public IEnumerable<Candidate> QueryNeighborhood(Vector2 p)
-            {
-                var center = KeyFor(p);
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    for (int dx = -1; dx <= 1; dx++)
-                    {
-                        var key = new CellKey(center.X + dx, center.Y + dy);
-                        if (_cells.TryGetValue(key, out var list))
-                        {
-                            for (int i = 0; i < list.Count; i++)
-                                yield return list[i];
-                        }
-                    }
-                }
-            }
-        }
-
         private void ResolveCollisions(
             WorldState world,
             List<PlayerState> allSnakes)
         {
-            if (allSnakes == null || allSnakes.Count == 0)
+            if (world == null || allSnakes == null || allSnakes.Count == 0)
                 return;
 
-            float worldHalf = world.Config.WorldSize * 0.5f;
-            float cellSize = MathF.Max(0.5f, COLLISION_RADIUS * GRID_CELL_SCALE);
-            var grid = new Grid(cellSize);
-
-            // Build spatial index from all snakes' sampled segments and heads
-            foreach (var s in allSnakes)
-            {
-                if (s == null || !s.IsAlive) continue;
-                var segsArr = s.BodySegments != null ? s.BodySegments.ToArray() : null;
-                if (segsArr == null || segsArr.Length == 0) continue;
-
-                // Sampled body segments
-                int stride = Math.Max(1, SEGMENT_SAMPLE_STRIDE);
-                for (int i = 0; i < segsArr.Length - 1; i += stride)
-                {
-                    var v = (Vector2)segsArr[i];
-                    grid.Add(new Candidate { OwnerId = s.PlayerId, Pos = v, Flags = 0 });
-                }
-
-                // Head
-                var head = s.HeadPosition; // SerializableVector2
-                var hp = new Vector2(head.X, head.Y);
-                grid.Add(new Candidate { OwnerId = s.PlayerId, Pos = hp, Flags = 0x1 });
-            }
-
-            float r2 = COLLISION_RADIUS * COLLISION_RADIUS;
-            float hh2 = HEAD_HEAD_RADIUS * HEAD_HEAD_RADIUS;
-
-            // Accumulate deaths for this tick to avoid duplicate processing
-            var toKill = new Dictionary<string, string?>(capacity: allSnakes.Count);
-
-            foreach (var s in allSnakes)
-            {
-                if (s == null || !s.IsAlive) continue;
-                if (toKill.ContainsKey(s.PlayerId)) continue; // already scheduled
-
-                var head = s.HeadPosition;
-                var hp = new Vector2(head.X, head.Y);
-
-                // Boundary kill (authoritative)
-                if (MathF.Abs(hp.X) >= worldHalf || MathF.Abs(hp.Y) >= worldHalf)
-                {
-                    toKill[s.PlayerId] = null; // boundary
-                    continue;
-                }
-
-                // Query neighborhood for candidates
-                Candidate? bestBody = null;
-                Candidate? bestHead = null;
-                float bestBodyD2 = float.MaxValue;
-                float bestHeadD2 = float.MaxValue;
-
-                foreach (var c in grid.QueryNeighborhood(hp))
-                {
-                    if (c.OwnerId == s.PlayerId) continue; // ignore self body
-
-                    float dx = c.Pos.X - hp.X;
-                    float dy = c.Pos.Y - hp.Y;
-                    float d2 = dx * dx + dy * dy;
-
-                    if (c.IsHead())
-                    {
-                        if (d2 < bestHeadD2)
-                        {
-                            bestHeadD2 = d2;
-                            bestHead = c;
-                        }
-                    }
-                    else
-                    {
-                        if (d2 < bestBodyD2)
-                        {
-                            bestBodyD2 = d2;
-                            bestBody = c;
-                        }
-                    }
-                }
-
-                // Head vs Body has priority
-                if (bestBody.HasValue && bestBodyD2 <= r2)
-                {
-                    toKill[s.PlayerId] = bestBody.Value.OwnerId;
-                    continue;
-                }
-
-                // Head vs Head resolution
-                if (bestHead.HasValue && bestHeadD2 <= hh2)
-                {
-                    var otherId = bestHead.Value.OwnerId;
-                    if (string.IsNullOrEmpty(otherId))
-                    {
-                        toKill[s.PlayerId] = null;
-                    }
-                    else
-                    {
-                        // Tie-break: heavier mass survives; if equal, both die
-                        bool otherAlive = !toKill.ContainsKey(otherId);
-                        if (GameState.Instance.TryGetPlayer(otherId, out var other) && otherAlive)
-                        {
-                            if (other.Mass > s.Mass)
-                            {
-                                toKill[s.PlayerId] = otherId;
-                            }
-                            else if (other.Mass < s.Mass)
-                            {
-                                // we survive; let other's iteration handle its own case
-                            }
-                            else
-                            {
-                                // equal mass: both die
-                                toKill[s.PlayerId] = otherId;
-                                if (!toKill.ContainsKey(otherId)) toKill[otherId] = s.PlayerId;
-                            }
-                        }
-                        else
-                        {
-                            toKill[s.PlayerId] = null;
-                        }
-                    }
-                }
-            }
-
-            if (toKill.Count == 0) return;
-
-            // Execute deaths (fire-and-forget per original contract)
-            foreach (var kv in toKill)
+            var deaths = _collisionManager.Resolve(world, allSnakes);
+            foreach (var kv in deaths)
             {
                 _ = OnPlayerDied(kv.Key, kv.Value);
             }
         }
 
-        // ---------------------------------
-        // Food collection (authoritative)
-        // ---------------------------------
-        private sealed class FoodGrid
+        private void ResolveFoodEats(
+            WorldState world,
+            List<PlayerState> allSnakes)
         {
-            public readonly float CellSize;
-            private readonly Dictionary<CellKey, List<(int id, Vector2 pos)>> _cells = new(1024);
-            public FoodGrid(float cellSize) { CellSize = cellSize; }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private CellKey KeyFor(in Vector2 p)
-            {
-                int cx = (int)MathF.Floor(p.X / CellSize);
-                int cy = (int)MathF.Floor(p.Y / CellSize);
-                return new CellKey(cx, cy);
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Add(int id, in Vector2 p)
-            {
-                var key = KeyFor(p);
-                if (!_cells.TryGetValue(key, out var list))
-                {
-                    list = new List<(int id, Vector2 pos)>(8);
-                    _cells[key] = list;
-                }
-                list.Add((id, p));
-            }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public IEnumerable<(int id, Vector2 pos)> QueryNeighborhood(Vector2 p)
-            {
-                var center = KeyFor(p);
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    for (int dx = -1; dx <= 1; dx++)
-                    {
-                        var key = new CellKey(center.X + dx, center.Y + dy);
-                        if (_cells.TryGetValue(key, out var list))
-                        {
-                            for (int i = 0; i < list.Count; i++)
-                                yield return list[i];
-                        }
-                    }
-                }
-            }
-        }
-
-        private void ResolveFoodEats(WorldState world, List<PlayerState> allSnakes)
-        {
-            if (allSnakes == null || allSnakes.Count == 0) return;
+            if (world == null || allSnakes == null || allSnakes.Count == 0)
+                return;
 
             var gs = GameState.Instance;
-            if (!gs.TryGetWorld(world.WorldId, out var w)) return;
-            if (w.FoodIds == null || w.FoodIds.Count == 0) return;
-
-            float cell = MathF.Max(0.5f, FOOD_EAT_RADIUS * GRID_CELL_SCALE);
-            var grid = new FoodGrid(cell);
-
-            // Build grid of foods for this world
-            foreach (var fid in w.FoodIds.Keys)
+            var eats = _collisionManager.ResolveFoodEats(world, allSnakes, gs);
+            foreach (var (playerId, foodId) in eats)
             {
-                if (!gs.TryGetFood(fid, out var food))
-                    continue;
-                var p = new Vector2(food.Position.X, food.Position.Y);
-                grid.Add(food.Id, p);
-            }
-
-            float eatR2 = FOOD_EAT_RADIUS * FOOD_EAT_RADIUS;
-            var consumed = new HashSet<int>();
-
-            // For each player, eat nearest food within radius (one per tick)
-            foreach (var s in allSnakes)
-            {
-                if (s == null || !s.IsAlive) continue;
-
-                var head = s.HeadPosition;
-                var hp = new Vector2(head.X, head.Y);
-
-                int bestId = 0;
-                float bestD2 = float.MaxValue;
-
-                foreach (var f in grid.QueryNeighborhood(hp))
-                {
-                    if (consumed.Contains(f.id)) continue;
-                    float dx = f.pos.X - hp.X;
-                    float dy = f.pos.Y - hp.Y;
-                    float d2 = dx * dx + dy * dy;
-                    if (d2 <= eatR2 && d2 < bestD2)
-                    {
-                        bestD2 = d2;
-                        bestId = f.id;
-                    }
-                }
-
-                if (bestId != 0)
-                {
-                    consumed.Add(bestId);
-                    _ = OnPlayerAteFood(s.PlayerId, bestId);
-                }
+                _ = OnPlayerAteFood(playerId, foodId);
             }
         }
 

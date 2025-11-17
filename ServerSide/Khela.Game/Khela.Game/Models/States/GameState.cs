@@ -22,6 +22,9 @@ namespace Khela.Game.Models.States
 
         private readonly Dictionary<string, HashSet<int>> LastFoodSet = new();
 
+        private readonly List<FoodState> _localItemsDefinitions = LocalDataProvider.GetFoodDefinitions();
+        public IReadOnlyList<FoodState> LocalItemDefinitions => _localItemsDefinitions;
+
         // =====================================================
         // BASIC ACCESS
         // =====================================================

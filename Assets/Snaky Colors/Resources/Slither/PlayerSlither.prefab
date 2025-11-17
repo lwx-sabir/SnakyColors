@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: -5111056512927573655}
   - component: {fileID: -148072578002420997}
   - component: {fileID: -2107004381432685356}
+  - component: {fileID: 6121669189307566935}
   m_Layer: 7
   m_Name: PlayerSlither
   m_TagString: Player
@@ -827,3 +828,27 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &6121669189307566935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6360206223930948518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c556542739aac3418fdcd9ebf3d3e3c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ServerRadiusVisualizer
+  collisionRadius: 0.35
+  headHeadRadius: 0.35
+  baseFoodEatRadius: 0.35
+  foodPerMass: 0.04
+  minFoodEat: 0.35
+  maxFoodEat: 1.2
+  snakeMass: 0
+  headPosition: {x: 0, y: 0}
+  showCollision: 1
+  showHeadHead: 1
+  showFoodEat: 1
+  runtimeDebugDraw: 0

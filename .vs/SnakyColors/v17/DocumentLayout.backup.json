@@ -7,20 +7,24 @@
       "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gamemangers\\networkclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gamemangers\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gamemangers\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\slither\\localpredictedsnake.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\slither\\localpredictedsnake.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\slither\\slithercollisionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\slither\\slithercollisionmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\slither\\slithermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\slither\\slithermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\slither\\remotesnake.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\slither\\remotesnake.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\slither\\slithermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gameplay\\slither\\slithermovement.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gamemangers\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\gamemangers\\gamemanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\items\\generateditem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|solutionrelative:assets\\snaky colors\\scripts\\items\\generateditem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E97F6EAD-C8C0-B92C-36AE-47A670C32310}|Assembly-CSharp.csproj|D:\\Projects\\SnakyColors\\assets\\snaky colors\\scripts\\gameplay\\slither\\dtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -38,7 +42,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "GameManager.cs",
               "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GameMangers\\GameManager.cs",
@@ -47,8 +51,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-29T16:41:23.313Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
@@ -56,9 +59,9 @@
               "Title": "NetworkClient.cs",
               "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\NetworkClient.cs",
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GameMangers\\NetworkClient.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\NetworkClient.cs*",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GameMangers\\NetworkClient.cs*",
-              "ViewState": "AgIAAHQAAAAAAAAAAAAnwM8CAAAAAAAAAAAAAA==",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GameMangers\\NetworkClient.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GameMangers\\NetworkClient.cs",
+              "ViewState": "AgIAAHkCAAAAAAAAAAAnwIYCAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-02T09:13:14.734Z",
               "IsPinned": true,
@@ -66,26 +69,51 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 1,
+              "Title": "LocalPredictedSnake.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\LocalPredictedSnake.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\LocalPredictedSnake.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\LocalPredictedSnake.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\LocalPredictedSnake.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAmwAkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-14T20:29:15.895Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "GeneratedItem.cs",
+              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
+              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
+              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
+              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\Items\\GeneratedItem.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAewHIAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-14T18:40:41.398Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "SlitherMovement.cs",
               "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\SlitherMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\SlitherMovement.cs",
               "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\SlitherMovement.cs",
               "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\SlitherMovement.cs",
-              "ViewState": "AgIAAEsAAAAAAAAAAAAuwHUAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAnwGsAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-12T22:03:03.696Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Dtos.cs",
               "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\Dtos.cs",
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\Dtos.cs",
               "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\Dtos.cs",
               "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\Dtos.cs",
-              "ViewState": "AgIAACEAAAAAAAAAAAAIwHMAAAAdAAAAAAAAAA==",
+              "ViewState": "AgIAAEcAAAAAAAAAAIAzwEQAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-12T20:50:40.232Z"
             },
@@ -97,22 +125,9 @@
               "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\RemoteSnake.cs",
               "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\RemoteSnake.cs",
               "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\RemoteSnake.cs",
-              "ViewState": "AgIAADcAAAAAAAAAAAAvwIAAAABBAAAAAAAAAA==",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAcwI4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-09T03:16:15.22Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "SlitherCollisionManager.cs",
-              "DocumentMoniker": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\SlitherCollisionManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\SlitherCollisionManager.cs",
-              "ToolTip": "D:\\Projects\\SnakyColors\\Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\SlitherCollisionManager.cs",
-              "RelativeToolTip": "Assets\\Snaky Colors\\Scripts\\GamePlay\\Slither\\SlitherCollisionManager.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAA6AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-07T03:28:45.491Z",
               "EditorCaption": ""
             }
           ]

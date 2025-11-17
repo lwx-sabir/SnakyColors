@@ -9,7 +9,7 @@ using System.Text.Json;
 namespace Khela.Game.Services
 {
     /// <summary>
-    /// Broadcasts world state snapshots to SignalR clients (10Hz).
+    /// Broadcasts world state snapshots to SignalR clients (20Hz).
     /// Uses GameState.Instance instead of Redis — all runtime data is in memory.
     /// </summary>
     public class GameBroadcastService : BackgroundService

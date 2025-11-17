@@ -24,7 +24,7 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: daf0bc0587176084c9619f4fb4c9d6a4, type: 3}
   collectSound: {fileID: 8300000, guid: 15567e7ddaef04bb9a6366ad84515027, type: 3}
   itemColor: {r: 0.9294118, g: 0.19215688, b: 0.40000004, a: 1}
-  poolSize: 15
+  poolSize: 100
   sameItemCannotOverlap: 0
   sameItemMinRadius: 0.5
   autoDespawnAfterDuration: 0

@@ -102,7 +102,8 @@ MonoBehaviour:
   baseThickness: 0.5
   thicknessPerMass: 0.02
   minThickness: 0.3
-  maxThickness: 2
+  maxThickness: 5.5
+  PendingInput: {x: 0, y: 0}
 --- !u!114 &7724678118782725888
 MonoBehaviour:
   m_ObjectHideFlags: 0

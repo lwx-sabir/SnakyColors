@@ -15,7 +15,7 @@ namespace SnakyColors
 
         [Header("Zoom")]
         [Tooltip("The orthographic size when 'boosting' (zooms out). Set this > your camera's default size.")]
-        [SerializeField] private float boostOrthoSize = 8.5f;
+        [SerializeField] private float boostOrthoSize = 12.5f;
         [Tooltip("How long (in seconds) it takes to zoom.")]
         [SerializeField] private float zoomSmoothTime = 0.2f;
 

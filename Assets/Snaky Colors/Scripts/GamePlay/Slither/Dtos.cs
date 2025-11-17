@@ -69,7 +69,7 @@ namespace SnakyColors
         public bool IsBoosting { get; set; } = false;
         public bool IsAI { get; set; }
         public float Score { get; set; } = 0;
-        public int Mass { get; set; } = 35;
+        public int Mass { get; set; } = 20;
         public float BaseSpeed { get; set; } = 7f;
         public float CurrentSpeed { get; set; } = 7f;
         public float BoostSpeed { get; set; } = 10f;

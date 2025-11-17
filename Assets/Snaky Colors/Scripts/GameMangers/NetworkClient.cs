@@ -443,10 +443,7 @@ public class NetworkClient : MonoBehaviour
         remote.OnServerUpdate(new Vector2(startPos.x, startPos.y), serverTimeSec, playerState.CurrentSpeed > 0.01f
             ? playerState.CurrentSpeed : (playerState.BaseSpeed > 0f
             ? playerState.BaseSpeed : 0f));
-        remote.ServerOffset = serverTimeOffset;
-
-        var collisionManager = newSnakeObj.AddComponent<SlitherCollisionManager>();
-        collisionManager.SetPlayerId(myPlayerId);
+        remote.ServerOffset = serverTimeOffset; 
 
         if (newSnakeObj.GetComponent<Collider2D>() == null)
         {
@@ -665,7 +662,7 @@ public class NetworkClient : MonoBehaviour
             if (collectorHead != null)
             {
                 //  Debug.Log($"NET: OnFoodEaten food={foodEvent.FoodId} by={foodEvent.PlayerId} head=remote");
-                genItem.PlayRemoteCollect(collectorHead);
+                genItem.PlayRemoteCollect(collectorHead, false);
             }
             else
             {

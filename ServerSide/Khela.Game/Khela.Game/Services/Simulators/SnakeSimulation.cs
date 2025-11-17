@@ -107,7 +107,7 @@ namespace Khela.Game.Services.Simulators
 
                     snake.BodySegments[i] = new SerializableVector2(a.X, a.Y);
                 }
-            }
+            } 
         }
     }
 }

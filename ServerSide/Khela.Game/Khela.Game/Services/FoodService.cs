@@ -1,3 +1,4 @@
+using System;
 using Khela.Game.Models.Configs;
 using Khela.Game.Models.States;
 using Microsoft.Extensions.Logging;
@@ -9,7 +10,7 @@ namespace Khela.Game.Services
 {
     /// <summary>
     /// In-memory food manager for each world.
-    /// No Redis I/O in runtime — all data lives in GameState.
+    /// No Redis I/O in runtime ï¿½ all data lives in GameState.
     /// Persistence handled by GameStateSyncService.
     /// </summary>
     public class FoodService
@@ -138,6 +139,19 @@ namespace Khela.Game.Services
             return food;
         }
 
+        public void ApplyFoodReward(PlayerState snake, FoodState food)
+        {
+            if (snake == null || food == null)
+                return;
+
+            float gain = Math.Max(0f, food.ScoreValue);
+            if (gain <= 0f)
+                return;
+
+            snake.Score += gain;
+            GameState.Instance.AddOrUpdatePlayer(snake);
+        }
+
         // =====================================================
         // DEBUG / RESET HELPERS
         // =====================================================
@@ -181,7 +195,7 @@ namespace Khela.Game.Services
             float cy = (_rng.NextSingle() * (half * 1.2f)) - (half * 0.6f);
 
             // radius around center
-            float r = _rng.NextSingle() * 8f + 2f; // 2–10 radius
+            float r = _rng.NextSingle() * 8f + 2f; // 2ï¿½10 radius
 
             // angle offset
             float angle = (float)(_rng.NextDouble() * Math.PI * 2);

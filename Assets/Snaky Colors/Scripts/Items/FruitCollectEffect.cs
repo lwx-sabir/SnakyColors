@@ -7,12 +7,12 @@ namespace SnakyColors
     public class FruitCollectEffect : MonoBehaviour
     {
         [Header("Setup")]
-        public float pullDuration = 0.15f; // Basic item duration
+        public float pullDurationOverride = 0f; // Basic item duration
         [Tooltip("The pop scale used for 'Basic' items.")]
         public float popScale = 1.2f;
         [Tooltip("The 'slightly bigger' pop scale for 'Special' items.")]
         public float specialPopScale = 1.6f;
-        public float specialPullDuration = 0.9f; // Special item duration
+        public float specialPullDurationOverride = 0f; // Special item duration
         public bool useFruitColor = true;
 
         [Header("Animation Curves")]
@@ -31,6 +31,8 @@ namespace SnakyColors
         private Color originalColor;
         private Color originalTextColor;
         private Color activeTextColor;
+        public float _pullDuration = 0.7f;
+        public float _specialPullDuration = 0.9f;
 
         void Awake()
         {
@@ -63,6 +65,12 @@ namespace SnakyColors
 
             if (iconRenderer != null)
                 iconRenderer.enabled = false;
+
+            if(pullDurationOverride > 0)
+                _pullDuration = pullDurationOverride;
+
+            if (specialPullDurationOverride > 0)
+                _specialPullDuration = specialPullDurationOverride;
         }
 
         /// <summary>
@@ -94,8 +102,8 @@ namespace SnakyColors
                 iconRenderer.enabled = true;
 
                 // Start juicy special animation
-                StartCoroutine(CollectRoutine(specialPopScale, specialPullDuration, true));
-                return specialPullDuration;
+                StartCoroutine(CollectRoutine(specialPopScale, _specialPullDuration, true));
+                return _specialPullDuration;
             }
             else
             {
@@ -103,8 +111,8 @@ namespace SnakyColors
                 if (iconRenderer != null) iconRenderer.enabled = false;
                 if (sr != null) sr.enabled = true;
 
-                StartCoroutine(CollectRoutine(popScale, pullDuration, false));
-                return pullDuration;
+                StartCoroutine(CollectRoutine(popScale, _pullDuration, false));
+                return _pullDuration;
             }
         }
 

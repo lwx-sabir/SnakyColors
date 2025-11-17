@@ -203,7 +203,7 @@ namespace SnakyColors
 
                     if (playerRef != null)
                     {  
-                        genItem.isDropped = true;
+                       // genItem.isDropped = true;
                         genItem.SetData(itemToDrop, playerRef);
                     }
                     else Debug.LogError($"Could not find Player Transform! Cannot SetData on dropped {itemToDrop.itemName}", this);
